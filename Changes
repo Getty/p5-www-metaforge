@@ -1,3 +1,6 @@
 {{$NEXT}}
 
  - Initial release
+ - ARC Raiders API client (items, quests, traders, arcs, events, map data)
+ - CLI tool: metaforge-arcraiders
+ - Response caching with configurable TTL
