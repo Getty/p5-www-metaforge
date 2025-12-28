@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "id": "ferro-i",
+      "name": "Ferro I",
+      "description": "Heavy break-action rifle. Packs a punch.",
+      "item_type": "Weapon",
+      "rarity": "Common",
+      "value": 475,
+      "stat_block": {
+        "damage": 40,
+        "fireRate": 6.6,
+        "range": 53.1,
+        "stability": 78.1,
+        "weight": 8.0,
+        "stackSize": 1
+      }
+    },
+    {
+      "id": "angled-grip-i",
+      "name": "Angled Grip I",
+      "description": "Slightly reduces horizontal recoil.",
+      "item_type": "Modification",
+      "rarity": "Common",
+      "value": 640,
+      "stat_block": {
+        "weight": 0.25,
+        "stackSize": 1
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 2,
+    "totalPages": 1
+  }
+}

@@ -1,0 +1,130 @@
+package WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc;
+# ABSTRACT: Show details for a single arc
+
+use Moo;
+use JSON::MaybeXS;
+use namespace::clean;
+use MooX::Cmd;
+
+sub execute {
+  my ($self, $args, $chain) = @_;
+  my $app = $chain->[0];
+
+  my $arc_id = $args->[0];
+  unless ($arc_id) {
+    print "Usage: arcraiders arc <id>\n";
+    print "Example: arcraiders arc minor-storm\n";
+    return;
+  }
+
+  # Try fetching by ID first (API supports id= query param)
+  my $result = $app->api->arcs_paginated(id => $arc_id);
+  my $arcs = $result->{data};
+
+  # If not found by ID, search all arcs
+  if (!@$arcs) {
+    $arcs = $app->api->arcs_all;
+    my ($match) = grep {
+      ($_->id && lc($_->id) eq lc($arc_id)) ||
+      ($_->name && lc($_->name) eq lc($arc_id))
+    } @$arcs;
+    $arcs = $match ? [$match] : [];
+  }
+
+  unless (@$arcs) {
+    print "Arc '$arc_id' not found.\n";
+    return;
+  }
+
+  my $arc = $arcs->[0];
+
+  if ($app->json) {
+    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode($arc->_raw);
+    return;
+  }
+
+  _print_arc_details($arc);
+}
+
+sub _print_arc_details {
+  my ($arc) = @_;
+
+  print "=" x 60, "\n";
+  printf "%s\n", $arc->name // 'Unknown';
+  print "=" x 60, "\n";
+
+  _print_field("ID",   $arc->id);
+  _print_field("Type", $arc->type);
+
+  if ($arc->maps && @{$arc->maps}) {
+    _print_field("Maps", join(", ", @{$arc->maps}));
+  }
+
+  if ($arc->duration) {
+    my $mins = int($arc->duration / 60);
+    my $secs = $arc->duration % 60;
+    my $duration_str = $mins > 0 ? "${mins}m ${secs}s" : "${secs}s";
+    _print_field("Duration", $duration_str);
+  }
+
+  if ($arc->cooldown) {
+    my $mins = int($arc->cooldown / 60);
+    _print_field("Cooldown", "${mins} minutes");
+  }
+
+  if ($arc->description) {
+    print "\nDescription:\n";
+    my $desc = $arc->description;
+    $desc =~ s/(.{1,58})\s/$1\n  /g;  # Word wrap
+    print "  $desc\n";
+  }
+
+  my @reward_parts;
+  push @reward_parts, $arc->xp_reward . " XP" if $arc->xp_reward;
+  push @reward_parts, $arc->coin_reward . " Coins" if $arc->coin_reward;
+
+  if (@reward_parts) {
+    print "\nRewards:\n";
+    print "  ", join(", ", @reward_parts), "\n";
+  }
+
+  if ($arc->loot && @{$arc->loot}) {
+    print "\nLoot Drops:\n";
+    for my $loot (@{$arc->loot}) {
+      if (ref $loot eq 'HASH') {
+        my $name = $loot->{item} // $loot->{name} // next;
+        my $chance = $loot->{chance};
+        if (defined $chance) {
+          printf "  %-40s %d%%\n", $name, int($chance * 100);
+        } else {
+          printf "  %s\n", $name;
+        }
+      }
+    }
+  }
+
+  if ($arc->last_updated) {
+    print "\nLast Updated: ", $arc->last_updated, "\n";
+  }
+}
+
+sub _print_field {
+  my ($label, $value) = @_;
+  return unless defined $value;
+  printf "%-15s %s\n", "$label:", $value;
+}
+
+1;
+
+=head1 SYNOPSIS
+
+  arcraiders arc minor-storm
+  arcraiders arc "Minor Storm"
+
+=head1 DESCRIPTION
+
+Shows detailed information for a single ARC (mission/event) from the ARC Raiders database.
+
+Accepts arc ID or name.
+
+=cut
