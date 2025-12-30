@@ -2,30 +2,40 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Arcs;
 # ABSTRACT: List ARCs from the ARC Raiders API
 
 use Moo;
-use JSON::MaybeXS;
-use Getopt::Long qw(:config pass_through);
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
+
+option loot => (
+  is    => 'ro',
+  short => 'l',
+  doc   => 'Include loot drop information',
+);
+
+option page => (
+  is     => 'ro',
+  format => 'i',
+  short  => 'p',
+  doc    => 'Page number for pagination',
+);
+
+option all => (
+  is    => 'ro',
+  short => 'a',
+  doc   => 'Fetch all pages',
+);
 
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
 
-  local @ARGV = @$args;
-  my ($loot, $page, $all);
-  GetOptions(
-    'loot|l'   => \$loot,
-    'page|p=i' => \$page,
-    'all|a'    => \$all,
-  );
-
   my %params;
-  $params{includeLoot} = 1 if $loot;
-  $params{page} = $page if $page;
+  $params{includeLoot} = 1 if $self->loot;
+  $params{page} = $self->page if $self->page;
 
   my ($arcs, $pagination);
 
-  if ($all) {
+  if ($self->all) {
     $arcs = $app->api->arcs_all(%params);
   } else {
     my $result = $app->api->arcs_paginated(%params);
@@ -52,7 +62,7 @@ sub execute {
   }
 
   my $shown = scalar(@$arcs);
-  if ($pagination && $pagination->{totalPages} > 1 && !$all) {
+  if ($pagination && $pagination->{totalPages} > 1 && !$self->all) {
     my $total = $pagination->{total} // '?';
     my $page_num = $pagination->{page} // 1;
     my $total_pages = $pagination->{totalPages} // '?';
@@ -67,29 +77,72 @@ sub execute {
 
 =head1 SYNOPSIS
 
+  # List ARCs (first page)
   arcraiders arcs
+
+  # Include loot drop information
   arcraiders arcs --loot
+  arcraiders arcs -l
+
+  # Navigate to specific page
+  arcraiders arcs --page 2
+  arcraiders arcs -p 3
+
+  # Fetch all pages
+  arcraiders arcs --all
+  arcraiders arcs -a
+
+  # Combine options
+  arcraiders arcs --loot --all
+
+  # JSON output
+  arcraiders --json arcs
 
 =head1 DESCRIPTION
 
-Lists ARCs (enemies/robots) from the ARC Raiders game database.
+This command retrieves and displays a list of ARCs (enemies) from the ARC Raiders
+game API. By default, it shows the first page of results with basic information
+about each ARC including name and ID.
+
+Results are paginated by the API. Use C<--page> to navigate pages or C<--all> to
+fetch all available ARCs across all pages.
 
 =head1 OPTIONS
 
-=over 4
+=head2 --loot, -l
 
-=item --loot, -l
+Include loot drop information for each ARC. When enabled, the API returns additional
+details about what items each ARC can drop.
 
-Include loot drop information.
+=head2 --page PAGE, -p PAGE
 
-=item --page, -p
+Retrieve a specific page number. Pages are 1-indexed. Without this option, the first
+page is returned.
 
-Page number for pagination.
+Cannot be combined with C<--all>.
 
-=item --all, -a
+=head2 --all, -a
 
-Fetch all pages.
+Fetch all pages automatically. When enabled, the command retrieves every page of
+results and displays all ARCs in a single list.
 
-=back
+This may take longer depending on the total number of ARCs.
+
+=head1 OUTPUT
+
+In normal mode, outputs a formatted list with each ARC on its own line:
+
+  ARC Name                                  [ID]
+  Another ARC                               [42]
+
+At the end, displays a summary:
+
+  2 ARC(s) found.
+
+For paginated results (without C<--all>), the summary includes pagination details:
+
+  10 ARC(s) shown (page 1/5, 50 total). Use --all to fetch all pages.
+
+With C<--json> global option, outputs raw API response as JSON array.
 
 =cut

@@ -2,9 +2,9 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Traders;
 # ABSTRACT: List traders from the ARC Raiders API
 
 use Moo;
-use JSON::MaybeXS;
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
 
 sub execute {
   my ($self, $args, $chain) = @_;
@@ -34,13 +34,3 @@ sub execute {
 }
 
 1;
-
-=head1 SYNOPSIS
-
-  arcraiders traders
-
-=head1 DESCRIPTION
-
-Lists traders from the ARC Raiders game database.
-
-=cut

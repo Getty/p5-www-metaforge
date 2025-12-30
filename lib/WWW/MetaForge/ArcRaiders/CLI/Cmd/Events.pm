@@ -2,22 +2,23 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Events;
 # ABSTRACT: Show event timers from the ARC Raiders API
 
 use Moo;
-use JSON::MaybeXS;
-use Getopt::Long qw(:config pass_through);
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
+
+option active => (
+  is    => 'ro',
+  short => 'a',
+  doc   => 'Show only currently active events',
+);
 
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
 
-  local @ARGV = @$args;
-  my $active;
-  GetOptions('active|a' => \$active);
-
   my $events = $app->api->event_timers;
 
-  if ($active) {
+  if ($self->active) {
     $events = [ grep { $_->is_active_now } @$events ];
   }
 
@@ -79,19 +80,36 @@ sub execute {
 
   arcraiders events
   arcraiders events --active
+  arcraiders events -a
+
+  # JSON output
+  arcraiders --json events
 
 =head1 DESCRIPTION
 
-Shows event timers from the ARC Raiders game.
+This command displays event timers from the ARC Raiders API. Events are shown
+in chronological order: currently active events appear first (sorted by time
+remaining until end), followed by upcoming events (sorted by time until start).
 
-=head1 OPTIONS
+For each event, the output displays:
 
 =over 4
 
-=item --active, -a
+=item * Event name
 
-Show only currently active events.
+=item * Map name (if available)
+
+=item * Status indicator C<[ACTIVE]> for running events
+
+=item * Time information (either "ends in X" or "in X")
 
 =back
+
+=head1 OPTIONS
+
+=head2 --active, -a
+
+Show only currently active events. This filters out upcoming events that
+haven't started yet.
 
 =cut

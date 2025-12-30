@@ -65,11 +65,10 @@ subtest 'Items command with search' => sub {
   require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
 
   my $cli = mock_cli();
-  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(search => 'Ferro');
 
   my $output = capture_stdout {
-    local @ARGV = ('--search', 'Ferro');
-    $cmd->execute(['--search', 'Ferro'], [$cli]);
+    $cmd->execute([], [$cli]);
   };
 
   # MockUA doesn't actually filter, but command should run
@@ -80,10 +79,10 @@ subtest 'Items command with category filter' => sub {
   require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
 
   my $cli = mock_cli();
-  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(category => 'Weapon');
 
   my $output = capture_stdout {
-    $cmd->execute(['--category', 'Weapon'], [$cli]);
+    $cmd->execute([], [$cli]);
   };
 
   # Category filter is local, should only show weapons
@@ -95,10 +94,10 @@ subtest 'Items command with rarity filter' => sub {
   require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
 
   my $cli = mock_cli();
-  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(rarity => 'Rare');
 
   my $output = capture_stdout {
-    $cmd->execute(['--rarity', 'Rare'], [$cli]);
+    $cmd->execute([], [$cli]);
   };
 
   like($output, qr/Rare/, 'shows rare items');

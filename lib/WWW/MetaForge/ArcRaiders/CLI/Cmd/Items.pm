@@ -2,35 +2,63 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
 # ABSTRACT: List items from the ARC Raiders API
 
 use Moo;
-use JSON::MaybeXS;
-use Getopt::Long qw(:config pass_through);
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
+
+option search => (
+  is      => 'ro',
+  format  => 's',
+  short   => 's',
+  doc     => 'Search term to filter items by name',
+);
+
+option limit => (
+  is      => 'ro',
+  format  => 'i',
+  short   => 'l',
+  doc     => 'Maximum number of results to display',
+);
+
+option category => (
+  is      => 'ro',
+  format  => 's',
+  short   => 'c',
+  doc     => 'Filter by item category',
+);
+
+option rarity => (
+  is      => 'ro',
+  format  => 's',
+  short   => 'r',
+  doc     => 'Filter by item rarity',
+);
+
+option page => (
+  is      => 'ro',
+  format  => 'i',
+  short   => 'p',
+  doc     => 'Page number for pagination',
+);
+
+option all => (
+  is      => 'ro',
+  short   => 'a',
+  doc     => 'Fetch all pages',
+);
 
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
 
-  # Parse options from remaining args
-  local @ARGV = @$args;
-  my ($search, $limit, $category, $rarity, $page, $all);
-  GetOptions(
-    'search|s=s'   => \$search,
-    'limit|l=i'    => \$limit,
-    'category|c=s' => \$category,
-    'rarity|r=s'   => \$rarity,
-    'page|p=i'     => \$page,
-    'all|a'        => \$all,
-  );
-
   my %params;
-  $params{search} = $search if $search;
-  $params{page} = $page if $page;
-  $params{limit} = $limit if $limit;
+  $params{search} = $self->search if $self->search;
+  $params{page} = $self->page if $self->page;
+  $params{limit} = $self->limit if $self->limit;
 
   my ($items, $pagination);
 
-  if ($all) {
+  if ($self->all) {
     $items = $app->api->items_all(%params);
   } else {
     my $result = $app->api->items_paginated(%params);
@@ -39,12 +67,12 @@ sub execute {
   }
 
   # Apply local filters
-  if ($category) {
-    my $cat = lc($category);
+  if ($self->category) {
+    my $cat = lc($self->category);
     $items = [ grep { $_->category && lc($_->category) =~ /\Q$cat\E/ } @$items ];
   }
-  if ($rarity) {
-    my $rar = lc($rarity);
+  if ($self->rarity) {
+    my $rar = lc($self->rarity);
     $items = [ grep { $_->rarity && lc($_->rarity) eq $rar } @$items ];
   }
 
@@ -69,7 +97,7 @@ sub execute {
   }
 
   my $shown = scalar(@$items);
-  if ($pagination && !$all) {
+  if ($pagination && !$self->all) {
     my $total = $pagination->{total} // '?';
     my $page_num = $pagination->{page} // 1;
     my $total_pages = $pagination->{totalPages} // '?';

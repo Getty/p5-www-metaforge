@@ -2,30 +2,41 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Quests;
 # ABSTRACT: List quests from the ARC Raiders API
 
 use Moo;
-use JSON::MaybeXS;
-use Getopt::Long qw(:config pass_through);
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
+
+option type => (
+  is     => 'ro',
+  format => 's',
+  short  => 't',
+  doc    => 'Filter by quest type',
+);
+
+option page => (
+  is     => 'ro',
+  format => 'i',
+  short  => 'p',
+  doc    => 'Page number for pagination',
+);
+
+option all => (
+  is    => 'ro',
+  short => 'a',
+  doc   => 'Fetch all pages',
+);
 
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
 
-  local @ARGV = @$args;
-  my ($type, $page, $all);
-  GetOptions(
-    'type|t=s' => \$type,
-    'page|p=i' => \$page,
-    'all|a'    => \$all,
-  );
-
   my %params;
-  $params{type} = $type if $type;
-  $params{page} = $page if $page;
+  $params{type} = $self->type if $self->type;
+  $params{page} = $self->page if $self->page;
 
   my ($quests, $pagination);
 
-  if ($all) {
+  if ($self->all) {
     $quests = $app->api->quests_all(%params);
   } else {
     my $result = $app->api->quests_paginated(%params);
@@ -52,7 +63,7 @@ sub execute {
   }
 
   my $shown = scalar(@$quests);
-  if ($pagination && !$all) {
+  if ($pagination && !$self->all) {
     my $total = $pagination->{total} // '?';
     my $page_num = $pagination->{page} // 1;
     my $total_pages = $pagination->{totalPages} // '?';
@@ -68,28 +79,41 @@ sub execute {
 =head1 SYNOPSIS
 
   arcraiders quests
-  arcraiders quests --type daily
+  arcraiders quests --type main
+  arcraiders quests --page 2
+  arcraiders quests --all
+  arcraiders quests --json
 
 =head1 DESCRIPTION
 
-Lists quests from the ARC Raiders game database.
+Lists quests from the ARC Raiders API. By default, displays the first page
+of quests. Use C<--all> to fetch all available quests across all pages.
+
+Quest information is displayed with the quest name and ID. When JSON output
+is enabled (C<--json>), the raw API response data is returned.
 
 =head1 OPTIONS
 
-=over 4
+=head2 --type, -t
 
-=item --type, -t
+Filter quests by type. Only quests matching the specified type will be returned.
 
-Filter by quest type.
+  arcraiders quests --type main
+  arcraiders quests -t daily
 
-=item --page, -p
+=head2 --page, -p
 
-Page number for pagination.
+Specify the page number for pagination. Defaults to page 1.
 
-=item --all, -a
+  arcraiders quests --page 2
+  arcraiders quests -p 3
 
-Fetch all pages.
+=head2 --all, -a
 
-=back
+Fetch all pages of quests. When enabled, pagination is handled automatically
+and all quests are retrieved.
+
+  arcraiders quests --all
+  arcraiders quests -a
 
 =cut

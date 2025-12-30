@@ -2,9 +2,9 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Item;
 # ABSTRACT: Show details for a single item
 
 use Moo;
-use JSON::MaybeXS;
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
 
 sub execute {
   my ($self, $args, $chain) = @_;
@@ -122,16 +122,3 @@ sub _print_field {
 }
 
 1;
-
-=head1 SYNOPSIS
-
-  arcraiders item wasp-driver
-  arcraiders item "Ferro Wire"
-
-=head1 DESCRIPTION
-
-Shows detailed information for a single item from the ARC Raiders database.
-
-Accepts item slug, id, or name (with fuzzy matching).
-
-=cut

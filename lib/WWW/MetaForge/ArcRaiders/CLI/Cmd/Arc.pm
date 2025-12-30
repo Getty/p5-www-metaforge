@@ -2,9 +2,9 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc;
 # ABSTRACT: Show details for a single arc
 
 use Moo;
-use JSON::MaybeXS;
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
 
 sub execute {
   my ($self, $args, $chain) = @_;
@@ -115,16 +115,3 @@ sub _print_field {
 }
 
 1;
-
-=head1 SYNOPSIS
-
-  arcraiders arc minor-storm
-  arcraiders arc "Minor Storm"
-
-=head1 DESCRIPTION
-
-Shows detailed information for a single ARC (mission/event) from the ARC Raiders database.
-
-Accepts arc ID or name.
-
-=cut

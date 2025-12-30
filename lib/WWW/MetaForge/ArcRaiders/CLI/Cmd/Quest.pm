@@ -2,9 +2,9 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest;
 # ABSTRACT: Show details for a single quest
 
 use Moo;
-use JSON::MaybeXS;
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
 
 sub execute {
   my ($self, $args, $chain) = @_;
@@ -118,16 +118,3 @@ sub _print_field {
 }
 
 1;
-
-=head1 SYNOPSIS
-
-  arcraiders quest a-bad-feeling
-  arcraiders quest "A Bad Feeling"
-
-=head1 DESCRIPTION
-
-Shows detailed information for a single quest from the ARC Raiders database.
-
-Accepts quest ID or name.
-
-=cut

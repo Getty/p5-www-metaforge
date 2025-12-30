@@ -2,22 +2,22 @@ package WWW::MetaForge::ArcRaiders::CLI::Cmd::Event;
 # ABSTRACT: Show details for a single event timer
 
 use Moo;
-use JSON::MaybeXS;
-use Getopt::Long qw(:config pass_through);
-use namespace::clean;
 use MooX::Cmd;
+use MooX::Options;
+use JSON::MaybeXS;
+
+option map => (
+  is     => 'ro',
+  format => 's',
+  short  => 'm',
+  doc    => 'Filter by map name (e.g., dam, spaceport)',
+);
 
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
 
-  local @ARGV = @$args;
-  my $map_filter;
-  GetOptions(
-    'map|m=s' => \$map_filter,
-  );
-
-  my $event_name = $ARGV[0];
+  my $event_name = $args->[0];
   unless ($event_name) {
     print "Usage: arcraiders event <name> [--map <map>]\n";
     print "Example: arcraiders event \"Cold Snap\" --map dam\n";
@@ -40,9 +40,9 @@ sub execute {
   }
 
   # Filter by map if specified
-  if ($map_filter && @matches) {
+  if ($self->map && @matches) {
     @matches = grep {
-      $_->map && lc($_->map) eq lc($map_filter)
+      $_->map && lc($_->map) eq lc($self->map)
     } @matches;
   }
 
@@ -125,27 +125,3 @@ sub _print_field {
 }
 
 1;
-
-=head1 SYNOPSIS
-
-  arcraiders event "Cold Snap" --map dam
-  arcraiders event harvester -m spaceport
-
-=head1 DESCRIPTION
-
-Shows detailed information for a single event timer from the ARC Raiders database.
-
-Accepts event name (exact or partial match). Use C<--map> to disambiguate
-when an event exists on multiple maps.
-
-=head1 OPTIONS
-
-=over 4
-
-=item --map, -m
-
-Filter by map name (e.g., dam, spaceport, buried-city).
-
-=back
-
-=cut
