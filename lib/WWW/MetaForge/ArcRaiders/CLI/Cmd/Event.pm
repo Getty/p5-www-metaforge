@@ -125,3 +125,55 @@ sub _print_field {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+  # Show details for an event by name
+  arcraiders event "Cold Snap"
+
+  # Filter by specific map
+  arcraiders event "Cold Snap" --map dam
+
+  # Partial name matching
+  arcraiders event "Cold"
+
+  # JSON output
+  arcraiders --json event "Cold Snap"
+
+=head1 DESCRIPTION
+
+Display detailed information about a single event timer. Searches for events by
+name using exact match first, falling back to partial/case-insensitive match if
+no exact match is found.
+
+The detail view shows:
+
+=over 4
+
+=item * Event name and map
+
+=item * Current status (active/inactive)
+
+=item * Time until start or end
+
+=item * Description with word wrapping
+
+=item * Complete schedule with time slots
+
+=item * Active days of the week
+
+=back
+
+If multiple events match the search criteria, displays a list of matches and
+suggests using C<--map> to narrow results.
+
+=head1 OPTIONS
+
+=head2 --map, -m
+
+Filter results by map name. Useful when the same event appears on multiple maps.
+
+  arcraiders event "Cold Snap" --map dam
+  arcraiders event "Cold Snap" -m spaceport
+
+=cut

@@ -115,3 +115,51 @@ sub _print_field {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+  # Show arc details by ID
+  arcraiders arc minor-storm
+
+  # Show arc details by name
+  arcraiders arc "Salvage Run"
+
+  # Output as JSON
+  arcraiders --json arc minor-storm
+
+=head1 DESCRIPTION
+
+This command displays detailed information about a single ARC (mission/activity)
+in Arc Raiders. You can search by either the arc's ID or name.
+
+The command first attempts to find the arc by ID. If no match is found, it
+searches through all arcs by both ID and name (case-insensitive).
+
+Output includes:
+
+=over 4
+
+=item * Name and ID
+
+=item * Type (mission category)
+
+=item * Available maps
+
+=item * Duration (time limit)
+
+=item * Cooldown period
+
+=item * Description text
+
+=item * Rewards (XP and Coins)
+
+=item * Loot drop table with drop chances
+
+=item * Last updated timestamp
+
+=back
+
+If the C<--json> flag is used, outputs the raw API response as JSON instead of
+the formatted display.
+
+=cut

@@ -34,3 +34,18 @@ sub execute {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+  arcraiders traders
+  arcraiders traders --json
+
+=head1 DESCRIPTION
+
+List all traders from the ARC Raiders API. Displays trader names and their
+inventory counts in a simple table format.
+
+Use the C<--json> flag (inherited from parent command) to output raw API data
+as JSON instead of formatted text.
+
+=cut

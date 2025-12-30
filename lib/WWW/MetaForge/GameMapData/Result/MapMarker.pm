@@ -1,9 +1,11 @@
 package WWW::MetaForge::GameMapData::Result::MapMarker;
-# ABSTRACT: Base class for map marker result objects
+# ABSTRACT: Base map marker result object for MetaForge Game Map Data API
 
 use Moo;
-use Types::Standard qw(Str Num HashRef Maybe);
+use Types::Standard qw(Str Num Int HashRef Maybe);
 use namespace::clean;
+
+# Generic fields common to all game map data
 
 has id => (
   is       => 'ro',
@@ -11,44 +13,39 @@ has id => (
   required => 1,
 );
 
-has type => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
-has name => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
-has description => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
-has x => (
+has lat => (
   is       => 'ro',
   isa      => Num,
   required => 1,
 );
 
-has y => (
+has lng => (
   is       => 'ro',
   isa      => Num,
   required => 1,
 );
 
-has z => (
+has zlayers => (
   is  => 'ro',
-  isa => Maybe[Num],
+  isa => Maybe[Int],
 );
 
-has icon => (
+has mapID => (
   is  => 'ro',
   isa => Maybe[Str],
 );
 
-has last_updated => (
+has updated_at => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
+has added_by => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
+has last_edited_by => (
   is  => 'ro',
   isa => Maybe[Str],
 );
@@ -61,49 +58,35 @@ has _raw => (
 sub from_hashref {
   my ($class, $data) = @_;
 
-  # Extract coordinates from various formats
-  my ($x, $y, $z);
-  if (exists $data->{coordinates} && ref $data->{coordinates} eq 'HASH') {
-    $x = $data->{coordinates}{x};
-    $y = $data->{coordinates}{y};
-    $z = $data->{coordinates}{z};
-  } elsif (exists $data->{position} && ref $data->{position} eq 'HASH') {
-    $x = $data->{position}{x};
-    $y = $data->{position}{y};
-    $z = $data->{position}{z};
-  } else {
-    # Support both x/y and lat/lng formats
-    $x = $data->{x} // $data->{lng};
-    $y = $data->{y} // $data->{lat};
-    $z = $data->{z} // $data->{zlayers};
-  }
-
-  # Build type from category/subcategory if present
-  my $type = $data->{type} // $data->{category};
-  if ($data->{subcategory} && !$data->{type}) {
-    $type = $data->{category} . '/' . $data->{subcategory} if $data->{category};
-  }
-
   return $class->new(
-    id           => $data->{id},
-    type         => $type,
-    name         => $data->{name} // $data->{title} // $data->{instanceName},
-    description  => $data->{description},
-    x            => $x,
-    y            => $y,
-    z            => $z,
-    icon         => $data->{icon} // $data->{image},
-    last_updated => $data->{lastUpdated} // $data->{updated_at},
-    _raw         => $data,
+    id             => $data->{id},
+    lat            => $data->{lat},
+    lng            => $data->{lng},
+    zlayers        => $data->{zlayers},
+    mapID          => $data->{mapID},
+    updated_at     => $data->{updated_at},
+    added_by       => $data->{added_by},
+    last_edited_by => $data->{last_edited_by},
+    _raw           => $data,
   );
 }
+
+# Convenience accessors
+
+sub x { shift->lng }
+sub y { shift->lat }
+sub z { shift->zlayers }
+
+# Subclasses should override to provide marker type
+sub type { undef }
+sub name { undef }
 
 sub coordinates {
   my ($self) = @_;
   return {
-    x => $self->x,
-    y => $self->y,
-    defined $self->z ? (z => $self->z) : (),
+    x => $self->lng,
+    y => $self->lat,
+    defined $self->zlayers ? (z => $self->zlayers) : (),
   };
 }
 
@@ -111,63 +94,69 @@ sub coordinates {
 
 =head1 SYNOPSIS
 
-  my $markers = $api->map_data(map => 'Dam');
+  my $markers = $api->map_data(map => 'dam');
   for my $marker (@$markers) {
-      say $marker->name;
-      say "  Type: " . $marker->type;
-      say "  Position: " . $marker->x . ", " . $marker->y;
+      say "Marker at " . $marker->lng . ", " . $marker->lat;
   }
 
 =head1 DESCRIPTION
 
 Base class for map marker objects from the MetaForge Game Map Data API.
-Contains generic attributes common to all game map markers.
+Contains only generic fields common to all games.
 
 Game-specific distributions should subclass this to add game-specific
-attributes.
+attributes (like category, subcategory for ARC Raiders).
 
 =attr id
 
-Unique marker identifier.
+Unique marker identifier (UUID).
 
-=attr type
+=attr lat
 
-Marker type/category (e.g., "loot", "quest", "poi").
+Latitude (Y coordinate) on the map.
 
-=attr name
+=attr lng
 
-Human-readable marker name.
+Longitude (X coordinate) on the map.
 
-=attr description
+=attr zlayers
 
-Optional description or tooltip text.
+Z-layer value for elevation/floor.
 
-=attr x
+=attr mapID
 
-X coordinate on the map.
+Map identifier (e.g., "dam", "spaceport").
 
-=attr y
+=attr updated_at
 
-Y coordinate on the map.
+ISO timestamp of last update.
 
-=attr z
+=attr added_by
 
-Optional Z coordinate (elevation/floor).
+Username who added this marker.
 
-=attr icon
+=attr last_edited_by
 
-URL or identifier for the marker icon.
-
-=attr last_updated
-
-ISO timestamp of last data update.
+Username who last edited this marker.
 
 =method from_hashref
 
   my $marker = WWW::MetaForge::GameMapData::Result::MapMarker->from_hashref(\%data);
 
-Construct from API response. Handles various coordinate formats
-(C<coordinates.x>, C<position.x>, or direct C<x> fields).
+Construct from API response hash. Subclasses should override this to
+handle game-specific fields.
+
+=method x
+
+Alias for C<lng>.
+
+=method y
+
+Alias for C<lat>.
+
+=method z
+
+Alias for C<zlayers>.
 
 =method coordinates
 

@@ -118,3 +118,50 @@ sub _print_field {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+  # Show quest details by ID
+  arcraiders quest a-bad-feeling
+
+  # Show quest details by name
+  arcraiders quest "A Bad Feeling"
+
+  # Output as JSON
+  arcraiders quest a-bad-feeling --json
+
+=head1 DESCRIPTION
+
+This command displays detailed information for a single quest. It accepts either
+a quest ID or quest name as the argument.
+
+The command first attempts to fetch the quest by ID using the API. If not found,
+it falls back to searching the complete quest list by matching against both the
+ID and name fields (case-insensitive).
+
+Quest details displayed include:
+
+=over 4
+
+=item * Name and ID
+
+=item * Quest type
+
+=item * Description
+
+=item * Objectives list
+
+=item * Required items with quantities
+
+=item * Rewards (XP, reputation, and items)
+
+=item * Quest chain relationships (previous/next quests)
+
+=item * Last updated timestamp
+
+=back
+
+When the C<--json> flag is used, the raw quest data is output as JSON instead
+of the formatted display.
+
+=cut

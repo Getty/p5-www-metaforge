@@ -122,3 +122,52 @@ sub _print_field {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+  # Show details for an item by slug
+  arcraiders item wasp-driver
+
+  # Show details for an item with roman numerals
+  arcraiders item ferro-i
+
+  # Output as JSON
+  arcraiders --json item wasp-driver
+
+=head1 DESCRIPTION
+
+This CLI command displays detailed information for a single item in Arc Raiders.
+The command searches for items by slug or ID, supporting fuzzy matching for items
+with roman numeral suffixes (e.g., C<ferro-i> will search for "ferro").
+
+If multiple items match the search term, all matches are listed. If exactly one
+item matches, or an exact slug/ID match is found, detailed information is displayed
+including:
+
+=over 4
+
+=item * Name, category, rarity
+
+=item * Weight, stack size, base value
+
+=item * Description and stats
+
+=item * Crafting requirements
+
+=item * Vendors that sell the item
+
+=item * Recycle yield
+
+=item * Last updated timestamp
+
+=back
+
+=method execute
+
+  $cmd->execute($args, $chain);
+
+Executes the item detail command. Takes a single argument (the item slug or ID)
+and displays comprehensive information about the item. If C<--json> flag is set
+in the parent application, outputs raw JSON data instead of formatted text.
+
+=cut
