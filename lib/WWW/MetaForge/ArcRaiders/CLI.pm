@@ -9,17 +9,17 @@ use MooX::Cmd;
 
 has debug => (
   is      => 'ro',
-  default => sub { $ENV{ARCRAIDERS_DEBUG} // 0 },
+  default => sub { $ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG} // 0 },
 );
 
 has no_cache => (
   is      => 'ro',
-  default => sub { $ENV{ARCRAIDERS_NO_CACHE} // 0 },
+  default => sub { $ENV{WWW_METAFORGE_ARCRAIDERS_NO_CACHE} // 0 },
 );
 
 has json => (
   is      => 'ro',
-  default => sub { $ENV{ARCRAIDERS_JSON} // 0 },
+  default => sub { $ENV{WWW_METAFORGE_ARCRAIDERS_JSON} // 0 },
 );
 
 around BUILDARGS => sub {
@@ -100,17 +100,17 @@ subcommand handling.
 =attr debug
 
 Enable debug output. Use C<--debug> or C<-d> flag, or set via
-C<ARCRAIDERS_DEBUG> environment variable.
+C<WWW_METAFORGE_ARCRAIDERS_DEBUG> environment variable.
 
 =attr no_cache
 
 Disable response caching. Use C<--no-cache> flag, or set via
-C<ARCRAIDERS_NO_CACHE> environment variable.
+C<WWW_METAFORGE_ARCRAIDERS_NO_CACHE> environment variable.
 
 =attr json
 
 Output results as JSON. Use C<--json> or C<-j> flag, or set via
-C<ARCRAIDERS_JSON> environment variable.
+C<WWW_METAFORGE_ARCRAIDERS_JSON> environment variable.
 
 =attr api
 

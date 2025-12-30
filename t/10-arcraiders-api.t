@@ -12,7 +12,7 @@ my $cache_dir = tempdir(CLEANUP => 1);
 my $api;
 my $using_mock = 0;
 
-if ($ENV{USE_LIVE_API}) {
+if ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
   diag("Using LIVE API");
   $api = WWW::MetaForge::ArcRaiders->new(
     cache_dir => $cache_dir,
@@ -20,7 +20,7 @@ if ($ENV{USE_LIVE_API}) {
     debug     => $ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG},
   );
 } else {
-  diag("Using MockUA (set USE_LIVE_API=1 for real API tests)");
+  diag("Using MockUA (set WWW_METAFORGE_USE_LIVE_API=1 for real API tests)");
   require MockUA;
   $api = WWW::MetaForge::ArcRaiders->new(
     ua        => MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures"),

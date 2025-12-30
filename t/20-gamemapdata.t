@@ -11,7 +11,7 @@ use_ok('WWW::MetaForge::GameMapData');
 my $cache_dir = tempdir(CLEANUP => 1);
 my $api;
 
-if ($ENV{USE_LIVE_API}) {
+if ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
   diag("Using LIVE API for GameMapData tests");
   $api = WWW::MetaForge::GameMapData->new(
     cache_dir => $cache_dir,
@@ -19,7 +19,7 @@ if ($ENV{USE_LIVE_API}) {
     debug     => $ENV{WWW_METAFORGE_GAMEMAPDATA_DEBUG},
   );
 } else {
-  diag("Using MockUA for GameMapData tests (set USE_LIVE_API=1 for real API)");
+  diag("Using MockUA for GameMapData tests (set WWW_METAFORGE_USE_LIVE_API=1 for real API)");
   require MockUA;
   $api = WWW::MetaForge::GameMapData->new(
     ua        => MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures"),
@@ -63,7 +63,7 @@ subtest 'map_data_raw returns unwrapped data' => sub {
 
 subtest 'Cache works' => sub {
   my $cached_api;
-  if ($ENV{USE_LIVE_API}) {
+  if ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
     $cached_api = WWW::MetaForge::GameMapData->new(
       cache_dir => $cache_dir,
       use_cache => 1,
