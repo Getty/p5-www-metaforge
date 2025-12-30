@@ -115,7 +115,7 @@ sub from_hashref {
     weight                => $weight,
     stack_size            => $stack_size,
     base_value            => $data->{baseValue} // $data->{value},
-    crafting_requirements => $data->{craftingRequirements} // [],
+    crafting_requirements => $data->{components} // [],
     sold_by               => $data->{soldBy} // [],
     used_in               => $data->{usedIn} // [],
     compatible_with       => $data->{compatibleWith} // [],

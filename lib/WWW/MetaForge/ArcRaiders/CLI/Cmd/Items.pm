@@ -73,7 +73,7 @@ sub execute {
     my $total = $pagination->{total} // '?';
     my $page_num = $pagination->{page} // 1;
     my $total_pages = $pagination->{totalPages} // '?';
-    printf "\n%d item(s) shown (page %d/%d, %d total). Use --all to fetch all pages.\n",
+    printf "\n%d item(s) shown (page %d/%s, %s total). Use --all to fetch all pages.\n",
       $shown, $page_num, $total_pages, $total;
   } else {
     printf "\n%d item(s) found.\n", $shown;

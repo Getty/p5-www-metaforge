@@ -82,6 +82,23 @@ subtest 'Items endpoint returns valid structure' => sub {
   diag("Sample: " . ($item->name // 'undef'));
 };
 
+subtest 'Arcs endpoint returns valid structure' => sub {
+  my $arcs = eval { $api->arcs };
+  return fail("API error: $@") if $@;
+
+  ok(ref $arcs eq 'ARRAY', 'returns arrayref');
+  return ok(1, 'empty response is valid') unless @$arcs;
+
+  my $arc = $arcs->[0];
+  test_result_object($arc, 'WWW::MetaForge::ArcRaiders::Result::Arc',
+    [qw(id name type description)]);
+
+  ok(ref $arc->maps eq 'ARRAY', 'maps is array') if $arc->maps;
+  ok(ref $arc->loot eq 'ARRAY', 'loot is array') if $arc->loot;
+
+  diag("Sample: " . ($arc->name // 'undef') . " (" . ($arc->type // 'undef') . ")");
+};
+
 subtest 'Quests endpoint returns valid structure' => sub {
   my $quests = eval { $api->quests };
   return fail("API error: $@") if $@;
@@ -116,6 +133,32 @@ subtest 'Event timers endpoint returns valid structure' => sub {
   ok(defined $active, 'is_active_now returns defined value');
 
   diag("Sample: " . ($event->name // 'undef') . " on " . ($event->map // 'undef'));
+};
+
+subtest 'Map data endpoint returns valid structure' => sub {
+  my $markers = eval { $api->map_data(map => 'dam') };
+  return fail("API error: $@") if $@;
+
+  ok(ref $markers eq 'ARRAY', 'returns arrayref');
+  return ok(1, 'empty response is valid') unless @$markers;
+
+  my $marker = $markers->[0];
+  test_result_object($marker, 'WWW::MetaForge::ArcRaiders::Result::MapMarker',
+    [qw(name type x y)]);
+
+  diag("Sample: " . ($marker->name // 'undef') . " at (" . ($marker->x // '?') . ", " . ($marker->y // '?') . ")");
+};
+
+subtest 'Maps list returns valid data' => sub {
+  my @maps = $api->maps;
+  ok(@maps > 0, 'has maps');
+  ok(grep { $_ eq 'dam' } @maps, 'includes dam');
+
+  my %names = $api->map_display_names;
+  is($names{'dam'}, 'Dam', 'dam display name is Dam');
+
+  is($api->map_display_name('dam'), 'Dam', 'map_display_name works');
+  is($api->map_display_name('unknown'), 'unknown', 'unknown map returns id');
 };
 
 subtest 'Cache works correctly' => sub {

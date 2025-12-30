@@ -2,7 +2,7 @@ package WWW::MetaForge::ArcRaiders::Result::MapMarker;
 # ABSTRACT: Map marker/POI result object for ARC Raiders
 
 use Moo;
-use Types::Standard qw(Str Int Bool Maybe ArrayRef);
+use Types::Standard qw(Str Int Bool Maybe ArrayRef Any);
 use namespace::clean;
 
 extends 'WWW::MetaForge::GameMapData::Result::MapMarker';
@@ -40,7 +40,7 @@ has event_condition_mask => (
 
 has loot_areas => (
   is  => 'ro',
-  isa => Maybe[ArrayRef],
+  isa => Maybe[Any],  # Can be ArrayRef or String
 );
 
 has related_item => (

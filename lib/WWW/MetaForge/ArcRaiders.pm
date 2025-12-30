@@ -311,6 +311,47 @@ sub event_timers_cached {
   return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
 }
 
+# event_timers_hourly: cached but invalidates at the start of each hour
+sub event_timers_hourly {
+  my ($self, %params) = @_;
+
+  # Calculate current hour boundary (epoch time at minute 0 of current hour)
+  my $now = time();
+  my $current_hour = int($now / 3600) * 3600;
+
+  # Check if we have valid cached data from this hour
+  my $cache_key = 'event_timers_hourly';
+  if ($self->use_cache) {
+    my $cache_file = $self->cache->_cache_file($cache_key, \%params);
+    if ($cache_file->is_file) {
+      my $cached = eval { $self->json->decode($cache_file->slurp_utf8) };
+      if ($cached && ref $cached eq 'HASH') {
+        my $cached_time = $cached->{timestamp} // 0;
+        # Valid if cached in the same hour
+        if ($cached_time >= $current_hour) {
+          $self->_debug("CACHE HIT (hourly): $cache_key");
+          my $data = $cached->{data};
+          return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
+        }
+        $self->_debug("CACHE EXPIRED (new hour): $cache_key");
+      }
+    }
+  }
+
+  # Fetch fresh data
+  my $req = $self->request->event_timers(%params);
+  my $response = $self->_fetch('event_timers', $req, %params, _skip_cache => 1);
+  my $data = $self->_extract_data($response);
+
+  # Store in our hourly cache
+  if ($self->use_cache) {
+    $self->cache->set($cache_key, \%params, $data);
+    $self->_debug("CACHE SET (hourly): $cache_key");
+  }
+
+  return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
+}
+
 sub map_data {
   my ($self, %params) = @_;
   return $self->game_map_data->map_data(%params);
@@ -354,6 +395,182 @@ sub map_data_raw {
 sub clear_cache {
   my ($self, $endpoint) = @_;
   $self->cache->clear($endpoint);
+}
+
+# Internal cache for item lookups (populated on first use)
+has _items_cache => (
+  is      => 'rw',
+  default => sub { undef },
+);
+
+sub _ensure_items_cache {
+  my ($self) = @_;
+  return $self->_items_cache if $self->_items_cache;
+
+  $self->_debug("Loading all items for requirements calculation...");
+  my $items = $self->items_all(includeComponents => 'true');
+  my %by_name;
+  my %by_id;
+  for my $item (@$items) {
+    $by_name{lc($item->name)} = $item;
+    $by_id{$item->id} = $item;
+  }
+  $self->_items_cache({ by_name => \%by_name, by_id => \%by_id, list => $items });
+  $self->_debug("Loaded " . scalar(@$items) . " items");
+  return $self->_items_cache;
+}
+
+sub find_item_by_name {
+  my ($self, $name) = @_;
+  my $cache = $self->_ensure_items_cache;
+  return $cache->{by_name}{lc($name)};
+}
+
+sub find_item_by_id {
+  my ($self, $id) = @_;
+  my $cache = $self->_ensure_items_cache;
+  return $cache->{by_id}{$id};
+}
+
+# Extract component name from crafting requirement
+# Handles both string format and object format from API
+sub _component_name {
+  my ($self, $component) = @_;
+  return unless defined $component;
+  return ref($component) eq 'HASH' ? $component->{name} : $component;
+}
+
+# Calculate requirements for a list of items
+# Input: items => [ { item => "Name", count => N }, ... ]
+# Returns: { requirements => [ { item => $item_obj, count => N }, ... ], missing => [...] }
+sub calculate_requirements {
+  my ($self, %args) = @_;
+  my $items = $args{items} // [];
+
+  my %total;
+  my @missing;
+
+  for my $req (@$items) {
+    my $name = $req->{item} // $req->{name};
+    my $count = $req->{count} // $req->{quantity} // 1;
+
+    my $item = $self->find_item_by_name($name);
+    unless ($item) {
+      push @missing, { item => $name, count => $count, reason => 'not_found' };
+      next;
+    }
+
+    my $crafting = $item->crafting_requirements // [];
+    if (@$crafting) {
+      for my $mat (@$crafting) {
+        my $mat_name = $self->_component_name($mat->{component});
+        my $mat_count = ($mat->{quantity} // 1) * $count;
+        $total{$mat_name} += $mat_count if $mat_name;
+      }
+    } else {
+      # Item has no crafting requirements - it's already a base material
+      push @missing, { item => $name, count => $count, reason => 'not_craftable' };
+    }
+  }
+
+  # Resolve total to item objects
+  my @requirements;
+  for my $name (sort keys %total) {
+    my $item = $self->find_item_by_name($name);
+    if ($item) {
+      push @requirements, { item => $item, count => $total{$name} };
+    } else {
+      push @missing, { item => $name, count => $total{$name}, reason => 'material_not_found' };
+    }
+  }
+
+  return {
+    requirements => \@requirements,
+    missing      => \@missing,
+  };
+}
+
+# Calculate base (raw) requirements recursively
+# Resolves all crafting chains down to uncraftable materials
+# Input: items => [ { item => "Name", count => N }, ... ]
+# Returns: { requirements => [ { item => $item_obj, count => N }, ... ], missing => [...] }
+sub calculate_base_requirements {
+  my ($self, %args) = @_;
+  my $items = $args{items} // [];
+  my $max_depth = $args{max_depth} // 20;  # Prevent infinite loops
+
+  my %total;
+  my @missing;
+  my %seen;  # Track items being processed to detect cycles
+
+  my $resolve;
+  $resolve = sub {
+    my ($name, $count, $depth) = @_;
+
+    if ($depth > $max_depth) {
+      push @missing, { item => $name, count => $count, reason => 'max_depth_exceeded' };
+      return;
+    }
+
+    my $item = $self->find_item_by_name($name);
+    unless ($item) {
+      push @missing, { item => $name, count => $count, reason => 'not_found' };
+      return;
+    }
+
+    my $crafting = $item->crafting_requirements // [];
+
+    # Base material: no crafting requirements
+    if (!@$crafting) {
+      $total{lc($item->name)} += $count;
+      return;
+    }
+
+    # Cycle detection
+    my $key = lc($item->name);
+    if ($seen{$key}) {
+      push @missing, { item => $name, count => $count, reason => 'cycle_detected' };
+      return;
+    }
+    $seen{$key} = 1;
+
+    # Recursively resolve each material
+    for my $mat (@$crafting) {
+      my $mat_name = $self->_component_name($mat->{component});
+      my $mat_count = ($mat->{quantity} // 1) * $count;
+      $resolve->($mat_name, $mat_count, $depth + 1) if $mat_name;
+    }
+
+    delete $seen{$key};
+  };
+
+  for my $req (@$items) {
+    my $name = $req->{item} // $req->{name};
+    my $count = $req->{count} // $req->{quantity} // 1;
+    $resolve->($name, $count, 0);
+  }
+
+  # Resolve total to item objects
+  my @requirements;
+  for my $name (sort keys %total) {
+    my $item = $self->find_item_by_name($name);
+    if ($item) {
+      push @requirements, { item => $item, count => $total{$name} };
+    } else {
+      push @missing, { item => $name, count => $total{$name}, reason => 'base_material_not_found' };
+    }
+  }
+
+  return {
+    requirements => \@requirements,
+    missing      => \@missing,
+  };
+}
+
+# Clear internal item cache (call after items data might have changed)
+sub clear_items_cache {
+  my ($self) = @_;
+  $self->_items_cache(undef);
 }
 
 1;
@@ -427,22 +644,62 @@ Configured automatically with ARC Raiders specific marker class.
 
   my $items = $api->items(%params);
 
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Item>.
-Supports C<search>, C<page>, C<limit> parameters.
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Item> from
+first page. Supports C<search>, C<page>, C<limit> parameters.
+
+=method items_paginated
+
+  my $result = $api->items_paginated(%params);
+  my $items = $result->{data};
+  my $pagination = $result->{pagination};
+
+Returns HashRef with C<data> (items ArrayRef) and C<pagination> info
+(total, page, totalPages, hasNextPage).
+
+=method items_all
+
+  my $items = $api->items_all(%params);
+
+Fetches all pages and returns complete ArrayRef of all items.
+Use with caution on large datasets.
 
 =method arcs
 
   my $arcs = $api->arcs(%params);
 
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Arc>.
-Supports C<includeLoot> parameter.
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Arc> from
+first page. Supports C<includeLoot> parameter.
+
+=method arcs_paginated
+
+  my $result = $api->arcs_paginated(%params);
+
+Returns HashRef with C<data> and C<pagination> info.
+
+=method arcs_all
+
+  my $arcs = $api->arcs_all(%params);
+
+Fetches all pages and returns complete ArrayRef of all ARCs.
 
 =method quests
 
   my $quests = $api->quests(%params);
 
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Quest>.
-Supports C<type> parameter.
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Quest> from
+first page. Supports C<type> parameter.
+
+=method quests_paginated
+
+  my $result = $api->quests_paginated(%params);
+
+Returns HashRef with C<data> and C<pagination> info.
+
+=method quests_all
+
+  my $quests = $api->quests_all(%params);
+
+Fetches all pages and returns complete ArrayRef of all quests.
 
 =method traders
 
@@ -455,6 +712,14 @@ Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Trader>.
   my $events = $api->event_timers(%params);
 
 Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer>.
+Always fetches fresh data (bypasses cache) since event timers are time-sensitive.
+
+=method event_timers_cached
+
+  my $events = $api->event_timers_cached(%params);
+
+Like C<event_timers> but uses cache. Only use when you don't need
+real-time event status.
 
 =method map_data
 
@@ -483,6 +748,94 @@ Same as above but return raw HashRef/ArrayRef instead of result objects.
   $api->clear_cache;           # Clear all
 
 Clear cached responses.
+
+=method event_timers_hourly
+
+  my $events = $api->event_timers_hourly;
+
+Like C<event_timers_cached> but invalidates the cache at the start of
+each hour (when minute becomes 0). Useful for scheduled data that
+updates hourly.
+
+=method find_item_by_name
+
+  my $item = $api->find_item_by_name('Ferro I');
+
+Find an item by exact name (case-insensitive). Loads all items on first
+call for fast subsequent lookups.
+
+=method find_item_by_id
+
+  my $item = $api->find_item_by_id('ferro-i');
+
+Find an item by its ID.
+
+=method calculate_requirements
+
+  my $result = $api->calculate_requirements(
+    items => [
+      { item => 'Ferro II', count => 2 },
+      { item => 'Advanced Circuit', count => 1 },
+    ]
+  );
+
+  for my $req (@{$result->{requirements}}) {
+    say $req->{item}->name . " x" . $req->{count};
+  }
+
+Calculate the direct crafting materials needed to build the given items.
+Returns a hashref with:
+
+=over
+
+=item requirements
+
+ArrayRef of C<< { item => $item_obj, count => N } >>
+
+=item missing
+
+ArrayRef of items that couldn't be resolved (not found, not craftable, etc.)
+
+=back
+
+=method calculate_base_requirements
+
+  my $result = $api->calculate_base_requirements(
+    items     => [{ item => 'Ferro III', count => 1 }],
+    max_depth => 10,  # optional, default 20
+  );
+
+Like C<calculate_requirements> but recursively resolves all crafting
+chains down to base materials (items with no crafting requirements).
+Includes cycle detection and depth limiting.
+
+=method clear_items_cache
+
+  $api->clear_items_cache;
+
+Clear the internal item lookup cache. Call this if item data may have
+changed and you need fresh data for C<find_item_*> and C<calculate_*>
+methods.
+
+=method maps
+
+  my @maps = $api->maps;
+
+Returns list of available ARC Raiders map IDs (e.g., C<dam>, C<spaceport>,
+C<buried-city>, C<blue-gate>, C<stella-montis>).
+
+=method map_display_names
+
+  my %names = $api->map_display_names;
+
+Returns hash of map ID to display name (e.g., C<dam> => "Dam").
+
+=method map_display_name
+
+  my $name = $api->map_display_name('dam');  # "Dam"
+
+Returns human-readable display name for a map ID. Falls back to the
+ID itself if no display name is available.
 
 =head1 ATTRIBUTION
 

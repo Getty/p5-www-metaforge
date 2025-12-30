@@ -248,4 +248,34 @@ Handles overnight events (e.g., 23:00-01:00).
 
 Returns next upcoming time slot as HashRef, or undef if none scheduled.
 
+=method time_until_start
+
+  my $duration = $event->time_until_start;
+  say "Event starts in $duration" if $duration;
+
+Returns human-readable duration until next event start (e.g., "2h 30m", "45m").
+Returns undef if no upcoming events.
+
+=method minutes_until_start
+
+  my $minutes = $event->minutes_until_start;
+
+Returns numeric minutes until next event start. Useful for sorting events.
+Returns undef if no upcoming events.
+
+=method time_until_end
+
+  my $duration = $event->time_until_end;
+  say "Event ends in $duration" if $duration;
+
+Returns human-readable duration until current event ends (e.g., "1h 15m").
+Returns undef if event is not currently active.
+
+=method minutes_until_end
+
+  my $minutes = $event->minutes_until_end;
+
+Returns numeric minutes until current active event ends. Useful for sorting.
+Returns undef if event is not currently active.
+
 =cut

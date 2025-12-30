@@ -44,10 +44,15 @@ subtest 'from_hashref' => sub {
 };
 
 subtest 'is_active_now method' => sub {
-  # Create event that spans current hour for testing
+  # Create event that spans current time plus buffer
   my ($sec, $min, $hour) = localtime;
-  my $now_start = sprintf("%02d:00", $hour);
-  my $now_end = sprintf("%02d:59", $hour);
+
+  # Use a range that covers current time with padding
+  # Start 1 hour ago, end 1 hour from now (handles edge cases)
+  my $start_hour = ($hour - 1) % 24;
+  my $end_hour = ($hour + 1) % 24;
+  my $now_start = sprintf("%02d:00", $start_hour);
+  my $now_end = sprintf("%02d:59", $end_hour);
 
   my $active_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
     name  => 'Test Active',
@@ -57,23 +62,22 @@ subtest 'is_active_now method' => sub {
     _raw  => {},
   );
 
-  # This should be active (we're within the hour)
-  # Note: might fail at xx:59, but that's edge case
-  ok($active_event->is_active_now, 'event in current hour is active');
+  ok($active_event->is_active_now, 'event spanning current time is active');
+
+  # Create event in distant past/future time that's definitely not now
+  my $distant_hour = ($hour + 12) % 24;  # 12 hours away
+  my $distant_start = sprintf("%02d:00", $distant_hour);
+  my $distant_end = sprintf("%02d:01", $distant_hour);
 
   my $inactive_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
     name  => 'Test Inactive',
     map   => 'Test',
     game  => 'arc-raiders',
-    times => [{ start => '03:00', end => '03:01' }],  # Very unlikely to be now
+    times => [{ start => $distant_start, end => $distant_end }],
     _raw  => {},
   );
 
-  # Skip this test if it happens to be 03:00
-  SKIP: {
-    skip "It's 03:00", 1 if $hour == 3 && $min == 0;
-    ok(!$inactive_event->is_active_now, 'event not in current time is inactive');
-  }
+  ok(!$inactive_event->is_active_now, 'event 12 hours away is inactive');
 };
 
 subtest 'is_active_now handles overnight events' => sub {

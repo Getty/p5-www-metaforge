@@ -27,7 +27,9 @@ sub request {
   } elsif ($uri =~ /\/arcs/) {
     $fixture_file = 'arcs.json';
   } elsif ($uri =~ /game-map-data/) {
-    $fixture_file = 'map-data.json';
+    # Extract mapID from query string
+    my ($map) = $uri =~ /mapID=([^&]+)/;
+    $fixture_file = $map ? "map-data-$map.json" : 'map-data.json';
   } else {
     return HTTP::Response->new(404, 'Not Found');
   }
