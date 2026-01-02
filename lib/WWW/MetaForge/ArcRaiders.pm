@@ -837,8 +837,33 @@ Returns hash of map ID to display name (e.g., C<dam> => "Dam").
 Returns human-readable display name for a map ID. Falls back to the
 ID itself if no display name is available.
 
-=head1 ATTRIBUTION
+=head1 METAFORGE API TERMS OF USAGE
 
-This module uses the MetaForge API: L<https://metaforge.app>
+This module uses the MetaForge ARC Raiders API. Please respect their terms:
+
+  Terms of Usage
+
+  This API contains data maintained by our team and community
+  contributors. If you use this API in a public project, you must
+  include attribution and a link to metaforge.app/arc-raiders so
+  others know where the data comes from.
+
+  Commercial/Paid Projects: If you plan to use this API in a paid
+  app, subscription service, or any product monetized in any way,
+  please contact us first via Discord.
+
+  For (limited) support, visit our Discord.
+
+=over
+
+=item *
+
+MetaForge ARC Raiders: L<https://metaforge.app/arc-raiders>
+
+=item *
+
+MetaForge Discord: L<https://discord.gg/8UEK9TrQDs>
+
+=back
 
 =cut
