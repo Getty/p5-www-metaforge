@@ -102,12 +102,10 @@ sub _print_event_details {
   }
 
   if ($event->times && @{$event->times}) {
-    print "\nSchedule:\n";
-    my @sorted = sort { $a->{start} cmp $b->{start} } @{$event->times};
+    print "\nSchedule (UTC):\n";
+    my @sorted = sort { $a->start <=> $b->start } @{$event->times};
     for my $slot (@sorted) {
-      my $start = $slot->{start} // '?';
-      my $end   = $slot->{end} // '?';
-      printf "  %s - %s\n", $start, $end;
+      printf "  %s - %s\n", $slot->start->strftime('%H:%M'), $slot->end->strftime('%H:%M');
     }
   }
 

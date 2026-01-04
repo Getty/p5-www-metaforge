@@ -1,6 +1,7 @@
 
 requires 'Moo';
 requires 'Type::Tiny';
+requires 'DateTime';
 requires 'LWP::UserAgent';
 requires 'JSON::MaybeXS', '1.000000';
 requires 'HTTP::Request';

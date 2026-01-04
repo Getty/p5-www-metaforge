@@ -2,7 +2,9 @@ package WWW::MetaForge::ArcRaiders::Result::EventTimer;
 # ABSTRACT: Event timer/schedule result object
 
 use Moo;
-use Types::Standard qw(Str Int ArrayRef HashRef Maybe);
+use Types::Standard qw(Str ArrayRef HashRef Maybe InstanceOf);
+use DateTime;
+use WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot;
 use namespace::clean;
 
 has name => (
@@ -33,10 +35,10 @@ has description => (
   isa => Maybe[Str],
 );
 
-# Schedule times - array of {start: "HH:MM", end: "HH:MM"}
+# Schedule times - array of TimeSlot objects
 has times => (
   is      => 'ro',
-  isa     => ArrayRef[HashRef],
+  isa     => ArrayRef[InstanceOf['WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot']],
   default => sub { [] },
 );
 
@@ -55,49 +57,43 @@ has _raw => (
 sub from_hashref {
   my ($class, $data) = @_;
 
+  my @slots = map {
+    WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref($_)
+  } @{ $data->{times} // [] };
+
   return $class->new(
     name        => $data->{name},
     map         => $data->{map},
     game        => $data->{game},
     icon        => $data->{icon},
     description => $data->{description},
-    times       => $data->{times} // [],
+    times       => \@slots,
     days        => $data->{days} // [],
     _raw        => $data,
   );
 }
 
-# Check if event is currently active based on current time
+# Check if event is currently active based on current UTC time
 sub is_active_now {
   my ($self) = @_;
-  my ($sec, $min, $hour) = localtime;
-  my $now = sprintf("%02d:%02d", $hour, $min);
+  my $now = DateTime->now(time_zone => 'UTC');
 
   for my $slot ($self->times->@*) {
-    my $start = $slot->{start} // next;
-    my $end = $slot->{end} // next;
-
-    # Handle overnight events (e.g., 23:00 - 00:00)
-    if ($end lt $start) {
-      return 1 if $now ge $start || $now lt $end;
-    } else {
-      return 1 if $now ge $start && $now lt $end;
-    }
+    return 1 if $slot->contains($now);
   }
   return 0;
 }
 
-# Get next scheduled time slot
+# Get next scheduled time slot (returns TimeSlot object)
 sub next_time {
   my ($self) = @_;
-  my ($sec, $min, $hour) = localtime;
-  my $now = sprintf("%02d:%02d", $hour, $min);
+  my $now = DateTime->now(time_zone => 'UTC');
 
-  my @sorted = sort { $a->{start} cmp $b->{start} } $self->times->@*;
+  my @sorted = sort { $a->start <=> $b->start } $self->times->@*;
 
-  # Find next slot after now
+  # Find next slot that starts after now
   for my $slot (@sorted) {
-    return $slot if ($slot->{start} // '') gt $now;
+    return $slot if $slot->start > $now;
   }
 
   # Wrap around to first slot tomorrow
@@ -105,21 +101,13 @@ sub next_time {
   return undef;
 }
 
-# Get current active time slot
-sub _current_slot {
+# Get current active time slot (returns TimeSlot object)
+sub current_slot {
   my ($self) = @_;
-  my ($sec, $min, $hour) = localtime;
-  my $now = sprintf("%02d:%02d", $hour, $min);
+  my $now = DateTime->now(time_zone => 'UTC');
 
   for my $slot ($self->times->@*) {
-    my $start = $slot->{start} // next;
-    my $end = $slot->{end} // next;
-
-    if ($end lt $start) {
-      return $slot if $now ge $start || $now lt $end;
-    } else {
-      return $slot if $now ge $start && $now lt $end;
-    }
+    return $slot if $slot->contains($now);
   }
   return undef;
 }
@@ -137,20 +125,6 @@ sub _format_duration {
   return $mins > 0 ? "${hours}h ${mins}m" : "${hours}h";
 }
 
-# Calculate minutes between two HH:MM times
-sub _minutes_between {
-  my ($self, $from, $to) = @_;
-  my ($from_h, $from_m) = split /:/, $from;
-  my ($to_h, $to_m) = split /:/, $to;
-
-  my $from_mins = $from_h * 60 + $from_m;
-  my $to_mins = $to_h * 60 + $to_m;
-
-  my $diff = $to_mins - $from_mins;
-  $diff += 24 * 60 if $diff < 0;  # wrap around midnight
-  return $diff;
-}
-
 # Time until next event start
 sub time_until_start {
   my ($self) = @_;
@@ -162,9 +136,7 @@ sub time_until_start {
 sub minutes_until_start {
   my ($self) = @_;
   my $next = $self->next_time or return undef;
-  my ($sec, $min, $hour) = localtime;
-  my $now = sprintf("%02d:%02d", $hour, $min);
-  return $self->_minutes_between($now, $next->{start});
+  return $next->minutes_until_start;
 }
 
 # Time until current active slot ends
@@ -177,10 +149,8 @@ sub time_until_end {
 # Minutes until current active slot ends (for sorting)
 sub minutes_until_end {
   my ($self) = @_;
-  my $slot = $self->_current_slot or return undef;
-  my ($sec, $min, $hour) = localtime;
-  my $now = sprintf("%02d:%02d", $hour, $min);
-  return $self->_minutes_between($now, $slot->{end});
+  my $slot = $self->current_slot or return undef;
+  return $slot->minutes_until_end;
 }
 
 1;
@@ -192,7 +162,7 @@ sub minutes_until_end {
       say $event->name;
       say "  Active!" if $event->is_active_now;
       if (my $next = $event->next_time) {
-          say "  Next: $next->{start} - $next->{end}";
+          say "  Next: ", $next->start, " - ", $next->end;
       }
   }
 
@@ -222,7 +192,7 @@ Event description text.
 
 =attr times
 
-ArrayRef of time slots: C<[{ start => "HH:MM", end => "HH:MM" }]>.
+ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::TimeSlot> objects.
 
 =attr days
 
@@ -239,14 +209,20 @@ Construct from API response.
   if ($event->is_active_now) { ... }
 
 Returns true if current time is within a scheduled time slot.
-Handles overnight events (e.g., 23:00-01:00).
 
 =method next_time
 
   my $slot = $event->next_time;
-  say "Starts at $slot->{start}" if $slot;
+  say "Starts at ", $slot->start if $slot;
 
-Returns next upcoming time slot as HashRef, or undef if none scheduled.
+Returns next upcoming TimeSlot object, or undef if none scheduled.
+
+=method current_slot
+
+  my $slot = $event->current_slot;
+  say "Ends at ", $slot->end if $slot;
+
+Returns currently active TimeSlot object, or undef if not active.
 
 =method time_until_start
 

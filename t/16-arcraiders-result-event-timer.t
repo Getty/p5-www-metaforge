@@ -2,11 +2,13 @@
 use strict;
 use warnings;
 use Test::More;
+use DateTime;
 
 use_ok('WWW::MetaForge::ArcRaiders::Result::EventTimer');
+use_ok('WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
 
-subtest 'constructor' => sub {
-  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
+subtest 'from_hashref' => sub {
+  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name        => 'Cold Snap',
     map         => 'Dam',
     game        => 'arc-raiders',
@@ -16,86 +18,86 @@ subtest 'constructor' => sub {
       { start => '12:00', end => '14:00' },
     ],
     days        => [],
-    _raw        => {},
-  );
+  });
 
   is($event->name, 'Cold Snap', 'name');
   is($event->map, 'Dam', 'map');
   is($event->game, 'arc-raiders', 'game');
   is(scalar @{$event->times}, 2, 'times count');
-  is($event->times->[0]{start}, '04:00', 'first time slot start');
+
+  # Times are now TimeSlot objects with DateTime
+  my $slot = $event->times->[0];
+  isa_ok($slot, 'WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
+  isa_ok($slot->start, 'DateTime');
+  isa_ok($slot->end, 'DateTime');
+  is($slot->start->hour, 4, 'first slot starts at hour 4');
+  is($slot->end->hour, 6, 'first slot ends at hour 6');
 };
 
-subtest 'from_hashref' => sub {
-  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
-    name  => 'Harvester',
-    map   => 'Blue Gate',
-    game  => 'arc-raiders',
-    icon  => 'https://example.com/icon.webp',
-    times => [
-      { start => '11:00', end => '12:00' },
-    ],
+subtest 'TimeSlot contains method' => sub {
+  my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref({
+    start => '10:00',
+    end   => '12:00',
   });
 
-  is($event->name, 'Harvester', 'name');
-  is($event->map, 'Blue Gate', 'map');
-  is($event->icon, 'https://example.com/icon.webp', 'icon');
-  is(scalar @{$event->times}, 1, 'times count');
+  my $today = DateTime->now(time_zone => 'UTC')->truncate(to => 'day');
+
+  my $inside = $today->clone->set(hour => 11, minute => 0);
+  my $before = $today->clone->set(hour => 9, minute => 0);
+  my $after = $today->clone->set(hour => 13, minute => 0);
+
+  ok($slot->contains($inside), 'time inside slot');
+  ok(!$slot->contains($before), 'time before slot');
+  ok(!$slot->contains($after), 'time after slot');
+};
+
+subtest 'TimeSlot overnight handling' => sub {
+  my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref({
+    start => '23:00',
+    end   => '01:00',
+  });
+
+  # end should be next day
+  ok($slot->end > $slot->start, 'overnight slot: end > start');
+  is($slot->start->hour, 23, 'overnight slot starts at 23');
+  is($slot->end->hour, 1, 'overnight slot ends at 1');
 };
 
 subtest 'is_active_now method' => sub {
-  # Create event that spans current time plus buffer
-  my ($sec, $min, $hour) = localtime;
+  my $now = DateTime->now(time_zone => 'UTC');
 
-  # Use a range that covers current time with padding
-  # Start 1 hour ago, end 1 hour from now (handles edge cases)
-  my $start_hour = ($hour - 1) % 24;
-  my $end_hour = ($hour + 1) % 24;
+  # Create an event that is definitely active now
+  my $start_hour = ($now->hour - 1) % 24;
+  my $end_hour = ($now->hour + 1) % 24;
   my $now_start = sprintf("%02d:00", $start_hour);
   my $now_end = sprintf("%02d:59", $end_hour);
 
-  my $active_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
+  my $active_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test Active',
     map   => 'Test',
     game  => 'arc-raiders',
     times => [{ start => $now_start, end => $now_end }],
-    _raw  => {},
-  );
+  });
 
   ok($active_event->is_active_now, 'event spanning current time is active');
 
-  # Create event in distant past/future time that's definitely not now
-  my $distant_hour = ($hour + 12) % 24;  # 12 hours away
+  # Create event definitely not now (12 hours away)
+  my $distant_hour = ($now->hour + 12) % 24;
   my $distant_start = sprintf("%02d:00", $distant_hour);
   my $distant_end = sprintf("%02d:01", $distant_hour);
 
-  my $inactive_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
+  my $inactive_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test Inactive',
     map   => 'Test',
     game  => 'arc-raiders',
     times => [{ start => $distant_start, end => $distant_end }],
-    _raw  => {},
-  );
+  });
 
   ok(!$inactive_event->is_active_now, 'event 12 hours away is inactive');
 };
 
-subtest 'is_active_now handles overnight events' => sub {
-  my $overnight = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
-    name  => 'Overnight',
-    map   => 'Test',
-    game  => 'arc-raiders',
-    times => [{ start => '23:00', end => '01:00' }],
-    _raw  => {},
-  );
-
-  # Just verify it doesn't crash
-  my $result = $overnight->is_active_now;
-  ok(defined $result, 'overnight event check returns defined value');
-};
-
 subtest 'next_time method' => sub {
-  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
+  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test',
     map   => 'Test',
     game  => 'arc-raiders',
@@ -104,26 +106,45 @@ subtest 'next_time method' => sub {
       { start => '12:00', end => '13:00' },
       { start => '18:00', end => '19:00' },
     ],
-    _raw  => {},
-  );
+  });
 
   my $next = $event->next_time;
   ok(defined $next, 'next_time returns a slot');
-  ok(exists $next->{start}, 'slot has start');
-  ok(exists $next->{end}, 'slot has end');
+  isa_ok($next, 'WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
+  isa_ok($next->start, 'DateTime');
+  isa_ok($next->end, 'DateTime');
 };
 
 subtest 'next_time with empty times' => sub {
-  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->new(
+  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Empty',
     map   => 'Test',
     game  => 'arc-raiders',
     times => [],
-    _raw  => {},
-  );
+  });
 
   my $next = $event->next_time;
   ok(!defined $next, 'next_time returns undef for empty times');
+};
+
+subtest 'current_slot method' => sub {
+  my $now = DateTime->now(time_zone => 'UTC');
+
+  my $start_hour = ($now->hour - 1) % 24;
+  my $end_hour = ($now->hour + 1) % 24;
+  my $now_start = sprintf("%02d:00", $start_hour);
+  my $now_end = sprintf("%02d:59", $end_hour);
+
+  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
+    name  => 'Test',
+    map   => 'Test',
+    game  => 'arc-raiders',
+    times => [{ start => $now_start, end => $now_end }],
+  });
+
+  my $slot = $event->current_slot;
+  ok(defined $slot, 'current_slot returns slot when active');
+  isa_ok($slot, 'WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
 };
 
 subtest 'defaults' => sub {
