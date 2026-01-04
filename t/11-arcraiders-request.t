@@ -59,7 +59,7 @@ subtest 'traders request' => sub {
 
 subtest 'event_timers request' => sub {
   my $req = $req_factory->event_timers(map => 'Dam');
-  like($req->uri, qr{/event-timers}, 'URI contains /event-timers');
+  like($req->uri, qr{/events-schedule}, 'URI contains /events-schedule');
   like($req->uri, qr/map=Dam/, 'has param');
 };
 

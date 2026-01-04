@@ -22,7 +22,7 @@ sub request {
     $fixture_file = 'items.json';
   } elsif ($uri =~ /\/quests/) {
     $fixture_file = 'quests.json';
-  } elsif ($uri =~ /\/event-timers/) {
+  } elsif ($uri =~ /\/events-schedule/) {
     $fixture_file = 'event-timers.json';
   } elsif ($uri =~ /\/arcs/) {
     $fixture_file = 'arcs.json';

@@ -21,6 +21,12 @@ has end => (
 sub from_hashref {
   my ($class, $data) = @_;
 
+  # New API format: startTime/endTime as millisecond timestamps
+  if (exists $data->{startTime}) {
+    return $class->from_epoch_ms($data->{startTime}, $data->{endTime});
+  }
+
+  # Legacy format: start/end as HH:MM strings
   my $today = DateTime->now(time_zone => 'UTC')->truncate(to => 'day');
 
   my ($start_h, $start_m) = split /:/, $data->{start};
@@ -31,6 +37,24 @@ sub from_hashref {
 
   # Handle overnight slots (e.g., 23:00 - 01:00)
   $end->add(days => 1) if $end <= $start;
+
+  return $class->new(
+    start => $start,
+    end   => $end,
+  );
+}
+
+sub from_epoch_ms {
+  my ($class, $start_ms, $end_ms) = @_;
+
+  my $start = DateTime->from_epoch(
+    epoch     => int($start_ms / 1000),
+    time_zone => 'UTC',
+  );
+  my $end = DateTime->from_epoch(
+    epoch     => int($end_ms / 1000),
+    time_zone => 'UTC',
+  );
 
   return $class->new(
     start => $start,

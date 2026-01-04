@@ -299,7 +299,33 @@ sub event_timers {
   my $req = $self->request->event_timers(%params);
   my $response = $self->_fetch('event_timers', $req, %params, _skip_cache => 1);
   my $data = $self->_extract_data($response);
-  return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
+  return $self->_group_event_timers($data);
+}
+
+# Group flat event list by name+map into EventTimer objects with TimeSlots
+sub _group_event_timers {
+  my ($self, $data) = @_;
+
+  return [] unless $data && ref $data eq 'ARRAY';
+
+  # Group by name+map
+  my %grouped;
+  for my $event (@$data) {
+    my $key = ($event->{name} // '') . '|' . ($event->{map} // '');
+    push @{ $grouped{$key} }, $event;
+  }
+
+  # Build EventTimer objects from grouped data
+  my @timers;
+  for my $key (sort keys %grouped) {
+    my $events = $grouped{$key};
+    my ($name, $map) = split /\|/, $key, 2;
+    push @timers, WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped(
+      $name, $map, $events
+    );
+  }
+
+  return \@timers;
 }
 
 # event_timers_cached: use cache (for when you don't need live data)
@@ -308,7 +334,7 @@ sub event_timers_cached {
   my $req = $self->request->event_timers(%params);
   my $response = $self->_fetch('event_timers', $req, %params);
   my $data = $self->_extract_data($response);
-  return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
+  return $self->_group_event_timers($data);
 }
 
 # event_timers_hourly: cached but invalidates at the start of each hour
@@ -331,7 +357,7 @@ sub event_timers_hourly {
         if ($cached_time >= $current_hour) {
           $self->_debug("CACHE HIT (hourly): $cache_key");
           my $data = $cached->{data};
-          return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
+          return $self->_group_event_timers($data);
         }
         $self->_debug("CACHE EXPIRED (new hour): $cache_key");
       }
@@ -349,7 +375,7 @@ sub event_timers_hourly {
     $self->_debug("CACHE SET (hourly): $cache_key");
   }
 
-  return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::EventTimer');
+  return $self->_group_event_timers($data);
 }
 
 sub map_data {

@@ -19,18 +19,7 @@ has map => (
   required => 1,
 );
 
-has game => (
-  is       => 'ro',
-  isa      => Str,
-  required => 1,
-);
-
 has icon => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
-has description => (
   is  => 'ro',
   isa => Maybe[Str],
 );
@@ -39,13 +28,6 @@ has description => (
 has times => (
   is      => 'ro',
   isa     => ArrayRef[InstanceOf['WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot']],
-  default => sub { [] },
-);
-
-# Days the event occurs (empty = every day)
-has days => (
-  is      => 'ro',
-  isa     => ArrayRef,
   default => sub { [] },
 );
 
@@ -62,14 +44,33 @@ sub from_hashref {
   } @{ $data->{times} // [] };
 
   return $class->new(
-    name        => $data->{name},
-    map         => $data->{map},
-    game        => $data->{game},
-    icon        => $data->{icon},
-    description => $data->{description},
-    times       => \@slots,
-    days        => $data->{days} // [],
-    _raw        => $data,
+    name   => $data->{name},
+    map    => $data->{map},
+    icon   => $data->{icon},
+    times  => \@slots,
+    _raw   => $data,
+  );
+}
+
+# Build from grouped API data (array of raw event entries with same name+map)
+sub from_grouped {
+  my ($class, $name, $map, $events) = @_;
+
+  my @slots = map {
+    WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_epoch_ms(
+      $_->{startTime}, $_->{endTime}
+    )
+  } @$events;
+
+  # Sort slots by start time
+  @slots = sort { $a->start <=> $b->start } @slots;
+
+  return $class->new(
+    name   => $name,
+    map    => $map,
+    icon   => $events->[0]{icon},
+    times  => \@slots,
+    _raw   => { name => $name, map => $map, events => $events },
   );
 }
 
@@ -176,33 +177,30 @@ Event name.
 
 =attr map
 
-Map where event occurs (undef if global).
-
-=attr game
-
-Game identifier.
+Map where event occurs.
 
 =attr icon
 
-Icon identifier for UI.
-
-=attr description
-
-Event description text.
+URL to event icon image.
 
 =attr times
 
-ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::TimeSlot> objects.
-
-=attr days
-
-ArrayRef of days when event occurs. Empty means every day.
+ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot> objects.
 
 =method from_hashref
 
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref(\%data);
 
-Construct from API response.
+Construct from API response (legacy format with times array).
+
+=method from_grouped
+
+  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped(
+    $name, $map, \@events
+  );
+
+Construct from grouped API data. Takes an array of raw event entries
+(with startTime/endTime timestamps) that share the same name and map.
 
 =method is_active_now
 

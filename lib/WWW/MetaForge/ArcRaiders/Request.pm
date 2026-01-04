@@ -48,7 +48,7 @@ sub traders {
 
 sub event_timers {
   my ($self, %params) = @_;
-  return $self->_build_request($self->base_url . '/event-timers', %params);
+  return $self->_build_request($self->base_url . '/events-schedule', %params);
 }
 
 sub map_data {
@@ -109,7 +109,7 @@ Returns L<HTTP::Request> for C</traders> endpoint.
 
   my $req = $factory->event_timers(map => 'Dam');
 
-Returns L<HTTP::Request> for C</event-timers> endpoint.
+Returns L<HTTP::Request> for C</events-schedule> endpoint.
 
 =method map_data
 

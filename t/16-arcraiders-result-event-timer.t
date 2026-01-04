@@ -7,22 +7,20 @@ use DateTime;
 use_ok('WWW::MetaForge::ArcRaiders::Result::EventTimer');
 use_ok('WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
 
-subtest 'from_hashref' => sub {
+subtest 'from_hashref with legacy HH:MM format' => sub {
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
-    name        => 'Cold Snap',
-    map         => 'Dam',
-    game        => 'arc-raiders',
-    description => 'Freezing event',
-    times       => [
+    name  => 'Cold Snap',
+    map   => 'Dam',
+    icon  => 'https://example.com/icon.webp',
+    times => [
       { start => '04:00', end => '06:00' },
       { start => '12:00', end => '14:00' },
     ],
-    days        => [],
   });
 
   is($event->name, 'Cold Snap', 'name');
   is($event->map, 'Dam', 'map');
-  is($event->game, 'arc-raiders', 'game');
+  is($event->icon, 'https://example.com/icon.webp', 'icon');
   is(scalar @{$event->times}, 2, 'times count');
 
   # Times are now TimeSlot objects with DateTime
@@ -32,6 +30,58 @@ subtest 'from_hashref' => sub {
   isa_ok($slot->end, 'DateTime');
   is($slot->start->hour, 4, 'first slot starts at hour 4');
   is($slot->end->hour, 6, 'first slot ends at hour 6');
+};
+
+subtest 'from_grouped with millisecond timestamps' => sub {
+  # 1767556800000 = 2026-01-04 12:00:00 UTC
+  # 1767564000000 = 2026-01-04 14:00:00 UTC
+  my $events = [
+    { name => 'Cold Snap', map => 'Dam', icon => 'https://example.com/icon.webp',
+      startTime => 1767556800000, endTime => 1767564000000 },
+    { name => 'Cold Snap', map => 'Dam', icon => 'https://example.com/icon.webp',
+      startTime => 1767585600000, endTime => 1767592800000 },
+  ];
+
+  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped(
+    'Cold Snap', 'Dam', $events
+  );
+
+  is($event->name, 'Cold Snap', 'name');
+  is($event->map, 'Dam', 'map');
+  is($event->icon, 'https://example.com/icon.webp', 'icon from first event');
+  is(scalar @{$event->times}, 2, 'times count');
+
+  my $slot = $event->times->[0];
+  isa_ok($slot, 'WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
+  isa_ok($slot->start, 'DateTime');
+  isa_ok($slot->end, 'DateTime');
+  is($slot->start->year, 2026, 'parsed year');
+  is($slot->start->month, 1, 'parsed month');
+  is($slot->start->day, 4, 'parsed day');
+};
+
+subtest 'TimeSlot from_epoch_ms' => sub {
+  # 1767556800000 = 2026-01-04 20:00:00 UTC
+  # 1767564000000 = 2026-01-04 22:00:00 UTC
+  my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_epoch_ms(
+    1767556800000, 1767564000000
+  );
+
+  isa_ok($slot, 'WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
+  is($slot->start->year, 2026, 'start year');
+  is($slot->start->hour, 20, 'start hour');
+  is($slot->end->hour, 22, 'end hour');
+};
+
+subtest 'TimeSlot from_hashref with startTime/endTime' => sub {
+  my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref({
+    startTime => 1767556800000,
+    endTime   => 1767564000000,
+  });
+
+  isa_ok($slot, 'WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot');
+  is($slot->start->year, 2026, 'start year');
+  is($slot->start->hour, 20, 'start hour');
 };
 
 subtest 'TimeSlot contains method' => sub {
@@ -75,7 +125,6 @@ subtest 'is_active_now method' => sub {
   my $active_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test Active',
     map   => 'Test',
-    game  => 'arc-raiders',
     times => [{ start => $now_start, end => $now_end }],
   });
 
@@ -89,7 +138,6 @@ subtest 'is_active_now method' => sub {
   my $inactive_event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test Inactive',
     map   => 'Test',
-    game  => 'arc-raiders',
     times => [{ start => $distant_start, end => $distant_end }],
   });
 
@@ -100,7 +148,6 @@ subtest 'next_time method' => sub {
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test',
     map   => 'Test',
-    game  => 'arc-raiders',
     times => [
       { start => '06:00', end => '07:00' },
       { start => '12:00', end => '13:00' },
@@ -119,7 +166,6 @@ subtest 'next_time with empty times' => sub {
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Empty',
     map   => 'Test',
-    game  => 'arc-raiders',
     times => [],
   });
 
@@ -138,7 +184,6 @@ subtest 'current_slot method' => sub {
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name  => 'Test',
     map   => 'Test',
-    game  => 'arc-raiders',
     times => [{ start => $now_start, end => $now_end }],
   });
 
@@ -151,12 +196,11 @@ subtest 'defaults' => sub {
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref({
     name => 'Minimal',
     map  => 'Test',
-    game => 'arc-raiders',
   });
 
   is(ref $event->times, 'ARRAY', 'times defaults to array');
-  is(ref $event->days, 'ARRAY', 'days defaults to array');
   is(scalar @{$event->times}, 0, 'times is empty');
+  ok(!defined $event->icon, 'icon defaults to undef');
 };
 
 done_testing;
