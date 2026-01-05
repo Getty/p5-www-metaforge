@@ -93,7 +93,10 @@ sub _print_quest_details {
     print "  Item Rewards:\n" unless @reward_parts;
     for my $reward (@{$quest->rewards}) {
       if (ref $reward eq 'HASH') {
-        my $name = $reward->{item} // $reward->{name} // next;
+        # Handle both formats: {item => "Name"} and {item => {name => "Name"}}
+        my $item = $reward->{item};
+        my $name = ref $item eq 'HASH' ? $item->{name} : ($item // $reward->{name});
+        next unless defined $name;
         my $qty  = $reward->{quantity} // $reward->{amount} // 1;
         printf "    %dx %s\n", $qty, $name;
       }

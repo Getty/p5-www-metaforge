@@ -79,7 +79,6 @@ sub _print_event_details {
   print "=" x 60, "\n";
 
   _print_field("Map",  $event->map // 'All Maps');
-  _print_field("Game", $event->game);
   _print_field("Icon", $event->icon);
 
   # Current status
@@ -94,25 +93,12 @@ sub _print_event_details {
     _print_field("Starts in", $starts_in) if $starts_in;
   }
 
-  if ($event->description) {
-    print "\nDescription:\n";
-    my $desc = $event->description;
-    $desc =~ s/(.{1,58})\s/$1\n  /g;  # Word wrap
-    print "  $desc\n";
-  }
-
   if ($event->times && @{$event->times}) {
     print "\nSchedule (UTC):\n";
     my @sorted = sort { $a->start <=> $b->start } @{$event->times};
     for my $slot (@sorted) {
       printf "  %s - %s\n", $slot->start->strftime('%H:%M'), $slot->end->strftime('%H:%M');
     }
-  }
-
-  if ($event->days && @{$event->days}) {
-    _print_field("Days", join(", ", @{$event->days}));
-  } else {
-    _print_field("Days", "Every day");
   }
 }
 

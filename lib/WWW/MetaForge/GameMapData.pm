@@ -145,7 +145,8 @@ sub _to_objects {
   if (ref $data eq 'ARRAY') {
     return [ map { $class->from_hashref($_) } @$data ];
   } elsif (ref $data eq 'HASH') {
-    return $class->from_hashref($data);
+    # Single item - wrap in array for consistency
+    return [ $class->from_hashref($data) ];
   }
 
   return $data;

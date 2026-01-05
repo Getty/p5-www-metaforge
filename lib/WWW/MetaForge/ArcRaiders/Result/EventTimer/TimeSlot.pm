@@ -27,7 +27,8 @@ sub from_hashref {
   }
 
   # Legacy format: start/end as HH:MM strings
-  my $today = DateTime->now(time_zone => 'UTC')->truncate(to => 'day');
+  my $now = DateTime->now(time_zone => 'UTC');
+  my $today = $now->clone->truncate(to => 'day');
 
   my ($start_h, $start_m) = split /:/, $data->{start};
   my ($end_h, $end_m) = split /:/, $data->{end};
@@ -36,7 +37,16 @@ sub from_hashref {
   my $end = $today->clone->set(hour => $end_h, minute => $end_m);
 
   # Handle overnight slots (e.g., 23:00 - 01:00)
-  $end->add(days => 1) if $end <= $start;
+  if ($end <= $start) {
+    # Slot crosses midnight - determine which day based on current time
+    if ($now < $end) {
+      # Early morning (after midnight, before slot end) - start was yesterday
+      $start->subtract(days => 1);
+    } else {
+      # Before midnight or after slot end - end is tomorrow
+      $end->add(days => 1);
+    }
+  }
 
   return $class->new(
     start => $start,

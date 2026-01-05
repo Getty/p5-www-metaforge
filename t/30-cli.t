@@ -178,4 +178,152 @@ subtest 'Traders command' => sub {
   ok(length($output) > 0, 'produces output');
 };
 
+# Single item/quest/arc/event commands
+subtest 'Item command - single item lookup' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Item;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Item->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['ferro-i'], [$cli]);
+  };
+
+  like($output, qr/Ferro I/i, 'shows item name');
+  like($output, qr/ID:/i, 'shows ID field');
+};
+
+subtest 'Item command - no argument shows usage' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Item;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Item->new();
+
+  my $output = capture_stdout {
+    $cmd->execute([], [$cli]);
+  };
+
+  like($output, qr/Usage:/i, 'shows usage message');
+};
+
+subtest 'Quest command - single quest lookup' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['a-bad-feeling'], [$cli]);
+  };
+
+  like($output, qr/A Bad Feeling/i, 'shows quest name');
+  like($output, qr/ID:/i, 'shows ID field');
+};
+
+subtest 'Quest command - no argument shows usage' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
+
+  my $output = capture_stdout {
+    $cmd->execute([], [$cli]);
+  };
+
+  like($output, qr/Usage:/i, 'shows usage message');
+};
+
+subtest 'Arc command - single arc lookup' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['salvage-run'], [$cli]);
+  };
+
+  like($output, qr/Salvage Run/i, 'shows arc name');
+  like($output, qr/ID:/i, 'shows ID field');
+};
+
+subtest 'Arc command - no argument shows usage' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc->new();
+
+  my $output = capture_stdout {
+    $cmd->execute([], [$cli]);
+  };
+
+  like($output, qr/Usage:/i, 'shows usage message');
+};
+
+subtest 'Event command - single event lookup' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Event;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Event->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['Cold Snap'], [$cli]);
+  };
+
+  # Should find event or show not found
+  ok(length($output) > 0, 'produces output');
+  like($output, qr/Cold Snap|not found/i, 'shows event or not found');
+};
+
+subtest 'Event command - no argument shows usage' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Event;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Event->new();
+
+  my $output = capture_stdout {
+    $cmd->execute([], [$cli]);
+  };
+
+  like($output, qr/Usage:/i, 'shows usage message');
+};
+
+subtest 'Item command - JSON output' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Item;
+
+  my $cli = mock_cli();
+  $cli->{json} = 1;
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Item->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['ferro-i'], [$cli]);
+  };
+
+  like($output, qr/^\{/, 'starts with {');
+  like($output, qr/"name"/, 'has name field');
+
+  require JSON::MaybeXS;
+  my $data = eval { JSON::MaybeXS::decode_json($output) };
+  ok(!$@, 'valid JSON') or diag("JSON error: $@");
+};
+
+subtest 'Quest command - JSON output' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest;
+
+  my $cli = mock_cli();
+  $cli->{json} = 1;
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['a-bad-feeling'], [$cli]);
+  };
+
+  like($output, qr/^\{/, 'starts with {');
+  like($output, qr/"name"/, 'has name field');
+
+  require JSON::MaybeXS;
+  my $data = eval { JSON::MaybeXS::decode_json($output) };
+  ok(!$@, 'valid JSON') or diag("JSON error: $@");
+};
+
 done_testing;
