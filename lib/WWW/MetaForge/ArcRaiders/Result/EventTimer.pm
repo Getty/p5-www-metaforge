@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Result::EventTimer;
 # ABSTRACT: Event timer/schedule result object
-
+our $VERSION = '0.002';
 use Moo;
 use Types::Standard qw(Str ArrayRef HashRef Maybe InstanceOf);
 use DateTime;

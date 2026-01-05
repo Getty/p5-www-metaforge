@@ -1,6 +1,6 @@
 package WWW::MetaForge::Cache;
 # ABSTRACT: File-based caching for MetaForge APIs
-
+our $VERSION = '0.002';
 use Moo;
 use Path::Tiny;
 use JSON::MaybeXS;

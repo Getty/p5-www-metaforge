@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Result::MapMarker;
 # ABSTRACT: Map marker result object for ARC Raiders
-
+our $VERSION = '0.002';
 use Moo;
 use Types::Standard qw(Str Bool Maybe Int);
 use namespace::clean;

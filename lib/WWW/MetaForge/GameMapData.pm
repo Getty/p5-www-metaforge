@@ -1,6 +1,6 @@
 package WWW::MetaForge::GameMapData;
 # ABSTRACT: Perl client for the MetaForge Game Map Data API
-
+our $VERSION = '0.002';
 use Moo;
 use LWP::UserAgent;
 use JSON::MaybeXS;

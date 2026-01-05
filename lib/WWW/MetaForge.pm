@@ -1,6 +1,6 @@
 package WWW::MetaForge;
 # ABSTRACT: Perl client for MetaForge gaming APIs
-
+our $VERSION = '0.002';
 use strict;
 use warnings;
 

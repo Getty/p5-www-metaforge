@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot;
 # ABSTRACT: A time slot with start and end DateTime objects
-
+our $VERSION = '0.002';
 use Moo;
 use Types::Standard qw(InstanceOf);
 use DateTime;

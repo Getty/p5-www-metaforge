@@ -1,6 +1,6 @@
 package WWW::MetaForge::GameMapData::Result::MapMarker;
 # ABSTRACT: Base map marker result object for MetaForge Game Map Data API
-
+our $VERSION = '0.002';
 use Moo;
 use Types::Standard qw(Str Num Int HashRef Maybe);
 use namespace::clean;

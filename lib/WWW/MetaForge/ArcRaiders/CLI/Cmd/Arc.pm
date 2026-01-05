@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc;
 # ABSTRACT: Show details for a single arc
-
+our $VERSION = '0.002';
 use Moo;
 use MooX::Cmd;
 use MooX::Options;

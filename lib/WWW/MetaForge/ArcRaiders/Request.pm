@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Request;
 # ABSTRACT: HTTP Request factory for MetaForge ARC Raiders API
-
+our $VERSION = '0.002';
 use Moo;
 use HTTP::Request;
 use URI;

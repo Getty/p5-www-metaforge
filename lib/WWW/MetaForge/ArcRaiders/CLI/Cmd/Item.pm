@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::CLI::Cmd::Item;
 # ABSTRACT: Show details for a single item
-
+our $VERSION = '0.002';
 use Moo;
 use MooX::Cmd;
 use MooX::Options;

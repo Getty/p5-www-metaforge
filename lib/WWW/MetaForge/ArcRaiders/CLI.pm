@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::CLI;
 # ABSTRACT: CLI application for MetaForge ARC Raiders API
-
+our $VERSION = '0.002';
 use Moo;
 use WWW::MetaForge::ArcRaiders;
 use Getopt::Long qw(:config pass_through);

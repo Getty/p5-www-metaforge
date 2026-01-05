@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders;
 # ABSTRACT: Perl client for the MetaForge ARC Raiders API
-
+our $VERSION = '0.002';
 use Moo;
 use LWP::UserAgent;
 use JSON::MaybeXS;

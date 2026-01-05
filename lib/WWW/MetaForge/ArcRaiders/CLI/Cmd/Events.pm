@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::CLI::Cmd::Events;
 # ABSTRACT: Show event timers from the ARC Raiders API
-
+our $VERSION = '0.002';
 use Moo;
 use MooX::Cmd;
 use MooX::Options;

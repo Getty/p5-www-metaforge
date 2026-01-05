@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Result::Quest;
 # ABSTRACT: Quest result object
-
+our $VERSION = '0.002';
 use Moo;
 use Types::Standard qw(Str Int ArrayRef HashRef Maybe);
 use namespace::clean;
