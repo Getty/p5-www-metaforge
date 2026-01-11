@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+ - Convert POD documentation to @Author::GETTY inline style
+
 0.001     2026-01-05 05:03:59Z
 
  - Initial release
