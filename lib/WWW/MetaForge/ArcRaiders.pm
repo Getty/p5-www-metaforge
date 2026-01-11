@@ -1,6 +1,7 @@
 package WWW::MetaForge::ArcRaiders;
 # ABSTRACT: Perl client for the MetaForge ARC Raiders API
 our $VERSION = '0.002';
+
 use Moo;
 use LWP::UserAgent;
 use JSON::MaybeXS;
@@ -19,6 +20,41 @@ use WWW::MetaForge::ArcRaiders::Result::Trader;
 use WWW::MetaForge::ArcRaiders::Result::EventTimer;
 use WWW::MetaForge::ArcRaiders::Result::MapMarker;
 
+=head1 SYNOPSIS
+
+    use WWW::MetaForge::ArcRaiders;
+
+    my $api = WWW::MetaForge::ArcRaiders->new;
+
+    # Get items
+    my $items = $api->items;
+    for my $item (@$items) {
+        say $item->name . " (" . $item->rarity . ")";
+    }
+
+    # Search with parameters
+    my $ferro = $api->items(search => 'Ferro');
+
+    # Event timers with helper methods
+    my $events = $api->event_timers;
+    for my $event (@$events) {
+        say $event->name;
+        say "  Active!" if $event->is_active_now;
+    }
+
+    # Disable caching
+    my $api = WWW::MetaForge::ArcRaiders->new(use_cache => 0);
+
+    # For async usage (e.g., with WWW::Chain)
+    my $request = $api->request->items(search => 'Ferro');
+
+=head1 DESCRIPTION
+
+Perl interface to the MetaForge ARC Raiders API for game data
+(items, ARCs, quests, traders, event timers, map data).
+
+=cut
+
 # Fixed list of ARC Raiders maps (API mapID format)
 our @MAPS = qw(dam spaceport buried-city blue-gate stella-montis);
 our %MAP_DISPLAY_NAMES = (
@@ -30,11 +66,39 @@ our %MAP_DISPLAY_NAMES = (
 );
 
 sub maps { return @MAPS }
+
+=method maps
+
+    my @maps = $api->maps;
+
+Returns list of available ARC Raiders map IDs (e.g., C<dam>, C<spaceport>,
+C<buried-city>, C<blue-gate>, C<stella-montis>).
+
+=cut
+
 sub map_display_names { return %MAP_DISPLAY_NAMES }
+
+=method map_display_names
+
+    my %names = $api->map_display_names;
+
+Returns hash of map ID to display name (e.g., C<dam> => "Dam").
+
+=cut
+
 sub map_display_name {
   my ($self, $map_id) = @_;
   return $MAP_DISPLAY_NAMES{$map_id} // $map_id;
 }
+
+=method map_display_name
+
+    my $name = $api->map_display_name('dam');  # "Dam"
+
+Returns human-readable display name for a map ID. Falls back to the
+ID itself if no display name is available.
+
+=cut
 
 has ua => (
   is      => 'ro',
@@ -42,11 +106,24 @@ has ua => (
   builder => '_build_ua',
 );
 
+=attr ua
+
+L<LWP::UserAgent> instance. Built lazily with sensible defaults.
+
+=cut
+
 has request => (
   is      => 'ro',
   lazy    => 1,
   default => sub { WWW::MetaForge::ArcRaiders::Request->new },
 );
+
+=attr request
+
+L<WWW::MetaForge::ArcRaiders::Request> instance for creating
+L<HTTP::Request> objects. Use for async framework integration.
+
+=cut
 
 has cache => (
   is      => 'ro',
@@ -54,14 +131,33 @@ has cache => (
   builder => '_build_cache',
 );
 
+=attr cache
+
+L<WWW::MetaForge::Cache> instance for response caching.
+
+=cut
+
 has use_cache => (
   is      => 'ro',
   default => 1,
 );
 
+=attr use_cache
+
+Boolean, default true. Set to false to disable caching.
+
+=cut
+
 has cache_dir => (
   is => 'ro',
 );
+
+=attr cache_dir
+
+Optional L<Path::Tiny> path for cache directory. Defaults to
+XDG cache dir on Unix, LOCALAPPDATA on Windows.
+
+=cut
 
 has json => (
   is      => 'ro',
@@ -69,10 +165,23 @@ has json => (
   default => sub { JSON::MaybeXS->new(utf8 => 1) },
 );
 
+=attr json
+
+L<JSON::MaybeXS> instance for encoding/decoding JSON responses.
+
+=cut
+
 has debug => (
   is      => 'ro',
   default => sub { $DEBUG },
 );
+
+=attr debug
+
+Boolean. Enable debug output. Also settable via
+C<$ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG}>.
+
+=cut
 
 sub _debug {
   my ($self, $msg) = @_;
@@ -102,6 +211,13 @@ has game_map_data => (
   lazy    => 1,
   builder => '_build_game_map_data',
 );
+
+=attr game_map_data
+
+L<WWW::MetaForge::GameMapData> instance used for C<map_data> calls.
+Configured automatically with ARC Raiders specific marker class.
+
+=cut
 
 sub _build_game_map_data {
   my ($self) = @_;
@@ -221,15 +337,44 @@ sub items {
   return $self->_fetch_paginated('items', 'items', 'WWW::MetaForge::ArcRaiders::Result::Item', %params)->{data};
 }
 
+=method items
+
+    my $items = $api->items(%params);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Item> from
+first page. Supports C<search>, C<page>, C<limit> parameters.
+
+=cut
+
 sub items_paginated {
   my ($self, %params) = @_;
   return $self->_fetch_paginated('items', 'items', 'WWW::MetaForge::ArcRaiders::Result::Item', %params);
 }
 
+=method items_paginated
+
+    my $result = $api->items_paginated(%params);
+    my $items = $result->{data};
+    my $pagination = $result->{pagination};
+
+Returns HashRef with C<data> (items ArrayRef) and C<pagination> info
+(total, page, totalPages, hasNextPage).
+
+=cut
+
 sub items_all {
   my ($self, %params) = @_;
   return $self->_fetch_all_pages('items', 'items', 'WWW::MetaForge::ArcRaiders::Result::Item', %params);
 }
+
+=method items_all
+
+    my $items = $api->items_all(%params);
+
+Fetches all pages and returns complete ArrayRef of all items.
+Use with caution on large datasets.
+
+=cut
 
 # Legacy alias
 sub items_with_pagination { shift->items_paginated(@_) }
@@ -239,30 +384,80 @@ sub arcs {
   return $self->_fetch_paginated('arcs', 'arcs', 'WWW::MetaForge::ArcRaiders::Result::Arc', %params)->{data};
 }
 
+=method arcs
+
+    my $arcs = $api->arcs(%params);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Arc> from
+first page. Supports C<includeLoot> parameter.
+
+=cut
+
 sub arcs_paginated {
   my ($self, %params) = @_;
   return $self->_fetch_paginated('arcs', 'arcs', 'WWW::MetaForge::ArcRaiders::Result::Arc', %params);
 }
+
+=method arcs_paginated
+
+    my $result = $api->arcs_paginated(%params);
+
+Returns HashRef with C<data> and C<pagination> info.
+
+=cut
 
 sub arcs_all {
   my ($self, %params) = @_;
   return $self->_fetch_all_pages('arcs', 'arcs', 'WWW::MetaForge::ArcRaiders::Result::Arc', %params);
 }
 
+=method arcs_all
+
+    my $arcs = $api->arcs_all(%params);
+
+Fetches all pages and returns complete ArrayRef of all ARCs.
+
+=cut
+
 sub quests {
   my ($self, %params) = @_;
   return $self->_fetch_paginated('quests', 'quests', 'WWW::MetaForge::ArcRaiders::Result::Quest', %params)->{data};
 }
+
+=method quests
+
+    my $quests = $api->quests(%params);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Quest> from
+first page. Supports C<type> parameter.
+
+=cut
 
 sub quests_paginated {
   my ($self, %params) = @_;
   return $self->_fetch_paginated('quests', 'quests', 'WWW::MetaForge::ArcRaiders::Result::Quest', %params);
 }
 
+=method quests_paginated
+
+    my $result = $api->quests_paginated(%params);
+
+Returns HashRef with C<data> and C<pagination> info.
+
+=cut
+
 sub quests_all {
   my ($self, %params) = @_;
   return $self->_fetch_all_pages('quests', 'quests', 'WWW::MetaForge::ArcRaiders::Result::Quest', %params);
 }
+
+=method quests_all
+
+    my $quests = $api->quests_all(%params);
+
+Fetches all pages and returns complete ArrayRef of all quests.
+
+=cut
 
 # Legacy alias
 sub quests_with_pagination {
@@ -294,6 +489,14 @@ sub traders {
   return $self->_to_objects($data, 'WWW::MetaForge::ArcRaiders::Result::Trader');
 }
 
+=method traders
+
+    my $traders = $api->traders(%params);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Trader>.
+
+=cut
+
 # event_timers: always fresh (no cache) - time-critical data
 sub event_timers {
   my ($self, %params) = @_;
@@ -302,6 +505,15 @@ sub event_timers {
   my $data = $self->_extract_data($response);
   return $self->_group_event_timers($data);
 }
+
+=method event_timers
+
+    my $events = $api->event_timers(%params);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer>.
+Always fetches fresh data (bypasses cache) since event timers are time-sensitive.
+
+=cut
 
 # Group flat event list by name+map into EventTimer objects with TimeSlots
 sub _group_event_timers {
@@ -337,6 +549,15 @@ sub event_timers_cached {
   my $data = $self->_extract_data($response);
   return $self->_group_event_timers($data);
 }
+
+=method event_timers_cached
+
+    my $events = $api->event_timers_cached(%params);
+
+Like C<event_timers> but uses cache. Only use when you don't need
+real-time event status.
+
+=cut
 
 # event_timers_hourly: cached but invalidates at the start of each hour
 sub event_timers_hourly {
@@ -379,16 +600,51 @@ sub event_timers_hourly {
   return $self->_group_event_timers($data);
 }
 
+=method event_timers_hourly
+
+    my $events = $api->event_timers_hourly;
+
+Like C<event_timers_cached> but invalidates the cache at the start of
+each hour (when minute becomes 0). Useful for scheduled data that
+updates hourly.
+
+=cut
+
 sub map_data {
   my ($self, %params) = @_;
   return $self->game_map_data->map_data(%params);
 }
+
+=method map_data
+
+    my $markers = $api->map_data(%params);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::MapMarker>.
+Supports C<map> parameter.
+
+=cut
 
 sub items_raw {
   my ($self, %params) = @_;
   my $req = $self->request->items(%params);
   return $self->_fetch('items', $req, %params);
 }
+
+=method items_raw
+
+=method arcs_raw
+
+=method quests_raw
+
+=method traders_raw
+
+=method event_timers_raw
+
+=method map_data_raw
+
+Same as the corresponding methods but return raw HashRef/ArrayRef instead of result objects.
+
+=cut
 
 sub arcs_raw {
   my ($self, %params) = @_;
@@ -424,6 +680,15 @@ sub clear_cache {
   $self->cache->clear($endpoint);
 }
 
+=method clear_cache
+
+    $api->clear_cache('items');  # Clear specific endpoint
+    $api->clear_cache;           # Clear all
+
+Clear cached responses.
+
+=cut
+
 # Internal cache for item lookups (populated on first use)
 has _items_cache => (
   is      => 'rw',
@@ -453,11 +718,28 @@ sub find_item_by_name {
   return $cache->{by_name}{lc($name)};
 }
 
+=method find_item_by_name
+
+    my $item = $api->find_item_by_name('Ferro I');
+
+Find an item by exact name (case-insensitive). Loads all items on first
+call for fast subsequent lookups.
+
+=cut
+
 sub find_item_by_id {
   my ($self, $id) = @_;
   my $cache = $self->_ensure_items_cache;
   return $cache->{by_id}{$id};
 }
+
+=method find_item_by_id
+
+    my $item = $api->find_item_by_id('ferro-i');
+
+Find an item by its ID.
+
+=cut
 
 # Extract component name from crafting requirement
 # Handles both string format and object format from API
@@ -467,9 +749,6 @@ sub _component_name {
   return ref($component) eq 'HASH' ? $component->{name} : $component;
 }
 
-# Calculate requirements for a list of items
-# Input: items => [ { item => "Name", count => N }, ... ]
-# Returns: { requirements => [ { item => $item_obj, count => N }, ... ], missing => [...] }
 sub calculate_requirements {
   my ($self, %args) = @_;
   my $items = $args{items} // [];
@@ -517,10 +796,36 @@ sub calculate_requirements {
   };
 }
 
-# Calculate base (raw) requirements recursively
-# Resolves all crafting chains down to uncraftable materials
-# Input: items => [ { item => "Name", count => N }, ... ]
-# Returns: { requirements => [ { item => $item_obj, count => N }, ... ], missing => [...] }
+=method calculate_requirements
+
+    my $result = $api->calculate_requirements(
+      items => [
+        { item => 'Ferro II', count => 2 },
+        { item => 'Advanced Circuit', count => 1 },
+      ]
+    );
+
+    for my $req (@{$result->{requirements}}) {
+      say $req->{item}->name . " x" . $req->{count};
+    }
+
+Calculate the direct crafting materials needed to build the given items.
+Returns a hashref with:
+
+=over
+
+=item requirements
+
+ArrayRef of C<< { item => $item_obj, count => N } >>
+
+=item missing
+
+ArrayRef of items that couldn't be resolved (not found, not craftable, etc.)
+
+=back
+
+=cut
+
 sub calculate_base_requirements {
   my ($self, %args) = @_;
   my $items = $args{items} // [];
@@ -594,277 +899,38 @@ sub calculate_base_requirements {
   };
 }
 
+=method calculate_base_requirements
+
+    my $result = $api->calculate_base_requirements(
+      items     => [{ item => 'Ferro III', count => 1 }],
+      max_depth => 10,  # optional, default 20
+    );
+
+Like C<calculate_requirements> but recursively resolves all crafting
+chains down to base materials (items with no crafting requirements).
+Includes cycle detection and depth limiting.
+
+=cut
+
 # Clear internal item cache (call after items data might have changed)
 sub clear_items_cache {
   my ($self) = @_;
   $self->_items_cache(undef);
 }
 
-1;
-
-=head1 SYNOPSIS
-
-  use WWW::MetaForge::ArcRaiders;
-
-  my $api = WWW::MetaForge::ArcRaiders->new;
-
-  # Get items
-  my $items = $api->items;
-  for my $item (@$items) {
-      say $item->name . " (" . $item->rarity . ")";
-  }
-
-  # Search with parameters
-  my $ferro = $api->items(search => 'Ferro');
-
-  # Event timers with helper methods
-  my $events = $api->event_timers;
-  for my $event (@$events) {
-      say $event->name;
-      say "  Active!" if $event->is_active_now;
-  }
-
-  # Disable caching
-  my $api = WWW::MetaForge::ArcRaiders->new(use_cache => 0);
-
-  # For async usage (e.g., with WWW::Chain)
-  my $request = $api->request->items(search => 'Ferro');
-
-=head1 DESCRIPTION
-
-Perl interface to the MetaForge ARC Raiders API for game data
-(items, ARCs, quests, traders, event timers, map data).
-
-=attr ua
-
-L<LWP::UserAgent> instance. Built lazily with sensible defaults.
-
-=attr request
-
-L<WWW::MetaForge::ArcRaiders::Request> instance for creating
-L<HTTP::Request> objects. Use for async framework integration.
-
-=attr cache
-
-L<WWW::MetaForge::Cache> instance for response caching.
-
-=attr use_cache
-
-Boolean, default true. Set to false to disable caching.
-
-=attr cache_dir
-
-Optional L<Path::Tiny> path for cache directory. Defaults to
-XDG cache dir on Unix, LOCALAPPDATA on Windows.
-
-=attr debug
-
-Boolean. Enable debug output. Also settable via
-C<$ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG}>.
-
-=attr game_map_data
-
-L<WWW::MetaForge::GameMapData> instance used for C<map_data> calls.
-Configured automatically with ARC Raiders specific marker class.
-
-=method items
-
-  my $items = $api->items(%params);
-
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Item> from
-first page. Supports C<search>, C<page>, C<limit> parameters.
-
-=method items_paginated
-
-  my $result = $api->items_paginated(%params);
-  my $items = $result->{data};
-  my $pagination = $result->{pagination};
-
-Returns HashRef with C<data> (items ArrayRef) and C<pagination> info
-(total, page, totalPages, hasNextPage).
-
-=method items_all
-
-  my $items = $api->items_all(%params);
-
-Fetches all pages and returns complete ArrayRef of all items.
-Use with caution on large datasets.
-
-=method arcs
-
-  my $arcs = $api->arcs(%params);
-
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Arc> from
-first page. Supports C<includeLoot> parameter.
-
-=method arcs_paginated
-
-  my $result = $api->arcs_paginated(%params);
-
-Returns HashRef with C<data> and C<pagination> info.
-
-=method arcs_all
-
-  my $arcs = $api->arcs_all(%params);
-
-Fetches all pages and returns complete ArrayRef of all ARCs.
-
-=method quests
-
-  my $quests = $api->quests(%params);
-
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Quest> from
-first page. Supports C<type> parameter.
-
-=method quests_paginated
-
-  my $result = $api->quests_paginated(%params);
-
-Returns HashRef with C<data> and C<pagination> info.
-
-=method quests_all
-
-  my $quests = $api->quests_all(%params);
-
-Fetches all pages and returns complete ArrayRef of all quests.
-
-=method traders
-
-  my $traders = $api->traders(%params);
-
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Trader>.
-
-=method event_timers
-
-  my $events = $api->event_timers(%params);
-
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer>.
-Always fetches fresh data (bypasses cache) since event timers are time-sensitive.
-
-=method event_timers_cached
-
-  my $events = $api->event_timers_cached(%params);
-
-Like C<event_timers> but uses cache. Only use when you don't need
-real-time event status.
-
-=method map_data
-
-  my $markers = $api->map_data(%params);
-
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::MapMarker>.
-Supports C<map> parameter.
-
-=method items_raw
-
-=method arcs_raw
-
-=method quests_raw
-
-=method traders_raw
-
-=method event_timers_raw
-
-=method map_data_raw
-
-Same as above but return raw HashRef/ArrayRef instead of result objects.
-
-=method clear_cache
-
-  $api->clear_cache('items');  # Clear specific endpoint
-  $api->clear_cache;           # Clear all
-
-Clear cached responses.
-
-=method event_timers_hourly
-
-  my $events = $api->event_timers_hourly;
-
-Like C<event_timers_cached> but invalidates the cache at the start of
-each hour (when minute becomes 0). Useful for scheduled data that
-updates hourly.
-
-=method find_item_by_name
-
-  my $item = $api->find_item_by_name('Ferro I');
-
-Find an item by exact name (case-insensitive). Loads all items on first
-call for fast subsequent lookups.
-
-=method find_item_by_id
-
-  my $item = $api->find_item_by_id('ferro-i');
-
-Find an item by its ID.
-
-=method calculate_requirements
-
-  my $result = $api->calculate_requirements(
-    items => [
-      { item => 'Ferro II', count => 2 },
-      { item => 'Advanced Circuit', count => 1 },
-    ]
-  );
-
-  for my $req (@{$result->{requirements}}) {
-    say $req->{item}->name . " x" . $req->{count};
-  }
-
-Calculate the direct crafting materials needed to build the given items.
-Returns a hashref with:
-
-=over
-
-=item requirements
-
-ArrayRef of C<< { item => $item_obj, count => N } >>
-
-=item missing
-
-ArrayRef of items that couldn't be resolved (not found, not craftable, etc.)
-
-=back
-
-=method calculate_base_requirements
-
-  my $result = $api->calculate_base_requirements(
-    items     => [{ item => 'Ferro III', count => 1 }],
-    max_depth => 10,  # optional, default 20
-  );
-
-Like C<calculate_requirements> but recursively resolves all crafting
-chains down to base materials (items with no crafting requirements).
-Includes cycle detection and depth limiting.
-
 =method clear_items_cache
 
-  $api->clear_items_cache;
+    $api->clear_items_cache;
 
 Clear the internal item lookup cache. Call this if item data may have
 changed and you need fresh data for C<find_item_*> and C<calculate_*>
 methods.
 
-=method maps
+=cut
 
-  my @maps = $api->maps;
+1;
 
-Returns list of available ARC Raiders map IDs (e.g., C<dam>, C<spaceport>,
-C<buried-city>, C<blue-gate>, C<stella-montis>).
-
-=method map_display_names
-
-  my %names = $api->map_display_names;
-
-Returns hash of map ID to display name (e.g., C<dam> => "Dam").
-
-=method map_display_name
-
-  my $name = $api->map_display_name('dam');  # "Dam"
-
-Returns human-readable display name for a map ID. Falls back to the
-ID itself if no display name is available.
-
-=head1 METAFORGE API TERMS OF USAGE
+=head1 ATTRIBUTION
 
 This module uses the MetaForge ARC Raiders API. Please respect their terms:
 

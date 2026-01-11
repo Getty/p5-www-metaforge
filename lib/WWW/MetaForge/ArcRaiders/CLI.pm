@@ -1,26 +1,60 @@
 package WWW::MetaForge::ArcRaiders::CLI;
 # ABSTRACT: CLI application for MetaForge ARC Raiders API
 our $VERSION = '0.002';
+
 use Moo;
 use WWW::MetaForge::ArcRaiders;
 use Getopt::Long qw(:config pass_through);
 use namespace::clean;
 use MooX::Cmd;
 
+=head1 SYNOPSIS
+
+    use WWW::MetaForge::ArcRaiders::CLI;
+    WWW::MetaForge::ArcRaiders::CLI->new_with_cmd;
+
+=head1 DESCRIPTION
+
+Main CLI class for the ARC Raiders API client. Uses L<MooX::Cmd> for
+subcommand handling.
+
+=cut
+
 has debug => (
   is      => 'ro',
   default => sub { $ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG} // 0 },
 );
+
+=attr debug
+
+Enable debug output. Use C<--debug> or C<-d> flag, or set via
+C<WWW_METAFORGE_ARCRAIDERS_DEBUG> environment variable.
+
+=cut
 
 has no_cache => (
   is      => 'ro',
   default => sub { $ENV{WWW_METAFORGE_ARCRAIDERS_NO_CACHE} // 0 },
 );
 
+=attr no_cache
+
+Disable response caching. Use C<--no-cache> flag, or set via
+C<WWW_METAFORGE_ARCRAIDERS_NO_CACHE> environment variable.
+
+=cut
+
 has json => (
   is      => 'ro',
   default => sub { $ENV{WWW_METAFORGE_ARCRAIDERS_JSON} // 0 },
 );
+
+=attr json
+
+Output results as JSON. Use C<--json> or C<-j> flag, or set via
+C<WWW_METAFORGE_ARCRAIDERS_JSON> environment variable.
+
+=cut
 
 around BUILDARGS => sub {
   my ($orig, $class, @args) = @_;
@@ -45,6 +79,12 @@ has api => (
   is      => 'lazy',
   builder => '_build_api',
 );
+
+=attr api
+
+L<WWW::MetaForge::ArcRaiders> instance.
+
+=cut
 
 sub _build_api {
   my ($self) = @_;
@@ -86,34 +126,3 @@ sub execute {
 }
 
 1;
-
-=head1 SYNOPSIS
-
-  use WWW::MetaForge::ArcRaiders::CLI;
-  WWW::MetaForge::ArcRaiders::CLI->new_with_cmd;
-
-=head1 DESCRIPTION
-
-Main CLI class for the ARC Raiders API client. Uses L<MooX::Cmd> for
-subcommand handling.
-
-=attr debug
-
-Enable debug output. Use C<--debug> or C<-d> flag, or set via
-C<WWW_METAFORGE_ARCRAIDERS_DEBUG> environment variable.
-
-=attr no_cache
-
-Disable response caching. Use C<--no-cache> flag, or set via
-C<WWW_METAFORGE_ARCRAIDERS_NO_CACHE> environment variable.
-
-=attr json
-
-Output results as JSON. Use C<--json> or C<-j> flag, or set via
-C<WWW_METAFORGE_ARCRAIDERS_JSON> environment variable.
-
-=attr api
-
-L<WWW::MetaForge::ArcRaiders> instance.
-
-=cut

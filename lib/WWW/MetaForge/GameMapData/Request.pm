@@ -1,15 +1,41 @@
 package WWW::MetaForge::GameMapData::Request;
 # ABSTRACT: HTTP request builder for MetaForge Game Map Data API
 our $VERSION = '0.002';
+
 use Moo;
 use HTTP::Request;
 use URI;
 use namespace::clean;
 
+=head1 SYNOPSIS
+
+    use WWW::MetaForge::GameMapData::Request;
+
+    my $req = WWW::MetaForge::GameMapData::Request->new;
+
+    # Build request for map data
+    my $http_req = $req->map_data(map => 'Dam');
+
+    # With type filter
+    my $http_req = $req->map_data(map => 'Dam', type => 'loot');
+
+=head1 DESCRIPTION
+
+Builds L<HTTP::Request> objects for the MetaForge Game Map Data API.
+Useful for integrating with async HTTP frameworks.
+
+=cut
+
 has base_url => (
   is      => 'ro',
   default => 'https://metaforge.app/api/game-map-data',
 );
+
+=attr base_url
+
+Base URL for the API. Defaults to C<https://metaforge.app/api/game-map-data>.
+
+=cut
 
 sub _build_request {
   my ($self, %params) = @_;
@@ -29,33 +55,12 @@ sub map_data {
   return $self->_build_request(%params);
 }
 
-1;
-
-=head1 SYNOPSIS
-
-  use WWW::MetaForge::GameMapData::Request;
-
-  my $req = WWW::MetaForge::GameMapData::Request->new;
-
-  # Build request for map data
-  my $http_req = $req->map_data(map => 'Dam');
-
-  # With type filter
-  my $http_req = $req->map_data(map => 'Dam', type => 'loot');
-
-=head1 DESCRIPTION
-
-Builds L<HTTP::Request> objects for the MetaForge Game Map Data API.
-Useful for integrating with async HTTP frameworks.
-
-=attr base_url
-
-Base URL for the API. Defaults to C<https://metaforge.app/api/game-map-data>.
-
 =method map_data
 
-  my $http_req = $req->map_data(map => 'Dam');
+    my $http_req = $req->map_data(map => 'Dam');
 
 Returns L<HTTP::Request> for fetching map marker data.
 
 =cut
+
+1;

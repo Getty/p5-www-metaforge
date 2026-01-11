@@ -1,11 +1,30 @@
 package WWW::MetaForge::Cache;
 # ABSTRACT: File-based caching for MetaForge APIs
 our $VERSION = '0.002';
+
 use Moo;
 use Path::Tiny;
 use JSON::MaybeXS;
 use Digest::MD5 qw(md5_hex);
 use namespace::clean;
+
+=head1 SYNOPSIS
+
+    use WWW::MetaForge::Cache;
+
+    my $cache = WWW::MetaForge::Cache->new;
+
+    my $data = $cache->get('items', { search => 'Ferro' });
+    $cache->set('items', { search => 'Ferro' }, $response_data);
+    $cache->clear('items');
+
+=head1 DESCRIPTION
+
+File-based caching for MetaForge API responses. Cache files are stored following
+XDG Base Directory Specification on Unix (C<~/.cache/metaforge/>) and
+LOCALAPPDATA on Windows.
+
+=cut
 
 # Default: 0 = never expire (cache forever until manually cleared)
 our %DEFAULT_TTL = ();
@@ -15,6 +34,12 @@ has namespace => (
   default => 'metaforge',
 );
 
+=attr namespace
+
+Directory name for cache. Defaults to C<metaforge>.
+
+=cut
+
 has cache_dir => (
   is      => 'ro',
   lazy    => 1,
@@ -22,16 +47,42 @@ has cache_dir => (
   coerce  => sub { ref $_[0] ? $_[0] : path($_[0]) },
 );
 
+=attr cache_dir
+
+L<Path::Tiny> object for cache directory. Auto-detected based on OS.
+Accepts string (coerced to Path::Tiny).
+
+=cut
+
 has ttl => (
   is      => 'ro',
   default => sub { +{ %DEFAULT_TTL } },
 );
+
+=attr ttl
+
+HashRef of TTL values per endpoint in seconds.
+Default is empty (cache never expires). Use 0 or undef for infinite TTL.
+
+Example with expiration:
+
+    my $cache = WWW::MetaForge::Cache->new(
+      ttl => { event_timers => 300 }  # 5 minutes for events only
+    );
+
+=cut
 
 has json => (
   is      => 'ro',
   lazy    => 1,
   default => sub { JSON::MaybeXS->new(utf8 => 1, canonical => 1) },
 );
+
+=attr json
+
+L<JSON::MaybeXS> instance for serialization.
+
+=cut
 
 sub _build_cache_dir {
   my ($self) = @_;
@@ -78,6 +129,14 @@ sub get {
   return $cached->{data};
 }
 
+=method get
+
+    my $data = $cache->get($endpoint, \%params);
+
+Returns cached data or undef if missing/expired.
+
+=cut
+
 sub set {
   my ($self, $endpoint, $params, $data) = @_;
 
@@ -93,6 +152,14 @@ sub set {
   return $data;
 }
 
+=method set
+
+    $cache->set($endpoint, \%params, $data);
+
+Store data in cache with timestamp.
+
+=cut
+
 sub clear {
   my ($self, $endpoint) = @_;
 
@@ -105,74 +172,24 @@ sub clear {
   }
 }
 
+=method clear
+
+    $cache->clear('items');  # Clear specific endpoint
+    $cache->clear;           # Clear all
+
+Remove cached files.
+
+=cut
+
 sub clear_all {
   my ($self) = @_;
   $self->clear();
 }
-
-1;
-
-=head1 SYNOPSIS
-
-  use WWW::MetaForge::Cache;
-
-  my $cache = WWW::MetaForge::Cache->new;
-
-  my $data = $cache->get('items', { search => 'Ferro' });
-  $cache->set('items', { search => 'Ferro' }, $response_data);
-  $cache->clear('items');
-
-=head1 DESCRIPTION
-
-File-based caching for MetaForge API responses. Cache files are stored following
-XDG Base Directory Specification on Unix (C<~/.cache/metaforge/>) and
-LOCALAPPDATA on Windows.
-
-=attr namespace
-
-Directory name for cache. Defaults to C<metaforge>.
-
-=attr cache_dir
-
-L<Path::Tiny> object for cache directory. Auto-detected based on OS.
-Accepts string (coerced to Path::Tiny).
-
-=attr ttl
-
-HashRef of TTL values per endpoint in seconds.
-Default is empty (cache never expires). Use 0 or undef for infinite TTL.
-
-Example with expiration:
-
-  my $cache = WWW::MetaForge::Cache->new(
-    ttl => { event_timers => 300 }  # 5 minutes for events only
-  );
-
-=attr json
-
-L<JSON::MaybeXS> instance for serialization.
-
-=method get
-
-  my $data = $cache->get($endpoint, \%params);
-
-Returns cached data or undef if missing/expired.
-
-=method set
-
-  $cache->set($endpoint, \%params, $data);
-
-Store data in cache with timestamp.
-
-=method clear
-
-  $cache->clear('items');  # Clear specific endpoint
-  $cache->clear;           # Clear all
-
-Remove cached files.
 
 =method clear_all
 
 Alias for C<< $cache->clear >>.
 
 =cut
+
+1;

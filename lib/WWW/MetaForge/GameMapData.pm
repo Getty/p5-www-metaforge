@@ -1,6 +1,7 @@
 package WWW::MetaForge::GameMapData;
 # ABSTRACT: Perl client for the MetaForge Game Map Data API
 our $VERSION = '0.002';
+
 use Moo;
 use LWP::UserAgent;
 use JSON::MaybeXS;
@@ -13,17 +14,57 @@ use WWW::MetaForge::GameMapData::Result::MapMarker;
 
 our $DEBUG = $ENV{WWW_METAFORGE_GAMEMAPDATA_DEBUG};
 
+=head1 SYNOPSIS
+
+    use WWW::MetaForge::GameMapData;
+
+    my $api = WWW::MetaForge::GameMapData->new;
+
+    # Get map markers for a specific map
+    my $markers = $api->map_data(map => 'dam');
+    for my $marker (@$markers) {
+        say $marker->type . " at " . $marker->x . "," . $marker->y;
+    }
+
+    # Filter by marker type
+    my $loot = $api->map_data(map => 'dam', type => 'loot');
+
+=head1 DESCRIPTION
+
+Perl interface to the MetaForge Game Map Data API. This API provides
+map marker data (POIs, loot locations, quest markers, etc.) for games
+supported by MetaForge.
+
+This is a generic base module. Game-specific distributions (like
+L<WWW::MetaForge::ArcRaiders>) can use this module and extend the
+result classes with game-specific attributes.
+
+=cut
+
 has ua => (
   is      => 'ro',
   lazy    => 1,
   builder => '_build_ua',
 );
 
+=attr ua
+
+L<LWP::UserAgent> instance. Built lazily with sensible defaults.
+
+=cut
+
 has request => (
   is      => 'ro',
   lazy    => 1,
   default => sub { WWW::MetaForge::GameMapData::Request->new },
 );
+
+=attr request
+
+L<WWW::MetaForge::GameMapData::Request> instance for creating
+L<HTTP::Request> objects.
+
+=cut
 
 has cache => (
   is        => 'ro',
@@ -32,14 +73,33 @@ has cache => (
   predicate => 'has_cache',
 );
 
+=attr cache
+
+L<WWW::MetaForge::Cache> instance for response caching.
+
+=cut
+
 has use_cache => (
   is      => 'ro',
   default => 1,
 );
 
+=attr use_cache
+
+Boolean, default true. Set to false to disable caching.
+
+=cut
+
 has cache_dir => (
   is => 'ro',
 );
+
+=attr cache_dir
+
+Optional L<Path::Tiny> path for cache directory. Defaults to
+XDG cache dir on Unix, LOCALAPPDATA on Windows.
+
+=cut
 
 has json => (
   is      => 'ro',
@@ -47,15 +107,36 @@ has json => (
   default => sub { JSON::MaybeXS->new(utf8 => 1) },
 );
 
+=attr json
+
+L<JSON::MaybeXS> instance for encoding/decoding JSON.
+
+=cut
+
 has debug => (
   is      => 'ro',
   default => sub { $DEBUG },
 );
 
+=attr debug
+
+Boolean. Enable debug output. Also settable via
+C<$ENV{WWW_METAFORGE_GAMEMAPDATA_DEBUG}>.
+
+=cut
+
 has marker_class => (
   is      => 'ro',
   default => 'WWW::MetaForge::GameMapData::Result::MapMarker',
 );
+
+=attr marker_class
+
+Class to use for map marker objects. Defaults to
+L<WWW::MetaForge::GameMapData::Result::MapMarker>. Override this
+to use a subclass with game-specific attributes.
+
+=cut
 
 sub _debug {
   my ($self, $msg) = @_;
@@ -160,81 +241,10 @@ sub map_data {
   return $self->_to_objects($markers);
 }
 
-sub map_data_raw {
-  my ($self, %params) = @_;
-  my $req = $self->request->map_data(%params);
-  return $self->_fetch('map_data', $req, %params);
-}
-
-sub clear_cache {
-  my ($self, $endpoint) = @_;
-  $self->cache->clear($endpoint);
-}
-
-1;
-
-=head1 SYNOPSIS
-
-  use WWW::MetaForge::GameMapData;
-
-  my $api = WWW::MetaForge::GameMapData->new;
-
-  # Get map markers for a specific map
-  my $markers = $api->map_data(map => 'dam');
-  for my $marker (@$markers) {
-      say $marker->type . " at " . $marker->x . "," . $marker->y;
-  }
-
-  # Filter by marker type
-  my $loot = $api->map_data(map => 'dam', type => 'loot');
-
-=head1 DESCRIPTION
-
-Perl interface to the MetaForge Game Map Data API. This API provides
-map marker data (POIs, loot locations, quest markers, etc.) for games
-supported by MetaForge.
-
-This is a generic base module. Game-specific distributions (like
-L<WWW::MetaForge::ArcRaiders>) can use this module and extend the
-result classes with game-specific attributes.
-
-=attr ua
-
-L<LWP::UserAgent> instance. Built lazily with sensible defaults.
-
-=attr request
-
-L<WWW::MetaForge::GameMapData::Request> instance for creating
-L<HTTP::Request> objects.
-
-=attr cache
-
-L<WWW::MetaForge::Cache> instance for response caching.
-
-=attr use_cache
-
-Boolean, default true. Set to false to disable caching.
-
-=attr cache_dir
-
-Optional L<Path::Tiny> path for cache directory. Defaults to
-XDG cache dir on Unix, LOCALAPPDATA on Windows.
-
-=attr marker_class
-
-Class to use for map marker objects. Defaults to
-L<WWW::MetaForge::GameMapData::Result::MapMarker>. Override this
-to use a subclass with game-specific attributes.
-
-=attr debug
-
-Boolean. Enable debug output. Also settable via
-C<$ENV{WWW_METAFORGE_GAMEMAPDATA_DEBUG}>.
-
 =method map_data
 
-  my $markers = $api->map_data(map => 'dam');
-  my $markers = $api->map_data(map => 'dam', type => 'loot');
+    my $markers = $api->map_data(map => 'dam');
+    my $markers = $api->map_data(map => 'dam', type => 'loot');
 
 Returns ArrayRef of L<WWW::MetaForge::GameMapData::Result::MapMarker>
 (or subclass specified by C<marker_class>).
@@ -242,16 +252,35 @@ Returns ArrayRef of L<WWW::MetaForge::GameMapData::Result::MapMarker>
 Required parameter: C<map> - name of the map to fetch markers for.
 Optional parameter: C<type> - filter by marker type.
 
+=cut
+
+sub map_data_raw {
+  my ($self, %params) = @_;
+  my $req = $self->request->map_data(%params);
+  return $self->_fetch('map_data', $req, %params);
+}
+
 =method map_data_raw
 
 Same as C<map_data> but returns raw HashRef/ArrayRef instead of objects.
 
+=cut
+
+sub clear_cache {
+  my ($self, $endpoint) = @_;
+  $self->cache->clear($endpoint);
+}
+
 =method clear_cache
 
-  $api->clear_cache('map_data');  # Clear specific endpoint
-  $api->clear_cache;              # Clear all
+    $api->clear_cache('map_data');  # Clear specific endpoint
+    $api->clear_cache;              # Clear all
 
 Clear cached responses.
+
+=cut
+
+1;
 
 =head1 ATTRIBUTION
 

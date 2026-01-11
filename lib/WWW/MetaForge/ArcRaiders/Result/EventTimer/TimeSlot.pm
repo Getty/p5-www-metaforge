@@ -1,10 +1,32 @@
 package WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot;
 # ABSTRACT: A time slot with start and end DateTime objects
 our $VERSION = '0.002';
+
 use Moo;
 use Types::Standard qw(InstanceOf);
 use DateTime;
 use namespace::clean;
+
+=head1 SYNOPSIS
+
+    my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref({
+      start => '14:00',
+      end   => '15:00',
+    });
+
+    say $slot->start;  # DateTime object
+    say $slot->end;    # DateTime object
+
+    if ($slot->contains) {
+      say "Event is active now!";
+    }
+
+=head1 DESCRIPTION
+
+Represents a scheduled time slot with DateTime objects for start and end times.
+All times are in UTC.
+
+=cut
 
 has start => (
   is       => 'ro',
@@ -12,11 +34,23 @@ has start => (
   required => 1,
 );
 
+=attr start
+
+DateTime object for slot start time.
+
+=cut
+
 has end => (
   is       => 'ro',
   isa      => InstanceOf['DateTime'],
   required => 1,
 );
+
+=attr end
+
+DateTime object for slot end time.
+
+=cut
 
 sub from_hashref {
   my ($class, $data) = @_;
@@ -54,6 +88,14 @@ sub from_hashref {
   );
 }
 
+=method from_hashref
+
+    my $slot = TimeSlot->from_hashref({ start => "HH:MM", end => "HH:MM" });
+
+Construct from API response hash with HH:MM strings or millisecond timestamps.
+
+=cut
+
 sub from_epoch_ms {
   my ($class, $start_ms, $end_ms) = @_;
 
@@ -72,11 +114,28 @@ sub from_epoch_ms {
   );
 }
 
+=method from_epoch_ms
+
+    my $slot = TimeSlot->from_epoch_ms($start_ms, $end_ms);
+
+Construct from epoch milliseconds timestamps.
+
+=cut
+
 sub contains {
   my ($self, $dt) = @_;
   $dt //= DateTime->now(time_zone => 'UTC');
   return $dt >= $self->start && $dt < $self->end;
 }
+
+=method contains
+
+    if ($slot->contains) { ... }
+    if ($slot->contains($datetime)) { ... }
+
+Returns true if the given DateTime (or now) is within this slot.
+
+=cut
 
 sub minutes_until_start {
   my ($self, $dt) = @_;
@@ -85,6 +144,14 @@ sub minutes_until_start {
   return int($delta / 60);
 }
 
+=method minutes_until_start
+
+    my $mins = $slot->minutes_until_start;
+
+Returns minutes until this slot starts.
+
+=cut
+
 sub minutes_until_end {
   my ($self, $dt) = @_;
   $dt //= DateTime->now(time_zone => 'UTC');
@@ -92,58 +159,12 @@ sub minutes_until_end {
   return int($delta / 60);
 }
 
-1;
-
-=head1 SYNOPSIS
-
-  my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref({
-    start => '14:00',
-    end   => '15:00',
-  });
-
-  say $slot->start;  # DateTime object
-  say $slot->end;    # DateTime object
-
-  if ($slot->contains) {
-    say "Event is active now!";
-  }
-
-=head1 DESCRIPTION
-
-Represents a scheduled time slot with DateTime objects for start and end times.
-All times are in UTC.
-
-=attr start
-
-DateTime object for slot start time.
-
-=attr end
-
-DateTime object for slot end time.
-
-=method from_hashref
-
-  my $slot = TimeSlot->from_hashref({ start => "HH:MM", end => "HH:MM" });
-
-Construct from API response hash with HH:MM strings.
-
-=method contains
-
-  if ($slot->contains) { ... }
-  if ($slot->contains($datetime)) { ... }
-
-Returns true if the given DateTime (or now) is within this slot.
-
-=method minutes_until_start
-
-  my $mins = $slot->minutes_until_start;
-
-Returns minutes until this slot starts.
-
 =method minutes_until_end
 
-  my $mins = $slot->minutes_until_end;
+    my $mins = $slot->minutes_until_end;
 
 Returns minutes until this slot ends.
 
 =cut
+
+1;
