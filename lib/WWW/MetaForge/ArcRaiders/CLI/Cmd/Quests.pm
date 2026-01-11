@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::CLI::Cmd::Quests;
 # ABSTRACT: List quests from the ARC Raiders API
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 use Moo;
 use MooX::Cmd;
 use MooX::Options;

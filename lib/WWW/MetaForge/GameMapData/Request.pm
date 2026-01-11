@@ -1,6 +1,6 @@
 package WWW::MetaForge::GameMapData::Request;
 # ABSTRACT: HTTP request builder for MetaForge Game Map Data API
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 use Moo;
 use HTTP::Request;

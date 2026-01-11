@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest;
 # ABSTRACT: Show details for a single quest
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 use Moo;
 use MooX::Cmd;
 use MooX::Options;

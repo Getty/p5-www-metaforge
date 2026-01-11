@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Result::Item;
 # ABSTRACT: Item result object
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 use Moo;
 use Types::Standard qw(Str Int Num ArrayRef HashRef Maybe);
 use namespace::clean;

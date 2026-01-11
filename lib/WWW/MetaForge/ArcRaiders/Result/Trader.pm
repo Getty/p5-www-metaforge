@@ -1,6 +1,6 @@
 package WWW::MetaForge::ArcRaiders::Result::Trader;
 # ABSTRACT: Trader result object
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 use Moo;
 use Types::Standard qw(Str Int ArrayRef HashRef Maybe);
 use namespace::clean;
