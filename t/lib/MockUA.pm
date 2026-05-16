@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Path::Tiny;
 use HTTP::Response;
+use Encode;
 
 sub new {
   my ($class, %args) = @_;
@@ -42,7 +43,7 @@ sub request {
 
   my $content = $file->slurp_utf8;
   my $response = HTTP::Response->new(200, 'OK');
-  $response->content($content);
+  $response->content(Encode::encode('UTF-8', $content));
   $response->header('Content-Type' => 'application/json');
 
   return $response;

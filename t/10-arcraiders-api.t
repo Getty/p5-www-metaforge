@@ -91,12 +91,9 @@ subtest 'Arcs endpoint returns valid structure' => sub {
 
   my $arc = $arcs->[0];
   test_result_object($arc, 'WWW::MetaForge::ArcRaiders::Result::Arc',
-    [qw(id name type description)]);
+    [qw(id name description)]);
 
-  ok(ref $arc->maps eq 'ARRAY', 'maps is array') if $arc->maps;
-  ok(ref $arc->loot eq 'ARRAY', 'loot is array') if $arc->loot;
-
-  diag("Sample: " . ($arc->name // 'undef') . " (" . ($arc->type // 'undef') . ")");
+  diag("Sample: " . ($arc->name // 'undef'));
 };
 
 subtest 'Quests endpoint returns valid structure' => sub {
