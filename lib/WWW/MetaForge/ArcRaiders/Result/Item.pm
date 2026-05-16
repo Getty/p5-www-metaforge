@@ -17,12 +17,23 @@ has name => (
   required => 1,
 );
 
-has slug => (
+has description => (
   is  => 'ro',
   isa => Maybe[Str],
 );
 
-has category => (
+has item_type => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
+has loadout_slots => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
+has icon => (
   is  => 'ro',
   isa => Maybe[Str],
 );
@@ -32,12 +43,17 @@ has rarity => (
   isa => Maybe[Str],
 );
 
-has description => (
+has value => (
+  is  => 'ro',
+  isa => Maybe[Int],
+);
+
+has workbench => (
   is  => 'ro',
   isa => Maybe[Str],
 );
 
-has stats => (
+has stat_block => (
   is  => 'ro',
   isa => Maybe[HashRef],
 );
@@ -52,45 +68,6 @@ has stack_size => (
   isa => Maybe[Int],
 );
 
-has base_value => (
-  is  => 'ro',
-  isa => Maybe[Int],
-);
-
-has crafting_requirements => (
-  is      => 'ro',
-  isa     => ArrayRef[HashRef],
-  default => sub { [] },
-);
-
-has sold_by => (
-  is      => 'ro',
-  isa     => ArrayRef[HashRef],
-  default => sub { [] },
-);
-
-has used_in => (
-  is      => 'ro',
-  isa     => ArrayRef,
-  default => sub { [] },
-);
-
-has compatible_with => (
-  is      => 'ro',
-  isa     => ArrayRef,
-  default => sub { [] },
-);
-
-has recycle_yield => (
-  is  => 'ro',
-  isa => Maybe[HashRef],
-);
-
-has last_updated => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
 has _raw => (
   is  => 'ro',
   isa => HashRef,
@@ -99,29 +76,24 @@ has _raw => (
 sub from_hashref {
   my ($class, $data) = @_;
 
-  # Handle both documented and actual API field names
-  my $stats = $data->{stats} // $data->{stat_block};
-  my $weight = $data->{weight} // ($stats ? $stats->{weight} : undef);
-  my $stack_size = $data->{stackSize} // ($stats ? $stats->{stackSize} : undef);
+  my $stat_block = $data->{stat_block};
+  my $weight     = $stat_block && exists $stat_block->{weight} ? $stat_block->{weight} : undef;
+  my $stack_size = $stat_block && exists $stat_block->{stackSize} ? $stat_block->{stackSize} : undef;
 
   return $class->new(
-    id                    => $data->{id},
-    name                  => $data->{name},
-    slug                  => $data->{slug} // $data->{id},
-    category              => $data->{category} // $data->{item_type},
-    rarity                => $data->{rarity},
-    description           => $data->{description},
-    stats                 => $stats,
-    weight                => $weight,
-    stack_size            => $stack_size,
-    base_value            => $data->{baseValue} // $data->{value},
-    crafting_requirements => $data->{components} // [],
-    sold_by               => $data->{soldBy} // [],
-    used_in               => $data->{usedIn} // [],
-    compatible_with       => $data->{compatibleWith} // [],
-    recycle_yield         => $data->{recycleYield},
-    last_updated          => $data->{lastUpdated} // $data->{updated_at},
-    _raw                  => $data,
+    id            => $data->{id},
+    name          => $data->{name},
+    description   => $data->{description},
+    item_type     => $data->{item_type},
+    loadout_slots => $data->{loadout_slots} // [],
+    icon          => $data->{icon},
+    rarity        => $data->{rarity},
+    value         => $data->{value},
+    workbench     => $data->{workbench},
+    stat_block    => $stat_block,
+    weight        => $weight,
+    stack_size    => $stack_size,
+    _raw          => $data,
   );
 }
 
@@ -147,66 +119,50 @@ Item identifier (string slug).
 
 Human-readable item name.
 
-=attr slug
+=attr description
 
-URL-safe identifier.
+Item description text.
 
-=attr category
+=attr item_type
 
 Item type (e.g., "Weapon", "Material", "Consumable").
+
+=attr loadout_slots
+
+ArrayRef of loadout slot names this item occupies.
+
+=attr icon
+
+Icon identifier or URL.
 
 =attr rarity
 
 Item rarity (e.g., "Common", "Rare", "Legendary").
 
-=attr description
-
-Item description text.
-
-=attr stats
-
-HashRef of item statistics (damage, range, etc.).
-
-=attr weight
-
-Item weight value.
-
-=attr stack_size
-
-Maximum stack size for stackable items.
-
-=attr base_value
+=attr value
 
 Base monetary value.
 
-=attr crafting_requirements
+=attr workbench
 
-ArrayRef of crafting ingredients: C<[{ item => "Name", quantity => 5 }]>.
+Workbench type required for crafting.
 
-=attr sold_by
+=attr stat_block
 
-ArrayRef of traders that sell this item.
+HashRef of item statistics (damage, range, weight, stackSize, etc.).
 
-=attr used_in
+=attr weight
 
-ArrayRef of recipes/crafts using this item.
+Item weight value (from stat_block).
 
-=attr compatible_with
+=attr stack_size
 
-ArrayRef of compatible items.
-
-=attr recycle_yield
-
-HashRef of materials from recycling.
-
-=attr last_updated
-
-ISO timestamp of last data update.
+Maximum stack size for stackable items (from stat_block).
 
 =method from_hashref
 
   my $item = WWW::MetaForge::ArcRaiders::Result::Item->from_hashref(\%data);
 
-Construct from API response. Handles field name mapping.
+Construct from API response.
 
 =cut

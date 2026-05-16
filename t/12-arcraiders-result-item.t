@@ -7,54 +7,61 @@ use_ok('WWW::MetaForge::ArcRaiders::Result::Item');
 
 subtest 'constructor with all fields' => sub {
   my $item = WWW::MetaForge::ArcRaiders::Result::Item->new(
-    id          => 'ferro-i',
-    name        => 'Ferro I',
-    slug        => 'ferro-i',
-    category    => 'Weapon',
-    rarity      => 'Common',
-    description => 'Heavy break-action rifle.',
-    stats       => { damage => 40, range => 53.1 },
-    weight      => 8.0,
-    stack_size  => 1,
-    base_value  => 475,
-    _raw        => {},
+    id            => 'ferro-i',
+    name          => 'Ferro I',
+    description   => 'Heavy break-action rifle.',
+    item_type     => 'Weapon',
+    loadout_slots => ['Primary'],
+    icon          => 'icons/ferro-i.png',
+    rarity        => 'Common',
+    value         => 475,
+    workbench     => 'Weapons',
+    stat_block    => { weight => 8.0, stackSize => 1, damage => 40 },
+    weight        => 8.0,
+    stack_size    => 1,
+    _raw          => {},
   );
 
   is($item->id, 'ferro-i', 'id');
   is($item->name, 'Ferro I', 'name');
-  is($item->category, 'Weapon', 'category');
+  is($item->item_type, 'Weapon', 'item_type');
   is($item->rarity, 'Common', 'rarity');
   is($item->weight, 8.0, 'weight');
   is($item->stack_size, 1, 'stack_size');
-  is($item->base_value, 475, 'base_value');
-  is($item->stats->{damage}, 40, 'stats.damage');
+  is($item->value, 475, 'value');
+  is($item->stat_block->{damage}, 40, 'stat_block.damage');
 };
 
 subtest 'from_hashref with API field names' => sub {
   my $data = {
-    id          => 'angled-grip-i',
-    name        => 'Angled Grip I',
-    item_type   => 'Modification',  # API uses item_type
-    rarity      => 'Common',
-    description => 'Reduces recoil.',
-    value       => 640,             # API uses value
-    stat_block  => {                # API uses stat_block
+    id            => 'angled-grip-i',
+    name          => 'Angled Grip I',
+    item_type     => 'Modification',
+    rarity        => 'Common',
+    description   => 'Reduces recoil.',
+    value         => 640,
+    icon          => 'icons/angled-grip-i.png',
+    loadout_slots => ['Mod1'],
+    workbench     => 'Weapons',
+    stat_block    => {
       weight    => 0.25,
       stackSize => 1,
     },
-    updated_at  => '2025-12-18T17:36:00Z',  # API uses updated_at
   };
 
   my $item = WWW::MetaForge::ArcRaiders::Result::Item->from_hashref($data);
 
   is($item->id, 'angled-grip-i', 'id from hashref');
   is($item->name, 'Angled Grip I', 'name from hashref');
-  is($item->category, 'Modification', 'category mapped from item_type');
-  is($item->base_value, 640, 'base_value mapped from value');
+  is($item->item_type, 'Modification', 'item_type from hashref');
+  is($item->value, 640, 'value from hashref');
+  is($item->icon, 'icons/angled-grip-i.png', 'icon from hashref');
+  is_deeply($item->loadout_slots, ['Mod1'], 'loadout_slots from hashref');
+  is($item->workbench, 'Weapons', 'workbench from hashref');
   is($item->weight, 0.25, 'weight extracted from stat_block');
   is($item->stack_size, 1, 'stack_size extracted from stat_block');
-  is($item->last_updated, '2025-12-18T17:36:00Z', 'last_updated mapped from updated_at');
-  is($item->slug, 'angled-grip-i', 'slug defaults to id');
+  is($item->stat_block->{weight}, 0.25, 'stat_block.weight preserved');
+  is($item->stat_block->{stackSize}, 1, 'stat_block.stackSize preserved');
 };
 
 subtest 'from_hashref with minimal data' => sub {
@@ -66,20 +73,19 @@ subtest 'from_hashref with minimal data' => sub {
   is($item->id, 'test-item', 'id set');
   is($item->name, 'Test Item', 'name set');
   ok(!defined $item->rarity, 'rarity is undef');
-  is_deeply($item->crafting_requirements, [], 'crafting_requirements defaults to []');
-  is_deeply($item->sold_by, [], 'sold_by defaults to []');
+  ok(!defined $item->item_type, 'item_type is undef');
+  ok(!defined $item->value, 'value is undef');
+  is_deeply($item->loadout_slots, [], 'loadout_slots defaults to []');
 };
 
-subtest 'arrays default to empty' => sub {
+subtest 'loadout_slots defaults to empty array' => sub {
   my $item = WWW::MetaForge::ArcRaiders::Result::Item->from_hashref({
     id   => 'test',
     name => 'Test',
   });
 
-  is(ref $item->crafting_requirements, 'ARRAY', 'crafting_requirements is array');
-  is(ref $item->sold_by, 'ARRAY', 'sold_by is array');
-  is(ref $item->used_in, 'ARRAY', 'used_in is array');
-  is(ref $item->compatible_with, 'ARRAY', 'compatible_with is array');
+  is(ref $item->loadout_slots, 'ARRAY', 'loadout_slots is array');
+  is(scalar @{$item->loadout_slots}, 0, 'loadout_slots is empty');
 };
 
 subtest '_raw preserves original data' => sub {
