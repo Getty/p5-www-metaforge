@@ -7,74 +7,61 @@ use_ok('WWW::MetaForge::ArcRaiders::Result::Arc');
 
 subtest 'constructor' => sub {
   my $arc = WWW::MetaForge::ArcRaiders::Result::Arc->new(
-    id          => 301,
+    id          => 'cold-snap',
     name        => 'Cold Snap',
-    type        => 'MajorEvent',
     description => 'A sudden cold front.',
-    maps        => ['Blue Gate', 'Dam'],
-    duration    => 7200,
-    loot        => [
-      { item => 'Frost Core', chance => 0.2 },
-    ],
+    icon        => 'https://metaforge.app/icons/cold-snap.png',
+    image       => 'https://metaforge.app/images/cold-snap.jpg',
+    created_at  => '2024-01-15T10:00:00Z',
+    updated_at  => '2024-01-20T12:30:00Z',
     _raw        => {},
   );
 
-  is($arc->id, 301, 'id');
+  is($arc->id, 'cold-snap', 'id');
   is($arc->name, 'Cold Snap', 'name');
-  is($arc->type, 'MajorEvent', 'type');
-  is(scalar @{$arc->maps}, 2, 'maps count');
-  is($arc->duration, 7200, 'duration');
+  is($arc->description, 'A sudden cold front.', 'description');
+  is($arc->icon, 'https://metaforge.app/icons/cold-snap.png', 'icon');
+  is($arc->image, 'https://metaforge.app/images/cold-snap.jpg', 'image');
+  is($arc->created_at, '2024-01-15T10:00:00Z', 'created_at');
+  is($arc->updated_at, '2024-01-20T12:30:00Z', 'updated_at');
 };
 
-subtest 'from_hashref with single map' => sub {
-  my $arc = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref({
-    id   => 302,
-    name => 'Harvester',
-    type => 'MinorEvent',
-    map  => 'Spaceport',  # single map field
-  });
+subtest 'from_hashref passthrough' => sub {
+  my $data = {
+    id          => 'harvester',
+    name        => 'Harvester',
+    description => 'Harvest event.',
+    icon        => 'harvester-icon',
+    image       => 'harvester-img',
+    created_at  => '2024-02-01T08:00:00Z',
+    updated_at  => '2024-02-10T14:00:00Z',
+  };
 
-  is($arc->name, 'Harvester', 'name');
-  is(scalar @{$arc->maps}, 1, 'maps converted from single map');
-  is($arc->maps->[0], 'Spaceport', 'map value');
+  my $arc = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref($data);
+
+  is($arc->id, 'harvester', 'id from hashref');
+  is($arc->name, 'Harvester', 'name from hashref');
+  is($arc->description, 'Harvest event.', 'description from hashref');
+  is($arc->icon, 'harvester-icon', 'icon from hashref');
+  is($arc->image, 'harvester-img', 'image from hashref');
+  is($arc->created_at, '2024-02-01T08:00:00Z', 'created_at from hashref');
+  is($arc->updated_at, '2024-02-10T14:00:00Z', 'updated_at from hashref');
+  is($arc->_raw, $data, '_raw holds original data');
 };
 
-subtest 'from_hashref with maps array' => sub {
-  my $arc = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref({
-    id   => 'storm',
-    name => 'Storm',
-    maps => ['Dam', 'Blue Gate'],
-  });
-
-  is(scalar @{$arc->maps}, 2, 'maps array preserved');
-};
-
-subtest 'cooldown/frequency mapping' => sub {
-  my $arc1 = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref({
-    id       => 'test1',
-    name     => 'Test1',
-    cooldown => 3600,
-  });
-  is($arc1->cooldown, 3600, 'cooldown field');
-
-  my $arc2 = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref({
-    id        => 'test2',
-    name      => 'Test2',
-    frequency => 1800,
-  });
-  is($arc2->cooldown, 1800, 'frequency mapped to cooldown');
-};
-
-subtest 'defaults' => sub {
+subtest 'minimal arc' => sub {
   my $arc = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref({
     id   => 'minimal',
-    name => 'Minimal',
+    name => 'Minimal Arc',
   });
 
-  is(ref $arc->maps, 'ARRAY', 'maps is array');
-  is(ref $arc->loot, 'ARRAY', 'loot is array');
-  is(scalar @{$arc->maps}, 0, 'maps empty');
-  is(scalar @{$arc->loot}, 0, 'loot empty');
+  is($arc->id, 'minimal', 'id');
+  is($arc->name, 'Minimal Arc', 'name');
+  is($arc->description, undef, 'description is undef');
+  is($arc->icon, undef, 'icon is undef');
+  is($arc->image, undef, 'image is undef');
+  is($arc->created_at, undef, 'created_at is undef');
+  is($arc->updated_at, undef, 'updated_at is undef');
 };
 
 done_testing;

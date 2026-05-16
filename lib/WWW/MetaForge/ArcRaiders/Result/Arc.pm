@@ -2,7 +2,7 @@ package WWW::MetaForge::ArcRaiders::Result::Arc;
 # ABSTRACT: Arc (mission/event) result object
 our $VERSION = '0.003';
 use Moo;
-use Types::Standard qw(Str Int ArrayRef HashRef Maybe);
+use Types::Standard qw(Str Maybe HashRef);
 use namespace::clean;
 
 has id => (
@@ -17,49 +17,27 @@ has name => (
   required => 1,
 );
 
-has type => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
 has description => (
   is  => 'ro',
   isa => Maybe[Str],
 );
 
-has maps => (
-  is      => 'ro',
-  isa     => ArrayRef[Str],
-  default => sub { [] },
-);
-
-has duration => (
+has icon => (
   is  => 'ro',
-  isa => Maybe[Int],
+  isa => Maybe[Str],
 );
 
-has cooldown => (
+has image => (
   is  => 'ro',
-  isa => Maybe[Int],
+  isa => Maybe[Str],
 );
 
-has loot => (
-  is      => 'ro',
-  isa     => ArrayRef[HashRef],
-  default => sub { [] },
-);
-
-has xp_reward => (
+has created_at => (
   is  => 'ro',
-  isa => Maybe[Int],
+  isa => Maybe[Str],
 );
 
-has coin_reward => (
-  is  => 'ro',
-  isa => Maybe[Int],
-);
-
-has last_updated => (
+has updated_at => (
   is  => 'ro',
   isa => Maybe[Str],
 );
@@ -72,21 +50,15 @@ has _raw => (
 sub from_hashref {
   my ($class, $data) = @_;
 
-  my $maps = $data->{maps} // ($data->{map} ? [$data->{map}] : []);
-
   return $class->new(
-    id           => $data->{id},
-    name         => $data->{name},
-    type         => $data->{type},
-    description  => $data->{description},
-    maps         => $maps,
-    duration     => $data->{duration},
-    cooldown     => $data->{cooldown} // $data->{frequency},
-    loot         => $data->{loot} // [],
-    xp_reward    => $data->{xpReward},
-    coin_reward  => $data->{coinReward},
-    last_updated => $data->{lastUpdated},
-    _raw         => $data,
+    id          => $data->{id},
+    name        => $data->{name},
+    description => $data->{description},
+    icon        => $data->{icon},
+    image       => $data->{image},
+    created_at  => $data->{created_at},
+    updated_at  => $data->{updated_at},
+    _raw        => $data,
   );
 }
 
@@ -94,9 +66,9 @@ sub from_hashref {
 
 =head1 SYNOPSIS
 
-  my $arcs = $api->arcs(includeLoot => 'true');
+  my $arcs = $api->arcs;
   for my $arc (@$arcs) {
-      say $arc->name . " on " . join(", ", $arc->maps->@*);
+      say $arc->name;
   }
 
 =head1 DESCRIPTION
@@ -111,46 +83,30 @@ Arc identifier.
 
 Arc name.
 
-=attr type
-
-Arc type (e.g., "MajorEvent", "MinorEvent").
-
 =attr description
 
 Arc description text.
 
-=attr maps
+=attr icon
 
-ArrayRef of map names where this arc occurs.
+Icon URL or identifier.
 
-=attr duration
+=attr image
 
-Duration in seconds.
+Image URL.
 
-=attr cooldown
+=attr created_at
 
-Cooldown between occurrences in seconds.
+ISO timestamp of creation.
 
-=attr loot
+=attr updated_at
 
-ArrayRef of loot drops: C<[{ item => "Name", chance => 0.15 }]>.
-
-=attr xp_reward
-
-Experience points reward.
-
-=attr coin_reward
-
-Coin reward.
-
-=attr last_updated
-
-ISO timestamp of last data update.
+ISO timestamp of last update.
 
 =method from_hashref
 
   my $arc = WWW::MetaForge::ArcRaiders::Result::Arc->from_hashref(\%data);
 
-Construct from API response. Handles both C<map> and C<maps> fields.
+Construct from API response.
 
 =cut
