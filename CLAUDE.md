@@ -37,3 +37,19 @@ Commands use MooX::Cmd + MooX::Options in `lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/
 - Result classes parse API responses via `from_hashref()`
 - Request classes build HTTP::Request objects
 - Support ONLY exact API format - no speculative fallbacks
+
+## Delegation
+
+Delegate behavior-relevant code to the right agent instead of touching it yourself —
+principle, lanes and project hazards are in `.claude/rules/metaforge-rules.md`.
+
+| Task | Agent |
+|---|---|
+| Implement / refactor / debug facades, Request, Result classes, cache, CLI | `metaforge-worker` (default) |
+| Write/extend tests and fixtures under `t/` | `metaforge-test-writer` |
+| Pre-release audit | `metaforge-release-checker` |
+
+The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main agent
+delegates rather than loading them. Skill sources live under `.claude/skills/`
+(`metaforge-core` is project-owned; the `perl-*` and `kanban-issues-karr-cli` skills are
+hardlinked shares — never edit them with Edit/Write, see skill `manage-skills`).
