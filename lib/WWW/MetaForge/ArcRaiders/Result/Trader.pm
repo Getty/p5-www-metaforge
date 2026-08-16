@@ -2,7 +2,7 @@ package WWW::MetaForge::ArcRaiders::Result::Trader;
 # ABSTRACT: Trader result object
 our $VERSION = '0.003';
 use Moo;
-use Types::Standard qw(Str Int ArrayRef HashRef Maybe);
+use Types::Standard qw(Str ArrayRef HashRef);
 use namespace::clean;
 
 has name => (
@@ -11,25 +11,10 @@ has name => (
   required => 1,
 );
 
-has description => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
-has location => (
-  is  => 'ro',
-  isa => Maybe[Str],
-);
-
 has inventory => (
   is      => 'ro',
   isa     => ArrayRef[HashRef],
   default => sub { [] },
-);
-
-has last_refresh => (
-  is  => 'ro',
-  isa => Maybe[Str],
 );
 
 has _raw => (
@@ -40,19 +25,16 @@ has _raw => (
 sub from_hashref {
   my ($class, $data) = @_;
   return $class->new(
-    name         => $data->{name},
-    description  => $data->{description},
-    location     => $data->{location},
-    inventory    => $data->{inventory} // [],
-    last_refresh => $data->{lastRefresh},
-    _raw         => $data,
+    name      => $data->{name},
+    inventory => $data->{inventory} // [],
+    _raw      => $data,
   );
 }
 
 sub find_item {
   my ($self, $item_name) = @_;
   for my $item ($self->inventory->@*) {
-    return $item if lc($item->{item} // '') eq lc($item_name);
+    return $item if lc($item->{name} // '') eq lc($item_name);
   }
   return undef;
 }
@@ -70,7 +52,7 @@ sub has_item {
   for my $trader (@$traders) {
       say $trader->name;
       if (my $item = $trader->find_item('Ferro I')) {
-          say "  Sells Ferro I for $item->{price}";
+          say "  Sells $item->{name} for $item->{trader_price}";
       }
   }
 
@@ -82,21 +64,21 @@ Represents a trader NPC from the ARC Raiders game.
 
 Trader name (e.g., "Apollo", "TianWen").
 
-=attr description
-
-Trader description text.
-
-=attr location
-
-Where the trader can be found.
-
 =attr inventory
 
-ArrayRef of items for sale: C<[{ item => "Name", price => 1000, stock => 5 }]>.
+ArrayRef of items for sale. Each item hash contains:
+- id: item identifier
+- icon: CDN URL for item icon
+- name: item display name
+- value: base value
+- rarity: item rarity (e.g., "Uncommon", "Rare")
+- item_type: type category (e.g., "Quick Use", "Weapon")
+- description: item description
+- trader_price: price from this trader
 
-=attr last_refresh
+=attr _raw
 
-ISO timestamp of last inventory refresh.
+Raw HashRef of the original API data for this trader.
 
 =method from_hashref
 
@@ -106,7 +88,7 @@ Construct from API response.
 
 =method find_item
 
-  my $info = $trader->find_item('Ferro I');
+  my $item = $trader->find_item('Ferro I');
 
 Search inventory by name (case-insensitive). Returns inventory entry or undef.
 
