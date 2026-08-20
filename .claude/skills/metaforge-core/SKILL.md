@@ -1,6 +1,6 @@
 ---
 name: metaforge-core
-description: Architecture and invariants of WWW::MetaForge - the Perl client for the MetaForge.app game data API (ARC Raiders items/quests/arcs/traders/event-timers, generic game map data). Load when implementing, refactoring or testing anything in this distribution.
+description: "Load before editing WWW::MetaForge — the MetaForge.app game data API client: layers, endpoints, the result-class contract, and the exact-API-format rule."
 ---
 
 # WWW::MetaForge — core

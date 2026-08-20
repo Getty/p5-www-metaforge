@@ -5,9 +5,9 @@ model: sonnet
 allowed-tools: Read, Bash, Glob, Grep
 briefing:
   skills:
-    - perl-release-author-getty
+    - getty-perl-release-author-getty
     - perl-release-dist-ini
-    - perl-core
+    - getty-perl-core
     - metaforge-core
 ---
 
@@ -18,7 +18,7 @@ Audit only — you report findings, the `metaforge-worker` fixes them, the maint
 releases. **Never** run `dzil release`.
 
 1. `dist.ini` — `[@Author::GETTY]`, `copyright_holder`/`copyright_year` set, version
-   strategy per `perl-release-author-getty` (the repo carries the *next unreleased*
+   strategy per `getty-perl-release-author-getty` (the repo carries the *next unreleased*
    version, never one copied back from CPAN).
 2. `cpanfile` — every runtime dep actually used is declared; Getty-authored deps pinned to
    their latest released CPAN version (`cpanm --info`), never to a local unreleased
