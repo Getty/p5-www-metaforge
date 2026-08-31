@@ -1,0 +1,13 @@
+---
+class: standard
+created: 2026-08-31T04:45:48Z
+id: 3
+priority: low
+status: backlog
+tags:
+- cli
+title: 'CLI: kein Einzelabruf ''trader <id>'''
+updated: 2026-08-31T04:45:48Z
+---
+
+CLI hat Singular/Plural-Paare fuer Item/Items, Quest/Quests, Arc/Arcs, Event/Events, aber fuer Trader nur den Listenbefehl Traders ohne Einzel-Trader-Command. Asymmetrie zu den anderen Ressourcen; ggf. Trader-Einzelcommand ergaenzen.
