@@ -1,0 +1,14 @@
+---
+class: standard
+created: 2026-08-31T04:45:39Z
+id: 1
+priority: medium
+status: backlog
+tags:
+- release
+- changelog
+title: Changes {{$NEXT}}-Sektion leer trotz $VERSION 0.003
+updated: 2026-08-31T04:45:39Z
+---
+
+Alle Module tragen $VERSION = 0.003 (WWW::MetaForge, GameMapData u.a.), aber die {{$NEXT}}-Sektion in Changes ist leer; letzter Eintrag ist 0.002. Die unveroeffentlichten Aenderungen seit dem letzten Tag sind nicht changelog-erfasst. Vor einem Release muss {{$NEXT}} die user-sichtbaren Aenderungen seit 0.002 abdecken (git log --oneline 0.002..).
