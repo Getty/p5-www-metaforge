@@ -16,40 +16,29 @@ ArcRaiders:     https://metaforge.app/api/arc-raiders/{items,quests,arcs,traders
 GameMapData:    https://metaforge.app/api/game-map-data?tableID=arc_map_data&mapID={dam,spaceport,...}
 ```
 
-## Testing
-
-```bash
-prove -l t/                    # Run with MockUA fixtures
-USE_LIVE_API=1 prove -l t/     # Run against live API
-```
-
-Fixtures in `t/fixtures/` must match exact API response format.
-
 ## CLI
 
 Binary: `bin/metaforge-arcraiders` (installed as `arcraiders`)
 
 Commands use MooX::Cmd + MooX::Options in `lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/`.
 
-## Code Style
-
-- Moo for OOP
-- Result classes parse API responses via `from_hashref()`
-- Request classes build HTTP::Request objects
-- Support ONLY exact API format - no speculative fallbacks
+Architecture (layers, the result-class contract, the exact-API-format rule) and the
+testing/fixture rules live in skill `www-metaforge-core`; the `arcraiders` conventions are
+not restated here.
 
 ## Delegation
 
 Delegate behavior-relevant code to the right agent instead of touching it yourself —
-principle, lanes and project hazards are in `.claude/rules/metaforge-rules.md`.
+principle, lanes and project hazards are in `.claude/rules/www-metaforge-rules.md`.
 
 | Task | Agent |
 |---|---|
-| Implement / refactor / debug facades, Request, Result classes, cache, CLI | `metaforge-worker` (default) |
-| Write/extend tests and fixtures under `t/` | `metaforge-test-writer` |
-| Pre-release audit | `metaforge-release-checker` |
+| Implement / refactor / debug facades, Request, Result classes, cache, CLI | `www-metaforge-worker` (default) |
+| Write/extend tests and fixtures under `t/` | `www-metaforge-test-writer` |
+| Pre-release audit | `www-metaforge-release-checker` |
 
 The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main agent
 delegates rather than loading them. Skill sources live under `.claude/skills/`
-(`metaforge-core` is project-owned; the `perl-*` and `kanban-issues-karr-cli` skills are
-hardlinked shares — never edit them with Edit/Write, see skill `manage-skills`).
+(`www-metaforge-core` is project-owned; the `getty-perl-*`, `perl-release-dist-ini` and
+`kanban-issues-karr-cli` skills are hardlinked shares — never edit them with Edit/Write,
+see skill `manage-skills`).

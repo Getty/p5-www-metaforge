@@ -1,5 +1,5 @@
 ---
-name: metaforge-core
+name: www-metaforge-core
 description: "Load before editing WWW::MetaForge — the MetaForge.app game data API client: layers, endpoints, the result-class contract, and the exact-API-format rule."
 ---
 

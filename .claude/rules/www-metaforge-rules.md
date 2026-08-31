@@ -31,17 +31,17 @@ Depends on whether the Agent/Task tool is available to you.
 
 - **You can spawn subagents** (orchestrating main agent): Do NOT touch behavior-relevant
   code yourself — delegate. Your lane: coordinate, inspect, plan, review diffs, run tests,
-  manage git, edit non-behavioral docs. Why: only the `metaforge-*` agents get their skills
+  manage git, edit non-behavioral docs. Why: only the `www-metaforge-*` agents get their skills
   force-loaded via `briefing.skills`; you get no briefing and would touch internals with
   too little context.
 
   | Task | Agent |
   |---|---|
-  | Implement / refactor / debug facades, Request, Result classes, cache, CLI | `metaforge-worker` (default) |
-  | Write/extend tests and fixtures under `t/` | `metaforge-test-writer` |
-  | Pre-release audit (Changes, cpanfile, dist.ini, `$VERSION`, POD) | `metaforge-release-checker` |
+  | Implement / refactor / debug facades, Request, Result classes, cache, CLI | `www-metaforge-worker` (default) |
+  | Write/extend tests and fixtures under `t/` | `www-metaforge-test-writer` |
+  | Pre-release audit (Changes, cpanfile, dist.ini, `$VERSION`, POD) | `www-metaforge-release-checker` |
 
-- **You cannot spawn subagents** (you ARE a `metaforge-*` agent): The delegation lock does
+- **You cannot spawn subagents** (you ARE a `www-metaforge-*` agent): The delegation lock does
   not apply — implement, refactor, debug and test per these rules.
 
 Behavior-relevant = everything under `lib/` and `bin/`, plus `t/` and `t/fixtures/`. Pure
@@ -63,6 +63,13 @@ prose docs and `Changes` notes are not.
 - **Dropping a Result attribute breaks the CLI silently at the source level** —
   `CLI/Cmd/*` calls accessors directly and only dies at runtime, which the offline suite
   may not reach. Grep the CLI for the accessor before removing it.
+- **A downstream twin consumes this distribution.** `p5-mcp-arcraiders` (`MCP::ArcRaiders`)
+  `use`s `WWW::MetaForge::ArcRaiders` and `WWW::MetaForge::Cache` directly — it constructs
+  the facade with an injected `ua`/`cache` and reads Result accessors. Changing the
+  `ArcRaiders` public method signatures, the `Cache` constructor/namespace behaviour, or a
+  Result attribute is a breaking change *for that repo too*. It is a separate distribution:
+  never edit it from here — record the impact as a karr ticket on the `p5-mcp-arcraiders`
+  board (cross-repo handoff), not a direct change.
 
 ## Coordination — karr board
 
@@ -87,6 +94,6 @@ lists "release" as the next step. For anything heading toward release: stop and 
 ## Perl specifics — reference, don't restate
 
 Module loading, Moo patterns, cpanfile pinning for Getty-authored deps and house style live
-in skills `perl-core` / `perl-moo`; the distribution's architecture and the exact-format
-rule live in `metaforge-core` (all force-loaded for `metaforge-*` agents). Do not duplicate
+in skills `getty-perl-core` / `getty-perl-moo`; the distribution's architecture and the exact-format
+rule live in `www-metaforge-core` (all force-loaded for `www-metaforge-*` agents). Do not duplicate
 that content here.
