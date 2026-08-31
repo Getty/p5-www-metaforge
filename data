@@ -1,0 +1,14 @@
+---
+class: standard
+created: 2026-08-31T04:45:43Z
+id: 2
+priority: low
+status: backlog
+tags:
+- cli
+- gamemapdata
+title: GameMapData ohne CLI-Zugang
+updated: 2026-08-31T04:45:43Z
+---
+
+Der arcraiders-CLI (lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/*) deckt jede ArcRaiders-Endpoint ab (items/item, quests/quest, arcs/arc, events/event, traders), aber die GameMapData-Facade (map_data / Map-Marker) ist ueber die Bibliothek erreichbar und im CLI nicht exponiert. Pruefen ob ein map/markers-Subcommand gewuenscht ist oder die Auslassung bewusst.
