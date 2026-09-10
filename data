@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-09-10T03:49:06Z
+claimed_by: worker-c
+class: standard
+completed: 2026-09-10T03:49:06Z
+created: 2026-08-31T04:45:43Z
+id: 2
+priority: low
+started: 2026-09-10T03:42:52Z
+status: done
+tags:
+- cli
+- gamemapdata
+title: GameMapData ohne CLI-Zugang
+updated: 2026-09-10T03:49:06Z
+---
+
+Der arcraiders-CLI (lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/*) deckt jede ArcRaiders-Endpoint ab (items/item, quests/quest, arcs/arc, events/event, traders), aber die GameMapData-Facade (map_data / Map-Marker) ist ueber die Bibliothek erreichbar und im CLI nicht exponiert. Pruefen ob ein map/markers-Subcommand gewuenscht ist oder die Auslassung bewusst.
+
+Phase 2: left OPEN as a product decision, not done autonomously. GameMapData (the map_data method and the GameMapData facade) is reachable via the library but deliberately not exposed in the arcraiders CLI. Whether to add a map or markers subcommand to bin/metaforge-arcraiders is a product/UX question (is it wanted, or is the omission intentional). Needs maintainer input.
+
+Added map <map-id> subcommand (lib/.../CLI/Cmd/Map.pm) exposing GameMapData markers via the ArcRaiders facade: --type filter, JSON mode, available-maps usage. Test t/31-cli-map.t (MockUA-backed GameMapData for offline). Green. Commit b4e122b.
