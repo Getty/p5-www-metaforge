@@ -3,6 +3,7 @@ requires 'Moo';
 requires 'Type::Tiny';
 requires 'DateTime';
 requires 'LWP::UserAgent';
+requires 'LWP::Protocol::https';
 requires 'JSON::MaybeXS', '1.000000';
 requires 'HTTP::Request';
 requires 'Path::Tiny', '0.043';
