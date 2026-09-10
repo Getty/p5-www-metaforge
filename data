@@ -1,0 +1,21 @@
+---
+claimed_at: 2026-09-10T03:49:14Z
+claimed_by: worker-c
+class: standard
+completed: 2026-09-10T03:49:14Z
+created: 2026-08-31T04:45:48Z
+id: 3
+priority: low
+started: 2026-09-10T03:43:47Z
+status: done
+tags:
+- cli
+title: 'CLI: kein Einzelabruf ''trader <id>'''
+updated: 2026-09-10T03:49:14Z
+---
+
+CLI hat Singular/Plural-Paare fuer Item/Items, Quest/Quests, Arc/Arcs, Event/Events, aber fuer Trader nur den Listenbefehl Traders ohne Einzel-Trader-Command. Asymmetrie zu den anderen Ressourcen; ggf. Trader-Einzelcommand ergaenzen.
+
+Phase 2: left OPEN. Two reasons. (1) Product/UX decision like ticket 2: adding a public single-trader CLI command and choosing the identifier semantics (traders are keyed by name and names contain spaces) is a maintainer call. It is technically feasible (a Trader command would fetch the traders list and filter by name, mirroring how the Item command fetches items with search and filters, since the facade has no single-resource method). (2) No green dzil test proof is possible right now because the offline suite hangs (see the high-priority ticket about _fetch_all_pages looping against the page-unaware MockUA), which blocks verifying any CLI change. Needs maintainer input and the suite fix first.
+
+Added trader <name> single command (lib/.../CLI/Cmd/Trader.pm): fetches trader list (no single-trader endpoint), matches by name case-insensitively, prints inventory; JSON mode + not-found listing. Test t/32-cli-trader.t. Green. Commit b4e122b.
