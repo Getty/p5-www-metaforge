@@ -1,0 +1,24 @@
+---
+claimed_at: 2026-09-10T03:48:52Z
+claimed_by: worker-c
+class: standard
+completed: 2026-09-10T03:48:52Z
+created: 2026-09-09T08:07:37Z
+id: 4
+priority: high
+started: 2026-09-10T03:40:13Z
+status: done
+tags:
+- tests
+- bug
+- pagination
+title: 'Offline test suite hangs: _fetch_all_pages infinite-loops against page-unaware
+  MockUA'
+updated: 2026-09-10T03:48:52Z
+---
+
+The default offline suite hangs (does not just fail). t/18-arcraiders-pagination.t and t/19-arcraiders-requirements.t never finish (each exceeds 25s; a full prove -lr t is terminated at 120s). Root cause: the fixtures were updated to the live API response shape (commit 78c6723) so items.json reports pagination page 1, totalPages 29, hasNextPage true (arcs.json totalPages 2, quests.json totalPages 5, all hasNextPage true), but t/lib/MockUA.pm maps only the endpoint to a fixture and ignores the page query parameter, so every page request returns the same page-1 body with hasNextPage true. _fetch_all_pages in ArcRaiders.pm loops while hasNextPage is true, so items_all, arcs_all and quests_all never terminate. t/18 hangs at the _all subtests; t/19 hangs because calculate_requirements calls _ensure_items_cache which calls items_all. The stale comment in t/18 ("Since fixture has hasNextPage: false") documents the pre-update assumption. This blocks dzil test entirely (no green full-suite proof is possible in this repo right now).
+
+Fix has design latitude, so left for the worker/test-writer: make MockUA page-aware (serve a last page with hasNextPage false, or per-page fixtures) so multi-page fetches terminate offline while fixtures stay byte-faithful; the exact-format rule means a hand-tidied single-page fixture is not acceptable. Secondary observation to confirm: running t/30-cli.t directly exits 255 (fast, not a hang) because line 8 use Capture::Tiny runs at compile time before the BEGIN skip_all guard on line 10, so a missing Capture::Tiny is a hard error instead of a skip. Found during Phase 2 while assessing tickets 1 to 3; not fixed here (behaviour and test code, delegation lock, and the mock design is a decision).
+
+Fixed: MockUA now honours the page query param (page 1 verbatim; later pages = synthesized empty terminal with hasNextPage=false). _fetch_all_pages terminates. Full suite completes in ~9s (was an infinite hang). t/18 green. Commit c77b29b. NOTE: t/19 no longer hangs but now fails fast on separate pre-existing drift (requirements feature broken by the live-API refactors: crafting_requirements removed, synthetic items gone) - tracked in karr #6, out of scope here. The secondary t/30 Capture::Tiny compile-order observation is moot (installed); t/30 fails for a different reason (removed category accessor), also in #6.
