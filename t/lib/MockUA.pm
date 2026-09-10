@@ -4,6 +4,7 @@ use warnings;
 use Path::Tiny;
 use HTTP::Response;
 use Encode;
+use JSON::MaybeXS;
 
 sub new {
   my ($class, %args) = @_;
@@ -42,6 +43,26 @@ sub request {
   }
 
   my $content = $file->slurp_utf8;
+
+  # Page-aware pagination: fixtures are byte-faithful "page 1" responses that
+  # report hasNextPage=true. _fetch_all_pages walks page=2,3,... until
+  # hasNextPage goes false, so an endpoint that always returned page 1 would
+  # loop forever. Honour the page query param: page 1 (or none) serves the
+  # fixture verbatim; any later page is a synthesized terminal page with an
+  # empty data set and hasNextPage=false, so multi-page fetches terminate
+  # offline without hand-editing the byte-faithful fixture.
+  my ($page) = $uri =~ /[?&]page=(\d+)/;
+  if (defined $page && $page > 1) {
+    my $decoded = eval { JSON::MaybeXS->new->decode($content) };
+    if (ref $decoded eq 'HASH' && ref $decoded->{pagination} eq 'HASH') {
+      $decoded->{data} = [];
+      $decoded->{pagination}{page}        = int($page);
+      $decoded->{pagination}{hasNextPage} = \0;
+      $decoded->{pagination}{hasPrevPage} = \1;
+      $content = JSON::MaybeXS->new->encode($decoded);
+    }
+  }
+
   my $response = HTTP::Response->new(200, 'OK');
   $response->content(Encode::encode('UTF-8', $content));
   $response->header('Content-Type' => 'application/json');

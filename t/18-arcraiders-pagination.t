@@ -50,7 +50,9 @@ subtest 'items_all returns all items' => sub {
   ok(ref $all eq 'ARRAY', 'returns arrayref');
   ok(scalar @$all > 0, 'not empty');
 
-  # Since fixture has hasNextPage: false, should be same as single page
+  # MockUA serves the fixture as page 1 (hasNextPage true) and a synthesized
+  # empty terminal page for page 2, so items_all accumulates exactly the
+  # single fixture page before stopping.
   my $result = $api->items_paginated();
   is(scalar @$all, scalar @{$result->{data}}, 'same count (single page)');
 };
