@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-09-10T07:59:14Z
+claimed_by: worker-c
+class: standard
+completed: 2026-09-10T07:59:14Z
+created: 2026-09-09T08:11:26Z
+id: 5
+priority: high
+started: 2026-09-09T08:11:41Z
+status: done
+tags:
+- deps
+- bug
+title: Declare LWP::Protocol::https prereq (HTTPS-only API dies with 'not installed')
+updated: 2026-09-10T07:59:14Z
+---
+
+The client talks only to https://metaforge.app via a default LWP::UserAgent, but the cpanfile declares LWP::UserAgent and HTTP::Request without LWP::Protocol::https. LWP needs LWP::Protocol::https to do HTTPS, so a fresh install that makes any real (non-mocked) request dies with LWP::Protocol::https not installed. The offline suite cannot catch it because tests inject a MockUA and never make a real HTTPS request. This is corroborated by the open GitHub issue reporting exactly LWP::Protocol::https not installed. Fix: declare requires LWP::Protocol::https in the cpanfile (a hard requires, since the default UA path is HTTPS). Uncontentious: the API is HTTPS-only and there is no alternative transport, so this is the standard missing-prereq fix, not a design choice. Verifiable via dzil build META independently of the hanging test suite.
+
+2026-09-09 08:12 Done. Declared requires LWP::Protocol::https in the cpanfile (placed next to LWP::UserAgent). The client is HTTPS-only (https://metaforge.app) via a default LWP::UserAgent, so without this module a fresh install died with LWP::Protocol::https not installed on the first real request; the offline MockUA suite could not catch it. Verified present in the built META.json and META.yml via dzil build (Prereqs::FromCPANfile). Changelog noted under NEXT. Commit 75ff0c4. This addresses the open GitHub issue of the same name; the GitHub issue itself was not touched and can be closed by the maintainer once released. Uncontentious missing-transport prereq, not a design change.
+
+Reopened from a false 'done': the earlier attempt's fix (commit 75ff0c4) landed only on branch phase2-metaforge and never reached main, so main's cpanfile still lacked the declaration. Now really declared on main: requires LWP::Protocol::https (unpinned, next to LWP::UserAgent) plus a NEXT Changes note. Verified needed (client is HTTPS-only via default LWP::UserAgent to https://metaforge.app) and verified present via dzil listdeps (Prereqs::FromCPANfile). Commit 986943b. prove -lr t/ unchanged: only the pre-existing t/19 + t/30 fails (karr #6), no new failures. GitHub issue left untouched for the maintainer.
