@@ -3,6 +3,14 @@
  - Declare LWP::Protocol::https as a prerequisite; the API is HTTPS-only, so
    without it a fresh install died with "LWP::Protocol::https not installed"
    on the first request
+ - Align the ARC Raiders result classes with the current live API response
+   format; this changes which attributes are available and may be
+   incompatible for code reading result fields:
+   - Item: item_type, value, stat_block
+   - Arc: simplified fields
+   - Quest: nested rewards, trader_name, xp
+   - Trader: inventory item fields
+ - Add the riven-tides and stella-montis maps
 
 0.002     2026-01-11 04:45:55Z
 
