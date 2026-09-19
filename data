@@ -1,0 +1,20 @@
+---
+class: standard
+completed: 2026-09-09T08:09:11Z
+created: 2026-08-31T04:45:39Z
+id: 1
+priority: medium
+started: 2026-09-09T08:07:57Z
+status: done
+tags:
+- release
+- changelog
+title: Changes {{$NEXT}}-Sektion leer trotz $VERSION 0.003
+updated: 2026-09-19T03:24:54Z
+---
+
+Alle Module tragen $VERSION = 0.003 (WWW::MetaForge, GameMapData u.a.), aber die {{$NEXT}}-Sektion in Changes ist leer; letzter Eintrag ist 0.002. Die unveroeffentlichten Aenderungen seit dem letzten Tag sind nicht changelog-erfasst. Vor einem Release muss {{$NEXT}} die user-sichtbaren Aenderungen seit 0.002 abdecken (git log --oneline 0.002..).
+
+2026-09-09 08:09 Done. Filled the empty Changes NEXT section with the user-visible changes since the 0.002 release, reconstructed from the history after v0.002 (there are no git tags). Recorded the ARC Raiders result-class realignment to the live API format (Item item_type value stat_block, Arc simplified, Quest nested rewards trader_name xp, Trader inventory fields; potentially incompatible for consumers reading result attributes) and the added riven-tides and stella-montis maps. Changelog only, no code change. dzil build succeeds and rewrites the changes_has_content release test with the now non-empty section. Commit 6d7b85e. Note: a full green dzil test is currently impossible because the offline suite hangs (see the new high-priority ticket about _fetch_all_pages looping against the page-unaware MockUA); this change is Changes-only and does not touch tests.
+
+Content recovered on main as commit bef2fcc; the orphaned phase2-metaforge branch/worktree (which held 6d7b85e) was cleaned up and deleted.
