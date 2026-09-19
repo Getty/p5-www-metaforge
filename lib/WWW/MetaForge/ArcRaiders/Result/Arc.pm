@@ -2,7 +2,7 @@ package WWW::MetaForge::ArcRaiders::Result::Arc;
 # ABSTRACT: Arc (mission/event) result object
 our $VERSION = '0.003';
 use Moo;
-use Types::Standard qw(Str Maybe HashRef);
+use Types::Standard qw(Str Maybe HashRef ArrayRef);
 use namespace::clean;
 
 has id => (
@@ -42,6 +42,12 @@ has updated_at => (
   isa => Maybe[Str],
 );
 
+has loot => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
 has _raw => (
   is  => 'ro',
   isa => HashRef,
@@ -58,6 +64,7 @@ sub from_hashref {
     image       => $data->{image},
     created_at  => $data->{created_at},
     updated_at  => $data->{updated_at},
+    loot        => $data->{loot} // [],
     _raw        => $data,
   );
 }
@@ -102,6 +109,11 @@ ISO timestamp of creation.
 =attr updated_at
 
 ISO timestamp of last update.
+
+=attr loot
+
+ArrayRef of loot drops, only populated when fetched with C<includeLoot =E<gt> 'true'>:
+C<[{ id, item => { id, icon, name, rarity, item_type }, item_id, created_at }]>.
 
 =method from_hashref
 

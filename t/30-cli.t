@@ -231,27 +231,12 @@ subtest 'Quest command - single quest lookup' => sub {
   my $cli = mock_cli();
   my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
 
-  # karr #7 (separate, not-yet-fixed ticket): CLI/Cmd/Quest.pm's detail view
-  # calls Result::Quest->type, which does not exist on the live-API-aligned
-  # Result class. That is a hard die, not a failed assertion, so it would
-  # otherwise take the rest of this file down with it (exit 255). Wrap in
-  # eval so the crash is contained and stays visible as a TODO failure
-  # instead of silently disappearing.
-  my $output;
-  my $survived = eval {
-    $output = capture_stdout {
-      $cmd->execute(['a-bad-feeling'], [$cli]);
-    };
-    1;
+  my $output = capture_stdout {
+    $cmd->execute(['a-bad-feeling'], [$cli]);
   };
-  my $error = $@;
 
-  TODO: {
-    local $TODO = 'karr #7: CLI/Cmd/Quest.pm calls the non-existent Result::Quest->type';
-    ok($survived, 'quest detail view does not crash') or diag("died with: $error");
-    like($output // '', qr/A Bad Feeling/i, 'shows quest name');
-    like($output // '', qr/ID:/i, 'shows ID field');
-  }
+  like($output, qr/A Bad Feeling/i, 'shows quest name');
+  like($output, qr/ID:/i, 'shows ID field');
 };
 
 subtest 'Quest command - no argument shows usage' => sub {
@@ -273,25 +258,15 @@ subtest 'Arc command - single arc lookup' => sub {
   my $cli = mock_cli();
   my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc->new();
 
-  # karr #7 (separate, not-yet-fixed ticket): same root cause as the Quest
-  # detail view above - CLI/Cmd/Arc.pm's detail view calls the non-existent
-  # Result::Arc->type. Wrapped in eval for the same reason: contain the die
-  # instead of losing every subtest after it to exit 255.
-  my $output;
-  my $survived = eval {
-    $output = capture_stdout {
-      $cmd->execute(['salvage-run'], [$cli]);
-    };
-    1;
+  # Arcs are ARC enemy types in the live API (e.g. "ARC Assessor", "Bastion"),
+  # not named missions - arc-assessor is the first entry in t/fixtures/arcs.json.
+  my $output = capture_stdout {
+    $cmd->execute(['arc-assessor'], [$cli]);
   };
-  my $error = $@;
 
-  TODO: {
-    local $TODO = 'karr #7: CLI/Cmd/Arc.pm calls the non-existent Result::Arc->type';
-    ok($survived, 'arc detail view does not crash') or diag("died with: $error");
-    like($output // '', qr/Salvage Run/i, 'shows arc name');
-    like($output // '', qr/ID:/i, 'shows ID field');
-  }
+  like($output, qr/ARC Assessor/i, 'shows arc name');
+  like($output, qr/ID:/i, 'shows ID field');
+  like($output, qr/ARC Powercell/i, 'shows loot drop');
 };
 
 subtest 'Arc command - no argument shows usage' => sub {

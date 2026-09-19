@@ -18,12 +18,12 @@ sub execute {
   }
 
   # Try fetching by ID first (API supports id= query param)
-  my $result = $app->api->arcs_paginated(id => $arc_id);
+  my $result = $app->api->arcs_paginated(id => $arc_id, includeLoot => 'true');
   my $arcs = $result->{data};
 
   # If not found by ID, search all arcs
   if (!@$arcs) {
-    $arcs = $app->api->arcs_all;
+    $arcs = $app->api->arcs_all(includeLoot => 'true');
     my ($match) = grep {
       ($_->id && lc($_->id) eq lc($arc_id)) ||
       ($_->name && lc($_->name) eq lc($arc_id))
@@ -53,24 +53,7 @@ sub _print_arc_details {
   printf "%s\n", $arc->name // 'Unknown';
   print "=" x 60, "\n";
 
-  _print_field("ID",   $arc->id);
-  _print_field("Type", $arc->type);
-
-  if ($arc->maps && @{$arc->maps}) {
-    _print_field("Maps", join(", ", @{$arc->maps}));
-  }
-
-  if ($arc->duration) {
-    my $mins = int($arc->duration / 60);
-    my $secs = $arc->duration % 60;
-    my $duration_str = $mins > 0 ? "${mins}m ${secs}s" : "${secs}s";
-    _print_field("Duration", $duration_str);
-  }
-
-  if ($arc->cooldown) {
-    my $mins = int($arc->cooldown / 60);
-    _print_field("Cooldown", "${mins} minutes");
-  }
+  _print_field("ID", $arc->id);
 
   if ($arc->description) {
     print "\nDescription:\n";
@@ -79,32 +62,20 @@ sub _print_arc_details {
     print "  $desc\n";
   }
 
-  my @reward_parts;
-  push @reward_parts, $arc->xp_reward . " XP" if $arc->xp_reward;
-  push @reward_parts, $arc->coin_reward . " Coins" if $arc->coin_reward;
-
-  if (@reward_parts) {
-    print "\nRewards:\n";
-    print "  ", join(", ", @reward_parts), "\n";
-  }
-
   if ($arc->loot && @{$arc->loot}) {
     print "\nLoot Drops:\n";
-    for my $loot (@{$arc->loot}) {
-      if (ref $loot eq 'HASH') {
-        my $name = $loot->{item} // $loot->{name} // next;
-        my $chance = $loot->{chance};
-        if (defined $chance) {
-          printf "  %-40s %d%%\n", $name, int($chance * 100);
-        } else {
-          printf "  %s\n", $name;
-        }
+    for my $drop (@{$arc->loot}) {
+      if (ref $drop eq 'HASH') {
+        my $item = $drop->{item};
+        my $name = ref $item eq 'HASH' ? $item->{name} : undef;
+        next unless defined $name;
+        printf "  %s\n", $name;
       }
     }
   }
 
-  if ($arc->last_updated) {
-    print "\nLast Updated: ", $arc->last_updated, "\n";
+  if ($arc->updated_at) {
+    print "\nLast Updated: ", $arc->updated_at, "\n";
   }
 }
 
@@ -141,19 +112,9 @@ Output includes:
 
 =item * Name and ID
 
-=item * Type (mission category)
-
-=item * Available maps
-
-=item * Duration (time limit)
-
-=item * Cooldown period
-
 =item * Description text
 
-=item * Rewards (XP and Coins)
-
-=item * Loot drop table with drop chances
+=item * Loot drop table
 
 =item * Last updated timestamp
 

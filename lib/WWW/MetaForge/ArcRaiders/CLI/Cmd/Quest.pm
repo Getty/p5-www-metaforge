@@ -53,15 +53,7 @@ sub _print_quest_details {
   printf "%s\n", $quest->name // 'Unknown';
   print "=" x 60, "\n";
 
-  _print_field("ID",   $quest->id);
-  _print_field("Type", $quest->type);
-
-  if ($quest->description) {
-    print "\nDescription:\n";
-    my $desc = $quest->description;
-    $desc =~ s/(.{1,58})\s/$1\n  /g;  # Word wrap
-    print "  $desc\n";
-  }
+  _print_field("ID", $quest->id);
 
   if ($quest->objectives && @{$quest->objectives}) {
     print "\nObjectives:\n";
@@ -81,8 +73,7 @@ sub _print_quest_details {
   }
 
   my @reward_parts;
-  push @reward_parts, $quest->xp_reward . " XP" if $quest->xp_reward;
-  push @reward_parts, $quest->reputation_reward . " Rep" if $quest->reputation_reward;
+  push @reward_parts, $quest->xp . " XP" if $quest->xp;
 
   if (@reward_parts) {
     print "\nRewards:\n";
@@ -103,14 +94,8 @@ sub _print_quest_details {
     }
   }
 
-  if ($quest->prev_quest || $quest->next_quest) {
-    print "\nQuest Chain:\n";
-    printf "  Previous: %s\n", $quest->prev_quest // '-';
-    printf "  Next:     %s\n", $quest->next_quest // '-';
-  }
-
-  if ($quest->last_updated) {
-    print "\nLast Updated: ", $quest->last_updated, "\n";
+  if ($quest->updated_at) {
+    print "\nLast Updated: ", $quest->updated_at, "\n";
   }
 }
 
@@ -148,17 +133,11 @@ Quest details displayed include:
 
 =item * Name and ID
 
-=item * Quest type
-
-=item * Description
-
 =item * Objectives list
 
 =item * Required items with quantities
 
-=item * Rewards (XP, reputation, and items)
-
-=item * Quest chain relationships (previous/next quests)
+=item * Rewards (XP and items)
 
 =item * Last updated timestamp
 
