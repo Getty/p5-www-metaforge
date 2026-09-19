@@ -64,6 +64,7 @@ subtest 'from_hashref' => sub {
     marker_category => 'side',
     image           => 'https://example.com/stash.png',
     guide_links     => [{ url => 'https://guide.example.com/stash', label => 'Upgrade Stash Capacity Quest Guide' }],
+    guide_url       => '/arc-raiders/upgrade-stash-capacity-arc-raiders',
     trader_name     => 'Trader Jane',
     sort_order      => 5,
     position        => { x => 100, y => 200 },
@@ -93,6 +94,7 @@ subtest 'from_hashref' => sub {
   is($quest->marker_category, 'side', 'marker_category');
   is($quest->image, 'https://example.com/stash.png', 'image');
   is($quest->guide_links->[0]{url}, 'https://guide.example.com/stash', 'guide_links');
+  is($quest->guide_url, '/arc-raiders/upgrade-stash-capacity-arc-raiders', 'guide_url mapped');
   is($quest->trader_name, 'Trader Jane', 'trader_name');
   is($quest->sort_order, 5, 'sort_order');
   is($quest->position->{x}, 100, 'position x from hashref');
@@ -116,6 +118,7 @@ subtest 'defaults' => sub {
   is(ref $quest->rewards, 'ARRAY', 'rewards is array');
   is(scalar @{$quest->objectives}, 0, 'objectives empty');
   is(scalar @{$quest->granted_items}, 0, 'granted_items empty');
+  is($quest->guide_url, undef, 'guide_url defaults to undef');
 };
 
 done_testing;

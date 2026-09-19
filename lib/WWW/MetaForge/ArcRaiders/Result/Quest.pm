@@ -66,6 +66,11 @@ has guide_links => (
   default => sub { [] },
 );
 
+has guide_url => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
 has trader_name => (
   is  => 'ro',
   isa => Maybe[Str],
@@ -112,6 +117,7 @@ sub from_hashref {
     marker_category => $data->{marker_category},
     image          => $data->{image},
     guide_links    => $data->{guide_links} // [],
+    guide_url      => $data->{guide_url},
     trader_name    => $data->{trader_name},
     sort_order     => $data->{sort_order},
     position       => $data->{position},
@@ -178,6 +184,10 @@ Quest image URL.
 =attr guide_links
 
 ArrayRef of guide link URLs.
+
+=attr guide_url
+
+Path to the quest's guide page on metaforge.app, or C<undef> if none exists.
 
 =attr trader_name
 
