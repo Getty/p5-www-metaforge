@@ -1,0 +1,38 @@
+---
+class: standard
+completed: 2026-09-19T04:53:29Z
+created: 2026-09-19T04:40:20Z
+id: 8
+priority: high
+started: 2026-09-19T04:43:15Z
+status: done
+tags:
+- bug
+- live-api
+title: Result::Quest::from_hashref reads camelCase keys that don't exist in the live
+  API
+updated: 2026-09-19T04:53:29Z
+---
+
+Found while investigating karr #7. lib/WWW/MetaForge/ArcRaiders/Result/Quest.pm from_hashref (line ~101) reads $data->{grantedItems}, $data->{createdAt}, $data->{updatedAt}, $data->{markerCategory}, $data->{guideLinks}, $data->{traderName}, $data->{sortOrder}, $data->{requiredItems} -- camelCase keys.
+
+Verified via curl against the live, free API (https://metaforge.app/api/arc-raiders/quests?limit=100, all 100 quests checked) that the actual response uses snake_case throughout: granted_items, created_at, updated_at, marker_category, guide_links, trader_name, sort_order, required_items. t/fixtures/quests.json already correctly uses snake_case too. So these 8 attributes are silently always undef/empty on every real Result::Quest object, regardless of what the API actually sends -- id/name/objectives/xp happen to be spelled the same in both conventions, which is why this was not caught.
+
+Fix: remap from_hashref to the real snake_case keys. Add/extend a t/14-arcraiders-result-quest.t assertion against a fixture item with non-empty granted_items/guide_links/trader_name/sort_order/required_items so a regression cannot silently reintroduce this (the current test apparently does not assert on these fields, or asserts against undef and treats it as correct).
+
+Fixed: Result::Quest::from_hashref read camelCase keys (grantedItems, createdAt, updatedAt, markerCategory, guideLinks, traderName, sortOrder, requiredItems) that the live API never sends. Changed all 8 to their snake_case equivalents (granted_items, created_at, updated_at, marker_category, guide_links, trader_name, sort_order, required_items), matching the attribute names and t/fixtures/quests.json which were already correct. Verified with perl -c and a from_hashref smoke test using snake_case keys: all 8 attributes now return real values instead of undef. Only lib/WWW/MetaForge/ArcRaiders/Result/Quest.pm touched (11-line diff in from_hashref), no other lib/ files, no t/ files. Ticket left in-progress; not moved/handed off per instructions -- orchestrator to move after test-writer updates coverage.
+
+2026-09-19 04:51 Fixed t/14-arcraiders-result-quest.t's 'from_hashref' subtest: it was feeding from_hashref the same wrong camelCase keys (grantedItems, createdAt, updatedAt, markerCategory, guideLinks, traderName, sortOrder, requiredItems) that the buggy lib code used to read -- so test and bug were "consistently wrong" together and the bug never surfaced. Input keys switched to real snake_case (granted_items, created_at, updated_at, marker_category, guide_links, trader_name, sort_order, required_items); assertions (already checking the snake_case attributes) needed no key changes.
+
+Also verified realistic data shape via curl against the live API (all 100 current quests sampled) and found the test's inline shapes for 3 fields did not match reality, so fixed those too:
+- guide_links: live is an array of {url, label} objects, never plain URL strings (contradicts the ticket's note that live samples showed strings -- actual live/fixture data is objects). Test now uses {url,label}.
+- granted_items / required_items: live elements have the same nested shape as rewards -- {id, item: {id,icon,name,rarity,item_type}, item_id, quantity} -- not a flat {id,name,icon,...} or {item => "Name String", quantity}. Test now nests item and asserts ->{item}{name}.
+- locations (when non-empty) is an array of {x,y,map} or {id,map} objects, never bare strings like 'Base Camp'. Test now uses {x,y,map}.
+
+perl -c and timeout 25 perl -Ilib -It/lib t/14-arcraiders-result-quest.t: all green (4 subtests, 15 assertions in from_hashref). Full suite: timeout 90 prove -l t/ -> PASS, Files=18, Tests=172, no hangs, no network. Only t/14-arcraiders-result-quest.t touched; fixtures/quests.json needed no change (already correct snake_case).
+
+Separate finding, NOT acted on (needs a fresh ticket): the live API also sends a top-level guide_url string field per quest that Result::Quest has no attribute for, and in the current live dataset guide_links is empty ([]) for all 100 quests sampled -- the populated {url,label} guide_links shape in t/fixtures/quests.json may be from an earlier API version.
+
+Test coverage for the from_hashref key/shape fix is done and verified (unit test + full suite green, offline). See card body for details.
+
+Reviewed and verified by orchestrating agent: diff on t/14 confirmed correct (8 keys renamed to snake_case, plus 3 nested shapes corrected to match real live/fixture data: guide_links {url,label} objects, granted_items/required_items nested {id,item,item_id,quantity}, locations {x,y,map}). Ran t/14 standalone (4/4 subtests, 15 assertions in from_hashref) and full 'prove -l t/' (18 files, 172 tests, 8s, all green).
