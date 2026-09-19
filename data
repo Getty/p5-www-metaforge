@@ -1,0 +1,34 @@
+---
+class: standard
+completed: 2026-09-19T16:14:27Z
+created: 2026-09-19T04:53:44Z
+id: 10
+priority: medium
+started: 2026-09-19T16:07:21Z
+status: done
+tags:
+- bug
+- live-api
+- drift
+title: Quest guide_links is dead (always []); live API uses guide_url instead
+updated: 2026-09-19T16:14:27Z
+---
+
+Found during karr #8 review/verification. Checked all 100 live quests via curl "https://metaforge.app/api/arc-raiders/quests?limit=100": guide_links is [] on every single one (0/100 non-empty), while a top-level guide_url string field (e.g. "/arc-raiders/a-bad-feeling-quest-arc-raiders") is populated on 19/100.
+
+Result::Quest maps guide_links (now dead weight, always empty from the real API) and has no guide_url attribute at all. t/fixtures/quests.json still has the old populated guide_links {url,label} shape, which is now stale relative to the live API -- the fixture and Result::Quest are internally consistent with each other but no longer with reality.
+
+No CLI command currently reads guide_links, so this is not a crash like karr #6/#7 -- lower urgency. Fix: add a guide_url attribute (Maybe[Str]) to Result::Quest mapped from the real field, decide whether to keep or drop the now-always-empty guide_links, and refresh t/fixtures/quests.json to match current live shape (exact-format rule -- do not keep speculative old-shape data in the fixture).
+
+Added guide_url (Maybe[Str]) attribute to Result::Quest, mapped from $data->{guide_url} in from_hashref, with POD. guide_links left untouched (still schema-present, just always empty in current API data). No CLI files touched (nothing reads either field). Verified live via curl https://metaforge.app/api/arc-raiders/quests?limit=5 that guide_url is a top-level string-or-null field. perl -c and smoke test (from_hashref->guide_url) both pass. Fixture update still needed by test-writer agent.
+
+2026-09-19 16:13 t/ work done (test-writer):
+- t/fixtures/quests.json: added guide_url to all 20 quest entries, inserted right after "position" (matches live field order). Values entered from the maintainer-supplied live curl dump, cross-checked myself via curl "https://metaforge.app/api/arc-raiders/quests?limit=20" -- all 20 match exactly (only a-bad-feeling, a-better-use, a-toxic-trail non-null). Verified programmatically that no other field/value in any of the 20 entries or the pagination block changed (diff isolated to the 20 added guide_url keys).
+- t/14-arcraiders-result-quest.t: 'from_hashref' subtest now passes guide_url => '/arc-raiders/upgrade-stash-capacity-arc-raiders' in the input hashref and asserts is($quest->guide_url, ..., 'guide_url mapped'); 'defaults' subtest asserts is($quest->guide_url, undef, 'guide_url defaults to undef') for the Maybe[Str]-no-fallback case.
+- No other t/*.t references quests.json or guide_url/guide_links by name.
+- perl -c clean; timeout 25 perl -Ilib -It/lib t/14-arcraiders-result-quest.t -> ok (4 subtests, 1..4, all green, guide_url assertions passing).
+- timeout 90 prove -l t/ -> completed in 9 wallclock secs (not killed), Files=18, Tests=172, Result: PASS. No skips, no network.
+
+Fixture + test coverage for guide_url done, full suite green (172/172, 9s), handing back for release/close decision
+
+Reviewed and verified by orchestrating agent: fixture diff confirmed structurally (all 20 quests gained exactly guide_url, values cross-checked byte-for-byte against live curl by me independently before delegation). t/14 diff clean, ran standalone (4/4 subtests, 16 assertions incl. guide_url) and full 'prove -l t/' (18 files, 172 tests, 9s, all green).
