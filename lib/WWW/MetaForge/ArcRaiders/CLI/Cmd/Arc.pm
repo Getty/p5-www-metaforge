@@ -13,7 +13,7 @@ sub execute {
   my $arc_id = $args->[0];
   unless ($arc_id) {
     print "Usage: arcraiders arc <id>\n";
-    print "Example: arcraiders arc minor-storm\n";
+    print "Example: arcraiders arc arc-assessor\n";
     return;
   }
 
@@ -90,18 +90,19 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # Show arc details by ID
-  arcraiders arc minor-storm
+  arcraiders arc arc-assessor
 
   # Show arc details by name
-  arcraiders arc "Salvage Run"
+  arcraiders arc "Bastion"
 
   # Output as JSON
-  arcraiders --json arc minor-storm
+  arcraiders --json arc arc-assessor
 
 =head1 DESCRIPTION
 
-This command displays detailed information about a single ARC (mission/activity)
-in Arc Raiders. You can search by either the arc's ID or name.
+This command displays detailed information about a single arc, an ARC enemy
+type (e.g. "ARC Assessor", "Bastion", "Bombardier") from the Arc Raiders API.
+You can search by either the arc's ID or name.
 
 The command first attempts to find the arc by ID. If no match is found, it
 searches through all arcs by both ID and name (case-insensitive).
