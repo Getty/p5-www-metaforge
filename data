@@ -1,0 +1,77 @@
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":1,"ts":"2026-08-31T04:45:39Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":2,"ts":"2026-08-31T04:45:43Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":3,"ts":"2026-08-31T04:45:48Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":4,"ts":"2026-09-09T08:07:37Z"}
+{"action":"move","agent":"phase2-metaforge","detail":"in-progress","task_id":1,"ts":"2026-09-09T08:07:57Z"}
+{"action":"edit","agent":"phase2-metaforge","detail":"in-progress","task_id":1,"ts":"2026-09-09T08:09:01Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"in-progress","task_id":1,"ts":"2026-09-09T08:09:06Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":1,"ts":"2026-09-09T08:09:11Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":5,"ts":"2026-09-09T08:11:26Z"}
+{"action":"move","agent":"phase2-metaforge","detail":"in-progress","task_id":5,"ts":"2026-09-09T08:11:41Z"}
+{"action":"edit","agent":"phase2-metaforge","detail":"in-progress","task_id":5,"ts":"2026-09-09T08:12:21Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"in-progress","task_id":5,"ts":"2026-09-09T08:12:25Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":5,"ts":"2026-09-09T08:12:29Z"}
+{"action":"edit","agent":"phase2-metaforge","detail":"backlog","task_id":2,"ts":"2026-09-09T08:13:04Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"backlog","task_id":2,"ts":"2026-09-09T08:13:09Z"}
+{"action":"edit","agent":"phase2-metaforge","detail":"backlog","task_id":3,"ts":"2026-09-09T08:13:13Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"backlog","task_id":3,"ts":"2026-09-09T08:13:17Z"}
+{"action":"move","agent":"worker-c","detail":"in-progress","task_id":4,"ts":"2026-09-10T03:40:13Z"}
+{"action":"move","agent":"worker-c","detail":"in-progress","task_id":2,"ts":"2026-09-10T03:42:52Z"}
+{"action":"move","agent":"worker-c","detail":"in-progress","task_id":3,"ts":"2026-09-10T03:43:47Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":6,"ts":"2026-09-10T03:48:12Z"}
+{"action":"edit","agent":"worker-c","detail":"in-progress","task_id":4,"ts":"2026-09-10T03:48:40Z"}
+{"action":"move","agent":"worker-c","detail":"done","task_id":4,"ts":"2026-09-10T03:48:52Z"}
+{"action":"edit","agent":"worker-c","detail":"in-progress","task_id":2,"ts":"2026-09-10T03:49:03Z"}
+{"action":"move","agent":"worker-c","detail":"done","task_id":2,"ts":"2026-09-10T03:49:07Z"}
+{"action":"edit","agent":"worker-c","detail":"in-progress","task_id":3,"ts":"2026-09-10T03:49:10Z"}
+{"action":"move","agent":"worker-c","detail":"done","task_id":3,"ts":"2026-09-10T03:49:14Z"}
+{"action":"move","agent":"worker-c","detail":"in-progress","task_id":5,"ts":"2026-09-10T07:57:36Z"}
+{"action":"edit","agent":"worker-c","detail":"in-progress","task_id":5,"ts":"2026-09-10T07:59:09Z"}
+{"action":"move","agent":"worker-c","detail":"done","task_id":5,"ts":"2026-09-10T07:59:14Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"done","task_id":1,"ts":"2026-09-19T03:24:54Z"}
+{"action":"move","agent":"www-metaforge-worker","detail":"in-progress","task_id":6,"ts":"2026-09-19T03:44:49Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"in-progress","task_id":6,"ts":"2026-09-19T03:51:36Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":7,"ts":"2026-09-19T03:53:01Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"in-progress","task_id":6,"ts":"2026-09-19T04:08:17Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"in-progress","task_id":6,"ts":"2026-09-19T04:08:33Z"}
+{"action":"handoff","agent":"www-metaforge-test-writer","detail":"review","task_id":6,"ts":"2026-09-19T04:08:42Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":6,"ts":"2026-09-19T04:10:49Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":6,"ts":"2026-09-19T04:10:53Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":6,"ts":"2026-09-19T04:10:58Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":8,"ts":"2026-09-19T04:40:20Z"}
+{"action":"move","agent":"www-metaforge-worker","detail":"in-progress","task_id":7,"ts":"2026-09-19T04:40:28Z"}
+{"action":"move","agent":"www-metaforge-worker","detail":"in-progress","task_id":8,"ts":"2026-09-19T04:43:15Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"in-progress","task_id":8,"ts":"2026-09-19T04:44:19Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"in-progress","task_id":7,"ts":"2026-09-19T04:45:39Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"in-progress","task_id":7,"ts":"2026-09-19T04:49:51Z"}
+{"action":"handoff","agent":"www-metaforge-worker","detail":"review","task_id":7,"ts":"2026-09-19T04:50:16Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":7,"ts":"2026-09-19T04:51:36Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"in-progress","task_id":8,"ts":"2026-09-19T04:51:40Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":7,"ts":"2026-09-19T04:51:41Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":7,"ts":"2026-09-19T04:51:45Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":9,"ts":"2026-09-19T04:51:49Z"}
+{"action":"edit","agent":"www-metaforge-test-writer","detail":"in-progress","task_id":8,"ts":"2026-09-19T04:51:55Z"}
+{"action":"handoff","agent":"www-metaforge-test-writer","detail":"review","task_id":8,"ts":"2026-09-19T04:52:00Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":8,"ts":"2026-09-19T04:53:20Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":8,"ts":"2026-09-19T04:53:24Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":8,"ts":"2026-09-19T04:53:29Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":10,"ts":"2026-09-19T04:53:44Z"}
+{"action":"move","agent":"www-metaforge-worker","detail":"in-progress","task_id":9,"ts":"2026-09-19T16:07:16Z"}
+{"action":"move","agent":"www-metaforge-worker","detail":"in-progress","task_id":10,"ts":"2026-09-19T16:07:21Z"}
+{"action":"handoff","agent":"www-metaforge-worker","detail":"review","task_id":9,"ts":"2026-09-19T16:08:29Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"review","task_id":9,"ts":"2026-09-19T16:08:39Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"in-progress","task_id":10,"ts":"2026-09-19T16:08:45Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"review","task_id":9,"ts":"2026-09-19T16:09:47Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":9,"ts":"2026-09-19T16:10:19Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":9,"ts":"2026-09-19T16:10:23Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":9,"ts":"2026-09-19T16:10:28Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"in-progress","task_id":10,"ts":"2026-09-19T16:12:59Z"}
+{"action":"edit","agent":"www-metaforge-test-writer","detail":"in-progress","task_id":10,"ts":"2026-09-19T16:13:11Z"}
+{"action":"handoff","agent":"www-metaforge-test-writer","detail":"review","task_id":10,"ts":"2026-09-19T16:13:19Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":10,"ts":"2026-09-19T16:14:18Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"review","task_id":10,"ts":"2026-09-19T16:14:22Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":10,"ts":"2026-09-19T16:14:27Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":11,"ts":"2026-09-19T17:52:01Z"}
+{"action":"move","agent":"www-metaforge-worker","detail":"in-progress","task_id":11,"ts":"2026-09-19T17:52:13Z"}
+{"action":"edit","agent":"www-metaforge-worker","detail":"in-progress","task_id":11,"ts":"2026-09-19T17:54:08Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":12,"ts":"2026-09-19T17:54:58Z"}
