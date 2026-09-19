@@ -1,0 +1,38 @@
+---
+class: standard
+completed: 2026-09-19T17:55:17Z
+created: 2026-09-19T17:52:01Z
+id: 11
+priority: high
+started: 2026-09-19T17:52:13Z
+status: done
+tags:
+- bug
+- cli
+- live-api
+title: CLI item lookup never sends includeComponents, so crafting/sold_by/recycle
+  sections are always empty live
+updated: 2026-09-19T17:55:17Z
+---
+
+Found by live-testing (not offline suite) after karr #6/#7: `perl -Ilib bin/metaforge-arcraiders item adrenaline-shot` against the real API shows no "Crafting Requirements" or "Sold By" section, even though metaforge.app has real data for this item.
+
+Root cause: curl-verified that GET /api/arc-raiders/items?id=X omits components, sold_by, recycle_components, used_in, recycle_from, mods, dropped_by entirely (not even empty arrays -- the keys are absent) unless includeComponents=true is passed. CLI/Cmd/Item.pm (items(search=>...) at line 21/28) and CLI/Cmd/Items.pm (items_paginated(%params) at line 64) never pass includeComponents=>"true". Only the internal _ensure_items_cache (used by calculate_requirements/find_item_by_*) passes it.
+
+This was invisible to the offline suite because t/lib/MockUA.pm ignores query strings and always serves the same (already includeComponents=true-shaped) fixture regardless of what params the code actually sends -- so t/19 and t/30 pass even though the real CLI never requests that data.
+
+Fix: CLI/Cmd/Item.pm should pass includeComponents => "true" when fetching a single item for detail display (Crafting Requirements/Sold By/Recycle Yield sections need it). Items.pm (list view) probably does not need it since the list columns (name/item_type/rarity/id) do not use those fields -- verify before adding it there to avoid an unnecessary heavier request. Consider whether MockUA should honor includeComponents (return the lean shape when absent) so this class of bug is caught offline in the future -- flag that as a possible follow-up but do not treat it as required scope for this ticket unless cheap.
+
+Fixed: CLI/Cmd/Item.pm now passes includeComponents => 'true' on both items(...) calls (line 21 exact-slug search, line 28 roman-numeral-stripped fallback search), so single-item detail view (arcraiders item <slug>) gets components/sold_by/recycle_components/used_in/recycle_from/mods/dropped_by from the live API.
+
+Verified Items.pm (list view, items_paginated at line 64) needs NO change: grepped for components|sold_by|recycle|used_in|mods|dropped_by in that file -- zero matches. The list columns (name/item_type/rarity/id) never touch includeComponents-gated fields, so adding the param there would only add request weight for no benefit. Left as-is per ticket instruction.
+
+Live verification (free, unauthenticated metaforge.app API, no MockUA):
+- curl 'https://metaforge.app/api/arc-raiders/items?id=adrenaline-shot&includeComponents=true' returns keys including components, sold_by, recycle_components, recycle_from, used_in, mods, dropped_by (confirms API contract).
+- 'perl -Ilib bin/metaforge-arcraiders item adrenaline-shot' now prints populated 'Crafting Requirements: 3x Plastic Parts, 3x Chemicals', 'Sold By: Lance (900)', and 'Recycle Yield: 1x Chemicals, 1x Plastic Parts' sections that were previously empty/absent.
+
+perl -c on Item.pm: OK. timeout 90 prove -l t/: All tests successful (Files=18, Tests=172) -- offline suite unaffected since fixtures already include the includeComponents=true-shaped data regardless of the query MockUA received.
+
+Follow-up idea (not done, not in scope): t/lib/MockUA.pm could inspect the includeComponents query param and serve a lean fixture (without components/sold_by/etc.) when it's absent, mirroring the real API's conditional shape. That would let the offline suite catch this exact bug class (a caller silently omitting includeComponents) instead of relying on live testing. Suggest as a possible follow-up ticket for www-metaforge-test-writer if the maintainer wants it; not implemented here per ticket scope (lib/ only).
+
+Reviewed and verified by orchestrating agent: diff is exactly the 2-line includeComponents param addition. Re-ran the live CLI myself (perl -Ilib bin/metaforge-arcraiders item adrenaline-shot) and confirmed Crafting Requirements/Sold By/Recycle Yield now populate against the real API. Full 'prove -l t/' still green (172 tests). Filed karr #12 for the MockUA query-param blind spot as a separate low-priority testing-infra follow-up.
