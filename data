@@ -1,0 +1,16 @@
+---
+class: standard
+created: 2026-09-19T17:54:58Z
+id: 12
+priority: low
+status: backlog
+tags:
+- testing-infra
+- follow-up
+title: MockUA ignores query params, masking includeComponents-class bugs offline
+updated: 2026-09-19T17:54:58Z
+---
+
+Surfaced during karr #11 (CLI/Cmd/Item.pm never sent includeComponents=true, invisible offline). t/lib/MockUA.pm serves the same fixture file regardless of query string, so any bug where the code fails to pass a required query param (includeComponents, includeLoot, etc.) cannot be caught by the offline suite -- only live testing (or a live-API opt-in run) surfaces it.
+
+Idea (not committed to, needs design): teach MockUA to notice includeComponents/includeLoot presence and strip the gated fields from the response when absent, so a missing query param produces a visibly different (leaner) fixture response and existing assertions on those fields would fail offline. Would need care not to churn every existing fixture/test. Low priority -- this is a testing-infra improvement, not a live bug.
