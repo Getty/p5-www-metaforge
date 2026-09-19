@@ -1,0 +1,24 @@
+---
+class: standard
+completed: 2026-09-19T16:10:28Z
+created: 2026-09-19T04:51:49Z
+id: 9
+priority: low
+started: 2026-09-19T16:07:16Z
+status: done
+tags:
+- docs
+- cleanup
+title: CLI/Cmd/Arc.pm POD still describes arcs as missions (Salvage Run example)
+updated: 2026-09-19T16:10:28Z
+---
+
+Found during karr #7 review. lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/Arc.pm SYNOPSIS/DESCRIPTION POD still frames arcs as "missions/activities" with a "Salvage Run" example. Arcs in the live API are actually ARC enemy types (ARC Assessor, Bastion, Bombardier, ...), confirmed via curl during #7. Purely a doc-text fix, no behavior change; low priority.
+
+POD-only fix fertig, siehe Kommentar. lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/Arc.pm SYNOPSIS/DESCRIPTION korrigiert.
+
+POD in CLI/Cmd/Arc.pm (SYNOPSIS + DESCRIPTION) auf echte Arc-IDs/Namen (arc-assessor, Bastion) umgestellt; DESCRIPTION beschreibt Arc jetzt als ARC-Gegnertyp statt Mission/Activity. Kein Code angefasst, perl -c ok.
+
+Ergänzung: gleiche stale Beispiel-ID auch im Code (execute(), Usage-Hinweis 'Example: arcraiders arc minor-storm') auf arc-assessor umgestellt, konsistent mit dem POD-Fix. Kein weiterer Code angefasst, perl -c ok.
+
+Reviewed and verified by orchestrating agent: diff confirmed (POD examples + the matching in-code usage-hint string updated to real arc-assessor/Bastion IDs, no logic touched). perl -c clean.
