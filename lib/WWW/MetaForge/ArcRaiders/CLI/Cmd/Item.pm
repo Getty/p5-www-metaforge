@@ -28,9 +28,8 @@ sub execute {
     $items = $app->api->items(search => $search_term) if $search_term ne $slug;
   }
 
-  # Find exact match by slug or id first
+  # Find exact match by id first
   my ($item) = grep {
-    ($_->slug && lc($_->slug) eq lc($slug)) ||
     ($_->id && lc($_->id) eq lc($slug))
   } @$items;
 
@@ -40,7 +39,7 @@ sub execute {
     } elsif (@$items > 1) {
       print "Multiple items match '$slug':\n";
       for my $m (@$items) {
-        printf "  %s [%s]\n", $m->name // 'Unknown', $m->slug // $m->id // '-';
+        printf "  %s [%s]\n", $m->name // 'Unknown', $m->id // '-';
       }
       return;
     } else {
@@ -64,54 +63,54 @@ sub _print_item_details {
   printf "%s\n", $item->name // 'Unknown';
   print "=" x 60, "\n";
 
-  _print_field("ID",          $item->slug // $item->id);
-  _print_field("Category",    $item->category);
+  _print_field("ID",          $item->id);
+  _print_field("Category",    $item->item_type);
   _print_field("Rarity",      $item->rarity);
   _print_field("Weight",      $item->weight);
   _print_field("Stack Size",  $item->stack_size);
-  _print_field("Base Value",  $item->base_value);
+  _print_field("Base Value",  $item->value);
 
   if ($item->description) {
     print "\nDescription:\n";
     print "  ", $item->description, "\n";
   }
 
-  if ($item->stats && %{$item->stats}) {
+  if ($item->stat_block && %{$item->stat_block}) {
     print "\nStats:\n";
-    for my $key (sort keys %{$item->stats}) {
-      printf "  %-30s %s\n", $key, $item->stats->{$key} // '-';
+    for my $key (sort keys %{$item->stat_block}) {
+      printf "  %-30s %s\n", $key, $item->stat_block->{$key} // '-';
     }
   }
 
-  if ($item->crafting_requirements && @{$item->crafting_requirements}) {
+  if ($item->components && @{$item->components}) {
     print "\nCrafting Requirements:\n";
-    for my $req (@{$item->crafting_requirements}) {
-      my $name = $req->{item} // $req->{name} // 'Unknown';
-      my $qty  = $req->{quantity} // $req->{amount} // 1;
-      printf "  %dx %s\n", $qty, $name;
+    for my $req (@{$item->components}) {
+      my $component = $req->{component};
+      my $name = ref($component) eq 'HASH' ? $component->{name} : $component;
+      my $qty  = $req->{quantity} // 1;
+      printf "  %dx %s\n", $qty, $name // 'Unknown';
     }
   }
 
   if ($item->sold_by && @{$item->sold_by}) {
     print "\nSold By:\n";
     for my $seller (@{$item->sold_by}) {
-      if (ref $seller eq 'HASH') {
-        printf "  %s\n", $seller->{name} // $seller->{trader} // 'Unknown';
-      } else {
-        printf "  %s\n", $seller;
-      }
+      printf "  %s (%s)\n", $seller->{trader_name} // 'Unknown', $seller->{price} // '-';
     }
   }
 
-  if ($item->recycle_yield && %{$item->recycle_yield}) {
+  if ($item->recycle_components && @{$item->recycle_components}) {
     print "\nRecycle Yield:\n";
-    for my $mat (sort keys %{$item->recycle_yield}) {
-      printf "  %dx %s\n", $item->recycle_yield->{$mat}, $mat;
+    for my $req (@{$item->recycle_components}) {
+      my $component = $req->{component};
+      my $name = ref($component) eq 'HASH' ? $component->{name} : $component;
+      my $qty  = $req->{quantity} // 1;
+      printf "  %dx %s\n", $qty, $name // 'Unknown';
     }
   }
 
-  if ($item->last_updated) {
-    print "\nLast Updated: ", $item->last_updated, "\n";
+  if ($item->updated_at) {
+    print "\nLast Updated: ", $item->updated_at, "\n";
   }
 }
 

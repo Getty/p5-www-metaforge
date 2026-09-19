@@ -767,7 +767,7 @@ sub calculate_requirements {
       next;
     }
 
-    my $crafting = $item->crafting_requirements // [];
+    my $crafting = $item->components // [];
     if (@$crafting) {
       for my $mat (@$crafting) {
         my $mat_name = $self->_component_name($mat->{component});
@@ -851,7 +851,7 @@ sub calculate_base_requirements {
       return;
     }
 
-    my $crafting = $item->crafting_requirements // [];
+    my $crafting = $item->components // [];
 
     # Base material: no crafting requirements
     if (!@$crafting) {

@@ -69,7 +69,7 @@ sub execute {
   # Apply local filters
   if ($self->category) {
     my $cat = lc($self->category);
-    $items = [ grep { $_->category && lc($_->category) =~ /\Q$cat\E/ } @$items ];
+    $items = [ grep { $_->item_type && lc($_->item_type) =~ /\Q$cat\E/ } @$items ];
   }
   if ($self->rarity) {
     my $rar = lc($self->rarity);
@@ -90,9 +90,9 @@ sub execute {
 
   for my $item (@$items) {
     my $name = $item->name // $item->id // 'Unknown';
-    my $cat  = $item->category // '-';
+    my $cat  = $item->item_type // '-';
     my $rar  = $item->rarity // '-';
-    my $id   = $item->slug // $item->id // '-';
+    my $id   = $item->id // '-';
     printf "%-40s  %-18s  %-10s  [%s]\n", $name, $cat, $rar, $id;
   }
 

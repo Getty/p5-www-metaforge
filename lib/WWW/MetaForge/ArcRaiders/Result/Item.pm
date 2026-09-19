@@ -68,6 +68,29 @@ has stack_size => (
   isa => Maybe[Int],
 );
 
+has components => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
+has recycle_components => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
+has sold_by => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
+has updated_at => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
 has _raw => (
   is  => 'ro',
   isa => HashRef,
@@ -81,19 +104,23 @@ sub from_hashref {
   my $stack_size = $stat_block && exists $stat_block->{stackSize} ? $stat_block->{stackSize} : undef;
 
   return $class->new(
-    id            => $data->{id},
-    name          => $data->{name},
-    description   => $data->{description},
-    item_type     => $data->{item_type},
-    loadout_slots => $data->{loadout_slots} // [],
-    icon          => $data->{icon},
-    rarity        => $data->{rarity},
-    value         => $data->{value},
-    workbench     => $data->{workbench},
-    stat_block    => $stat_block,
-    weight        => $weight,
-    stack_size    => $stack_size,
-    _raw          => $data,
+    id                 => $data->{id},
+    name               => $data->{name},
+    description        => $data->{description},
+    item_type          => $data->{item_type},
+    loadout_slots      => $data->{loadout_slots} // [],
+    icon               => $data->{icon},
+    rarity             => $data->{rarity},
+    value              => $data->{value},
+    workbench          => $data->{workbench},
+    stat_block         => $stat_block,
+    weight             => $weight,
+    stack_size         => $stack_size,
+    components         => $data->{components} // [],
+    recycle_components => $data->{recycle_components} // [],
+    sold_by            => $data->{sold_by} // [],
+    updated_at         => $data->{updated_at},
+    _raw               => $data,
   );
 }
 
@@ -158,6 +185,22 @@ Item weight value (from stat_block).
 =attr stack_size
 
 Maximum stack size for stackable items (from stat_block).
+
+=attr components
+
+ArrayRef of crafting components, each C<< { quantity => $n, component => \%item_or_str } >>.
+
+=attr recycle_components
+
+ArrayRef of recycling yield components, same shape as C<components>.
+
+=attr sold_by
+
+ArrayRef of traders selling this item, each C<< { price => $n, trader_name => $str } >>.
+
+=attr updated_at
+
+Timestamp of the last update to this item record.
 
 =method from_hashref
 
