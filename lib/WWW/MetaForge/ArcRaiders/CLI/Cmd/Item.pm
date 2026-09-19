@@ -18,14 +18,14 @@ sub execute {
   }
 
   # Search for item - try multiple search strategies
-  my $items = $app->api->items(search => $slug);
+  my $items = $app->api->items(search => $slug, includeComponents => 'true');
 
   # If no results, try converting slug to search term (ferro-i -> ferro)
   if (!@$items && $slug =~ /-/) {
     my $search_term = $slug;
     $search_term =~ s/-[ivx]+$//i;  # Remove roman numeral suffix
     $search_term =~ s/-/ /g;        # Replace dashes with spaces
-    $items = $app->api->items(search => $search_term) if $search_term ne $slug;
+    $items = $app->api->items(search => $search_term, includeComponents => 'true') if $search_term ne $slug;
   }
 
   # Find exact match by id first
