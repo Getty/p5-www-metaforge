@@ -1,0 +1,32 @@
+---
+class: standard
+completed: 2026-09-19T04:51:45Z
+created: 2026-09-19T03:53:01Z
+id: 7
+priority: high
+started: 2026-09-19T04:40:28Z
+status: done
+tags:
+- bug
+- cli
+- live-api
+title: 'Quest/Arc CLI commands call Result attributes that don''t exist (same silent-break
+  pattern as karr #6)'
+updated: 2026-09-19T04:51:45Z
+---
+
+Discovered while fixing karr #6 (Result::Item realignment): once CLI/Cmd/Items.pm no longer crashed on ->category, t/30-cli.t ran further and hit the identical silent-break pattern in Quest and Arc.
+
+CLI/Cmd/Quest.pm calls ->type, ->next_quest, ->prev_quest, ->reputation_reward, ->last_updated -- none exist on Result::Quest (which has id, name, objectives, xp, granted_items, created_at, updated_at, locations, marker_category, image, guide_links, trader_name, sort_order, position, required_items, rewards, _raw).
+
+CLI/Cmd/Arc.pm calls ->type, ->maps, ->duration, ->cooldown, ->xp_reward, ->coin_reward, ->loot, ->last_updated -- Result::Arc only has id, name, description, icon, image, created_at, updated_at.
+
+This was masked until now because the Items.pm crash killed t/30 before reaching those subtests. Needs the same treatment as #6: verify against the live API (https://metaforge.app/api/arc-raiders/quests and /arcs, both free/no-auth) which real fields exist, remap or drop each CLI accessor accordingly, exact-format rule applies (no fabricated fields). t/30-cli.t will not go green without this.
+
+Fixed: CLI/Cmd/Quest.pm and CLI/Cmd/Arc.pm no longer call non-existent Result accessors (type, description on Quest, maps, duration, cooldown, xp_reward, coin_reward, reputation_reward, prev_quest, next_quest, last_updated). Quest.pm: xp_reward->xp, last_updated->updated_at, Type/Description/Rewards-reputation/Quest-Chain blocks removed (Description block was unreachable dead code before since Result::Quest never had that attribute). Arc.pm: Type/Maps/Duration/Cooldown/Rewards(xp/coin) blocks removed, last_updated->updated_at, Loot Drops rendering rewritten for the real nested shape ({item:{name,...}}, no chance field). Result::Arc gained a new 'loot' ArrayRef attribute (default []), populated only when includeLoot=true is passed - CLI/Cmd/Arc.pm's arcs_paginated/arcs_all calls now pass includeLoot=>'true' so the detail view actually gets loot data. POD in both CLI commands updated to match. Verified via 'timeout 25 perl -Ilib -It/lib t/30-cli.t' and t/13-arcraiders-result-arc.t - all green for the touched paths; the pre-existing TODO block in t/30-cli.t for this ticket now passes (quest detail no longer crashes; arc detail no longer crashes, though the fixture's arc name doesn't match the test's search term 'salvage-run' - that's a fixture/test issue for the test-writer, not a lib bug). Only lib/ touched, t/ untouched per instructions.
+
+test-writer: removed the eval/TODO wrappers in t/30-cli.t for the Quest and Arc single-lookup subtests (lib fix verified, karr #7 crash no longer reproduces) -> plain ok/like assertions. Fixed the Arc subtest's wrong premise: arcs are ARC enemy types in the live API, not named missions, so 'salvage-run'/qr/Salvage Run/i never matched anything real. Switched to the fixture's actual first entry, arc-assessor / 'ARC Assessor' (verified live via curl arc-raiders/arcs?limit=5). Added a byte-faithful loot array (pulled live via curl arcs?includeLoot=true&id=arc-assessor) to arc-assessor's entry in t/fixtures/arcs.json -- only that field on that entry, no other fixture drift touched -- plus a loot-drop assertion (ARC Powercell) so Arc.pm's real loot rendering is exercised offline. No remaining karr #7 references in t/ or lib/. Follow-up note: CLI/Cmd/Arc.pm POD still describes arcs as missions (Salvage Run example) -- stale vs the real ARC-enemy-type data, but out of my file scope, flagging not fixing. perl -c + timeout 25 perl -Ilib -It/lib t/30-cli.t: 21/21 green. timeout 90 prove -l t/: 17/18 files green; t/14-arcraiders-result-quest.t fails (Result::Quest camelCase mapping, karr #8, in progress elsewhere, unrelated to my changes).
+
+www-metaforge-test-writer: t/30-cli.t dropped the karr #7 eval/TODO wrappers for the Quest and Arc single-lookup subtests (lib fix confirmed, crash no longer reproduces). Fixed the Arc test's wrong assumption -- arcs are ARC enemy types in the live API, not named missions -- now looks up arc-assessor / 'ARC Assessor' (verified live). Added a byte-faithful loot array to arc-assessor's entry in t/fixtures/arcs.json plus a loot-drop assertion, so Arc.pm's real loot rendering is exercised offline. All green: perl -Ilib -It/lib t/30-cli.t (21/21) and prove -l t/ (17/18 files; t/14 fails on karr #8, unrelated, in progress elsewhere).
+
+Reviewed and verified by orchestrating agent: diff on t/30-cli.t confirmed (TODO/eval wrappers removed, arc-assessor is the real fixture id, loot fixture data structurally verified as byte-faithful addition to arc-assessor only). Ran t/30-cli.t standalone with timeout: 21/21 subtests green, exit 0.
