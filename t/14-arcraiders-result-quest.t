@@ -46,22 +46,34 @@ subtest 'constructor' => sub {
 
 subtest 'from_hashref' => sub {
   my $quest = WWW::MetaForge::ArcRaiders::Result::Quest->from_hashref({
-    id           => 'upgrade-stash',
-    name         => 'Upgrade Stash Capacity',
-    objectives   => ['Collect Scrap'],
-    xp           => 50,
-    grantedItems => [{ id => 'small-stash', name => 'Small Stash', icon => 'stash.png', rarity => 'common', item_type => 'container' }],
-    createdAt    => '2024-01-01T00:00:00Z',
-    updatedAt    => '2024-01-02T00:00:00Z',
-    locations    => ['Base Camp'],
-    markerCategory => 'side',
-    image        => 'https://example.com/stash.png',
-    guideLinks   => ['https://guide.example.com/stash'],
-    traderName   => 'Trader Jane',
-    sortOrder    => 5,
-    position     => { x => 100, y => 200 },
-    requiredItems => [
-      { item => 'Scrap Metal', quantity => 100 },
+    id            => 'upgrade-stash',
+    name          => 'Upgrade Stash Capacity',
+    objectives    => ['Collect Scrap'],
+    xp            => 50,
+    granted_items => [
+      {
+        id       => 'grant-1',
+        item     => { id => 'small-stash', icon => 'stash.png', name => 'Small Stash', rarity => 'Common', item_type => 'Container' },
+        item_id  => 'small-stash',
+        quantity => 1,
+      },
+    ],
+    created_at      => '2024-01-01T00:00:00Z',
+    updated_at      => '2024-01-02T00:00:00Z',
+    locations       => [{ x => 100, y => 200, map => 'dam' }],
+    marker_category => 'side',
+    image           => 'https://example.com/stash.png',
+    guide_links     => [{ url => 'https://guide.example.com/stash', label => 'Upgrade Stash Capacity Quest Guide' }],
+    trader_name     => 'Trader Jane',
+    sort_order      => 5,
+    position        => { x => 100, y => 200 },
+    required_items  => [
+      {
+        id       => 'req-1',
+        item     => { id => 'scrap-metal', icon => 'scrap.png', name => 'Scrap Metal', rarity => 'Common', item_type => 'Material' },
+        item_id  => 'scrap-metal',
+        quantity => 100,
+      },
     ],
     rewards => [
       {
@@ -77,17 +89,17 @@ subtest 'from_hashref' => sub {
   is($quest->xp, 50, 'xp mapped');
   is($quest->created_at, '2024-01-01T00:00:00Z', 'created_at');
   is($quest->updated_at, '2024-01-02T00:00:00Z', 'updated_at');
-  is($quest->locations->[0], 'Base Camp', 'locations');
+  is($quest->locations->[0]{map}, 'dam', 'locations');
   is($quest->marker_category, 'side', 'marker_category');
   is($quest->image, 'https://example.com/stash.png', 'image');
-  is($quest->guide_links->[0], 'https://guide.example.com/stash', 'guide_links');
+  is($quest->guide_links->[0]{url}, 'https://guide.example.com/stash', 'guide_links');
   is($quest->trader_name, 'Trader Jane', 'trader_name');
   is($quest->sort_order, 5, 'sort_order');
   is($quest->position->{x}, 100, 'position x from hashref');
-  is($quest->required_items->[0]{item}, 'Scrap Metal', 'required_items mapped');
+  is($quest->required_items->[0]{item}{name}, 'Scrap Metal', 'required_items mapped');
   is($quest->rewards->[0]{item}{name}, 'XP Boost', 'nested rewards item name from hashref');
   is($quest->rewards->[0]{quantity}, '3', 'rewards quantity is string from hashref');
-  is($quest->granted_items->[0]{name}, 'Small Stash', 'granted_items mapped');
+  is($quest->granted_items->[0]{item}{name}, 'Small Stash', 'granted_items mapped');
 };
 
 subtest 'defaults' => sub {
