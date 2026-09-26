@@ -31,7 +31,7 @@ Depends on whether the Agent/Task tool is available to you.
 
 - **You can spawn subagents** (orchestrating main agent): Do NOT touch behavior-relevant
   code yourself — delegate. Your lane: coordinate, inspect, plan, review diffs, run tests,
-  manage git, edit non-behavioral docs. Why: only the `www-metaforge-*` agents get their skills
+  edit non-behavioral docs. Why: only the `www-metaforge-*` agents get their skills
   force-loaded via `briefing.skills`; you get no briefing and would touch internals with
   too little context.
 
@@ -39,13 +39,16 @@ Depends on whether the Agent/Task tool is available to you.
   |---|---|
   | Implement / refactor / debug facades, Request, Result classes, cache, CLI | `www-metaforge-worker` (default) |
   | Write/extend tests and fixtures under `t/` | `www-metaforge-test-writer` |
-  | Pre-release audit (Changes, cpanfile, dist.ini, `$VERSION`, POD) | `www-metaforge-release-checker` |
+  | Commits, `Changes`, card → done, pre-release audit | `www-metaforge-release-manager` |
 
 - **You cannot spawn subagents** (you ARE a `www-metaforge-*` agent): The delegation lock does
   not apply — implement, refactor, debug and test per these rules.
 
 Behavior-relevant = everything under `lib/` and `bin/`, plus `t/` and `t/fixtures/`. Pure
 prose docs and `Changes` notes are not.
+
+**Only `www-metaforge-release-manager` commits.** A worker leaves a commit-ready tree and hands its card
+to `review`; you then dispatch `www-metaforge-release-manager` to cut the commit and close the card.
 
 ## Hazards
 
@@ -83,7 +86,7 @@ invoke a skill first, just run it:
 
 Drift found mid-change becomes a ticket, not scope creep. **Serialize board mutations when
 fanning out** — collect results, then loop `karr move`/`handoff`/`sync` sequentially.
-Full command surface: skill `kanban-issues-karr-cli`.
+Full command surface: skill `kanban-issues-karr-coordination`.
 
 ## Release — never without permission
 

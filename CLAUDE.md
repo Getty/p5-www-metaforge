@@ -35,10 +35,10 @@ principle, lanes and project hazards are in `.claude/rules/www-metaforge-rules.m
 |---|---|
 | Implement / refactor / debug facades, Request, Result classes, cache, CLI | `www-metaforge-worker` (default) |
 | Write/extend tests and fixtures under `t/` | `www-metaforge-test-writer` |
-| Pre-release audit | `www-metaforge-release-checker` |
+| Commits, `Changes`, card → done, pre-release audit | `www-metaforge-release-manager` |
 
 The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main agent
 delegates rather than loading them. Skill sources live under `.claude/skills/`
 (`www-metaforge-core` is project-owned; the `getty-perl-*`, `perl-release-dist-ini` and
-`kanban-issues-karr-cli` skills are hardlinked shares — never edit them with Edit/Write,
+`kanban-issues-karr-coordination` skills are hardlinked shares — never edit them with Edit/Write,
 see skill `manage-skills`).
