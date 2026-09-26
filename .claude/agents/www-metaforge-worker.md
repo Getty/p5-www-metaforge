@@ -2,7 +2,6 @@
 name: www-metaforge-worker
 description: "Default WWW::MetaForge worker — implement, refactor, debug and test the API facades, Request builders, Result classes, cache and CLI commands of this distribution. Pre-loaded with the distribution's architecture and Getty's Perl conventions. Use for anything behavior-relevant in lib/ or bin/. Leaves a commit-ready tree; never commits — commits belong to www-metaforge-release-manager."
 model: inherit
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - www-metaforge-core

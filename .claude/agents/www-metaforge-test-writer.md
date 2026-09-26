@@ -2,7 +2,6 @@
 name: www-metaforge-test-writer
 description: "Write and extend tests for WWW::MetaForge under t/. Use for new coverage and regression tests. Tests run offline through t/lib/MockUA.pm with fixtures in t/fixtures/ that must mirror the live API response exactly; live-API runs are opt-in via USE_LIVE_API=1."
 model: sonnet
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - www-metaforge-core
