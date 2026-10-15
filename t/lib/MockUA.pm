@@ -63,6 +63,30 @@ sub request {
     }
   }
 
+  # Query-param gating: the live API only sends the heavy relations when
+  # asked for them (includeComponents on /items, includeLoot on /arcs). The
+  # fixtures are captured with the flag set, so without it we strip the gated
+  # fields -- a caller that forgets the param then sees empty data offline,
+  # exactly as live (karr k12).
+  my %gated;
+  if ($fixture_file eq 'items.json' && $uri !~ /[?&]includeComponents=true\b/) {
+    %gated = (components => [], recycle_components => [], sold_by => []);
+  } elsif ($fixture_file eq 'arcs.json' && $uri !~ /[?&]includeLoot=true\b/) {
+    %gated = (loot => undef);
+  }
+  if (%gated) {
+    my $decoded = eval { JSON::MaybeXS->new->decode($content) };
+    if (ref $decoded eq 'HASH' && ref $decoded->{data} eq 'ARRAY') {
+      for my $row (grep { ref eq 'HASH' } @{$decoded->{data}}) {
+        for my $key (keys %gated) {
+          next unless exists $row->{$key};
+          if (defined $gated{$key}) { $row->{$key} = [] } else { delete $row->{$key} }
+        }
+      }
+      $content = JSON::MaybeXS->new->encode($decoded);
+    }
+  }
+
   my $response = HTTP::Response->new(200, 'OK');
   $response->content(Encode::encode('UTF-8', $content));
   $response->header('Content-Type' => 'application/json');
