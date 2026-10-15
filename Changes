@@ -11,6 +11,16 @@
    - Quest: nested rewards, trader_name, xp
    - Trader: inventory item fields
  - Add the riven-tides and stella-montis maps
+ - Add the CLI subcommands `map <map-id>` (GameMapData markers, --type filter)
+   and `trader <name>` (single-trader inventory)
+ - Realign the Quest and Arc CLI commands with the live API; output of fields
+   the API never sent is dropped
+ - Add Result::Arc attribute `loot` (the CLI requests includeLoot=true) and
+   Result::Quest attribute `guide_url`; `guide_links` is dead upstream
+ - Fix the CLI item lookup not sending includeComponents, which left the
+   crafting, sold-by and recycle sections empty
+ - Fix Result::Quest::from_hashref reading camelCase keys the API does not
+   send
 
 0.002     2026-01-11 04:45:55Z
 
