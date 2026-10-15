@@ -1,0 +1,29 @@
+---
+class: standard
+completed: 2026-10-15T04:47:56Z
+created: 2026-10-06T19:49:40Z
+id: 13
+priority: low
+started: 2026-10-15T03:14:03Z
+status: done
+tags:
+- changes
+- review-2026-10-06
+title: Changes {{$NEXT}} misses the user-visible work of k2, k3, k7, k10 and k11
+updated: 2026-10-15T04:47:56Z
+---
+
+`Changes` `{{$NEXT}}` lists the HTTPS prereq, the result-class realignment (Item/Arc/Quest/Trader) and the two new maps. Committed since then and not mentioned:
+
+- `b4e122b` new CLI subcommands `map` (GameMapData access) and `trader <id>` (k2, k3)
+- `04b1047` Quest/Arc CLI commands realigned with the live API, `Result::Arc` gains `loot` (k7)
+- `2619941` `Result::Quest` gains `guide_url`; `guide_links` is dead upstream (k10)
+- `5a180f6` the CLI item lookup now sends `includeComponents`, so the crafting / sold-by / recycle sections are no longer empty (k11)
+- `0c7d107` `Result::Quest::from_hashref` read camelCase keys that do not exist (k8) -- a fix users of 0.002 will notice
+
+Done when: `{{$NEXT}}` has one line each for the new subcommands, the new attributes (`loot`, `guide_url`) and the two fixes.
+
+---
+Fleet review 2026-10-06 · kind: hygiene · confidence: verified
+
+Changes {{$NEXT}}: fünf Zeilen (map/trader, Quest/Arc-CLI-Realign, loot+guide_url, includeComponents-Fix, Quest camelCase-Fix) gegen die Commits geprüft. Reiner Doku-Commit, kein Test nötig.
