@@ -1,0 +1,117 @@
+---
+claimed_at: 2026-10-20T16:22:03Z
+claimed_by: k17-metaforge
+class: standard
+completed: 2026-10-20T16:22:03Z
+created: 2026-10-20T15:50:42Z
+id: 17
+priority: medium
+started: 2026-10-20T16:22:03Z
+status: done
+tags:
+- behavior
+title: Die Seitengrenze warnt und liefert eine gekappte Liste statt eines Fehlers
+updated: 2026-10-20T16:22:03Z
+---
+
+Bei erreichter Seitengrenze warnt der Client und liefert eine abgeschnittene
+Liste zurueck.
+
+lib/WWW/MetaForge/ArcRaiders.pm:348 — die Schleife in _fetch_paginated_all
+warnt 'metaforge: the pagination stopped after N pages, the answer may be
+incomplete' und bricht dann ab. Der Aufrufer bekommt eine Liste, die
+unvollstaendig ist, und weiss es nur, wenn er die Warnung bemerkt. Ein
+still fehlendes Ergebnis ist schlechter als ein Fehler.
+
+Hintergrund (aus der Historie, Commit 995a68c "Stop the pagination at a
+maximum number of pages (k14)"): die Grenze kam als Schutz gegen eine API,
+die dauerhaft hasNextPage => 1 liefert — Endlosschleife, unbegrenzter Cache.
+Ein Live-Fall wurde nicht beobachtet; die Grenze ist defensiv.
+
+Entscheidung des Maintainers (Getty, 2026-10-20): die Warnung wird zum
+Fehler. "Warum haben wir das max_pages ueberhaupt? … wenn man es einstellen
+kann dann mach 2." — max_pages bleibt einstellbar, aber der Fall ist ein
+Fehler statt einer Warnung mit gekappter Liste.
+
+Umsetzung:
+- Beim Erreichen der Grenze bricht die Methode mit croak ab, statt zu warnen
+  und eine gekappte Liste zurueckzugeben.
+- Die Meldung nennt die Grenze und den Endpunkt, damit klar ist, woran es
+  lag; die Hausform der Fehlermeldungen des Moduls ist zu verwenden.
+- max_pages bleibt konfigurierbar; ein kleinerer Wert ist weiterhin
+  moeglich (der Aufrufer kann die Grenze also selbst setzen).
+- Die POD zu max_pages (Zeile 157ff) beschreibt die neue Wirkung: Fehler
+  statt unvollstaendiger Antwort.
+- Kein stilles Abkuerzen: es darf kein Pfad geben, der die Liste doch noch
+  gekappt zurueckgibt.
+
+Test: neu, und gegen das alte lib nachweislich rot — das alte lib warnt und
+liefert die gekappte Liste, das neue stirbt mit einer Fehlermeldung. Der Test
+muss die Warnung des alten Verhaltens abstellen, damit er nicht durchlaeuft.
+
+Dokumentation: POD und README, falls das Verhalten beschrieben ist.
+
+Umsetzung (2026-10-20, Branch k17-metaforge, Worktree .claude/worktrees/k17-metaforge):
+
+- lib/WWW/MetaForge/ArcRaiders.pm: _fetch_all_pages bricht beim Erreichen von
+  max_pages mit croak ab, statt zu warnen und eine gekappte Liste
+  zurueckzugeben. Die Meldung nennt die Grenze und den Endpunkt in der
+  Hausform der Fehlermeldungen ("API request failed: ... (GET /pfad?query)").
+  Die Zielbildung steckt jetzt in _request_target, das auch _fetch nutzt.
+  max_pages bleibt einstellbar (Default 100), max_pages = 1 bleibt gueltig.
+  Es gibt keinen Pfad, der die Liste gekappt zurueckgibt.
+- POD: max_pages und items_all/arcs_all/quests_all beschreiben die neue
+  Wirkung (Fehler statt unvollstaendiger Antwort).
+- README.md: der Abschnitt Pagination nennt die Grenze und den Fehler.
+- Changes: der k14-Eintrag (unreleased) nennt jetzt den Fehler statt der
+  Warnung.
+- t/34-pagination-limit.t: der Subtest "the pagination stops at the page
+  limit" erwartet jetzt den Fehler (keine gekappte Liste, keine Warnung);
+  neu dazu der Subtest fuer max_pages = 1.
+
+Belege:
+- Gegen das alte lib (main) ist t/34 nachweislich rot: 2 von 5 Subtests
+  failed, aus Verhaltensgruenden (das alte lib warnt und liefert die
+  gekappte Liste, $items ist ein ARRAY, $@ bleibt leer) - nicht "Can't
+  locate".
+- Gegen das neue lib ist t/34 gruen.
+- Volle Suite offline: prove -lr t/ -> Files=21, Tests=187, Result: PASS.
+
+Kein Commit: laut Repo-Regel (.claude/rules/www-metaforge-rules.md) und
+Worker-Briefing committet der www-metaforge-release-manager, der Worker
+laesst den Baum commit-ready. Vorgeschlagener Betreff:
+"Die Seitengrenze beendet den Aufruf mit einem Fehler (k17)"
+Body je Datei eine Zeile:
+  lib/WWW/MetaForge/ArcRaiders.pm: die Seitengrenze croakt statt zu warnen
+  t/34-pagination-limit.t: der Test haelt den Fehler fest
+  Changes: die Seitengrenze nennt den Fehler statt der Warnung
+  README.md: die Seitengrenze und der Fehler sind beschrieben
+Trailer: Co-Authored-By: Claude MiniMax-M3.1-Flash <noreply@anthropic.com>
+
+Also found: das Downstream-Zwillingrepo p5-mcp-arcraiders (MCP::ArcRaiders)
+nutzt items_all indirekt ueber find_item_by_name/calculate_requirements. Bei
+erreichter Grenze waechst der Aufruf dort jetzt mit dem Fehler ab statt mit
+einer gekappten Liste weiter - ehrlicher, aber eine sichtbare Aenderung fuer
+das Board p5-mcp-arcraiders. Kein Eingriff von hier noetig, nur ein Hinweis.
+
+Nachschlag (2026-10-20, Praezisierung des Koordinators): die Fehlermeldung
+traegt keinen "API request failed:"-Praefix mehr - die Anfrage war
+erfolgreich, der Client hat nur aufgehoert zu blaettern - und sagt jetzt
+"the answer is incomplete" statt "the answer may be incomplete". Die
+Meldung lautet:
+
+  the pagination stopped after 3 pages, the answer is incomplete (GET /api/arc-raiders/items?page=3)
+
+Die Anzahl-Seiten-Formulierung (page/pages) und die Angabe von Methode, Pfad
+und Seite bleiben. t/34-pagination-limit.t passt die Erwartungen an und
+zusaetzlich, dass die Meldung nicht "API request failed" behauptet.
+
+Suite neu gefahren: prove -lr t/ -> Files=21, Tests=187, Result: PASS.
+Gegen das alte lib bleibt t/34 rot (2 von 5 Subtests failed, Verhaltensfehler:
+das alte lib warnt und liefert die gekappte Liste).
+
+Weiterhin kein Commit: in diesem Repo committet der Release-Manager, der
+Worker laesst den Baum commit-ready (Aenderungen an 4 Dateien: lib, t, Changes,
+README.md).
+
+2026-10-20 16:21 Koordinator: Commit 3048143 liegt jetzt auf main (ff-only gemergt, kein Push). Roter Beweis bestaetigt: mit dem alten lib/ ist t/34-pagination-limit.t rot, mit dem neuen gruen; volle Suite 21 Dateien, 187 Tests, gruen. Entscheidung von Getty: die Seitengrenze croakt statt zu warnen; die Meldung nennt die Grenze, die Methode und den Pfad.
