@@ -1,11 +1,12 @@
 
 requires 'Moo';
 requires 'Type::Tiny';
+requires 'Types::Standard';
 requires 'DateTime';
 requires 'LWP::UserAgent';
 requires 'LWP::Protocol::https';
 requires 'JSON::MaybeXS', '1.000000';
-requires 'HTTP::Request';
+requires 'HTTP::Message';
 requires 'Path::Tiny', '0.043';
 requires 'Digest::MD5';
 requires 'URI';
