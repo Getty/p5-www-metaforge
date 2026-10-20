@@ -1,0 +1,28 @@
+---
+claimed_at: 2026-10-20T09:36:37Z
+claimed_by: www-metaforge-worker
+class: standard
+completed: 2026-10-20T09:36:37Z
+created: 2026-10-20T08:50:40Z
+id: 16
+priority: low
+started: 2026-10-20T09:25:17Z
+status: done
+tags:
+- docs
+- readme
+title: The README drifts from the code
+updated: 2026-10-20T09:36:37Z
+---
+
+The README drifts from the code in two places.
+
+README:142-143 names the cache directory ~/.cache/www-metaforge/ and %LOCALAPPDATA%/www-metaforge/, but the code creates ~/.cache/metaforge/ (lib/WWW/MetaForge/Cache.pm:35-39, namespace default metaforge, :94-95), the same as the POD of Cache.pm:24 says. A user looks for the cache under ~/.cache/www-metaforge/, does not find it, and --no-cache or the deletion goes into the void.
+
+README:169 lists 5 maps, the code has 6 (lib/WWW/MetaForge/ArcRaiders.pm:59 adds riven-tides and stella-montis, Changes:13 has them already).
+
+Decide: the README names the cache directory that the code uses and lists the two maps that are missing.
+
+Commit 1813891 auf Branch k14-k16: README nennt jetzt ~/.cache/metaforge/ (bzw. $XDG_CACHE_HOME/metaforge/) und %LOCALAPPDATA%/metaforge/, Kartenliste um riven-tides und stella-montis ergaenzt; POD der maps-Methode in lib/WWW/MetaForge/ArcRaiders.pm ergaenzt; Suite gruen (21 Dateien, 186 Tests). Geaenderte Zeilen: README.md:141-143, README.md:169, lib/WWW/MetaForge/ArcRaiders.pm:76.
+
+Commit-Hash aktualisiert: 701dcc5 (die alte Fassung 1813891 ist ersetzt).
