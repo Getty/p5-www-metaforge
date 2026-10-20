@@ -265,8 +265,12 @@ sub _fetch {
   $self->_debug("RESPONSE: " . $response->code . " " . $response->message);
 
   unless ($response->is_success) {
-    croak sprintf("API request failed: %s %s",
-      $response->code, $response->message);
+    my $uri = $http_request->uri;
+    my $target = $uri->path;
+    my $query = $uri->query;
+    $target .= '?' . $query if defined $query && length $query;
+    croak sprintf("API request failed: %s %s (%s %s)",
+      $response->code, $response->message, $http_request->method, $target);
   }
 
   my $data = eval { $self->json->decode($response->decoded_content) };
