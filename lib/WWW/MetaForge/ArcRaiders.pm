@@ -73,7 +73,7 @@ sub maps { return @MAPS }
     my @maps = $api->maps;
 
 Returns list of available ARC Raiders map IDs (e.g., C<dam>, C<spaceport>,
-C<buried-city>, C<blue-gate>, C<stella-montis>).
+C<buried-city>, C<blue-gate>, C<riven-tides>, C<stella-montis>).
 
 =cut
 

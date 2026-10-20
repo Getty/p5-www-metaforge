@@ -139,8 +139,8 @@ $api->clear_cache;           # all
 ```
 
 Cache location defaults to:
-- Linux/Mac: `~/.cache/www-metaforge/`
-- Windows: `%LOCALAPPDATA%/www-metaforge/`
+- Linux/Mac: `~/.cache/metaforge/` (or `$XDG_CACHE_HOME/metaforge/`)
+- Windows: `%LOCALAPPDATA%/metaforge/`
 
 **Note:** `event_timers()` always fetches fresh data (time-critical). Use `event_timers_cached()` if you want cached data.
 
@@ -166,7 +166,7 @@ my $request = $api->request->items(search => 'Ferro');
 
 ```perl
 my @maps = WWW::MetaForge::ArcRaiders->maps;
-# ('dam', 'spaceport', 'buried-city', 'blue-gate', 'stella-montis')
+# ('dam', 'spaceport', 'buried-city', 'blue-gate', 'riven-tides', 'stella-montis')
 
 my $display = $api->map_display_name('buried-city');
 # 'Buried City'

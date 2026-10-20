@@ -24,6 +24,7 @@
  - The pagination stops after 100 pages and says that the answer may be
    incomplete
  - An API error names the method and the path of the request
+ - The README names the cache directory and the maps that the code uses
 
 0.002     2026-01-11 04:45:55Z
 
