@@ -157,8 +157,8 @@ has max_pages => (
 =attr max_pages
 
 Maximum number of pages the C<items_all>, C<arcs_all> and C<quests_all>
-methods fetch. Defaults to 100. When the limit is reached, the client
-warns that the answer may be incomplete.
+methods fetch. Defaults to 100. When the limit is reached, the call dies
+with an error instead of returning an incomplete answer.
 
 =cut
 
@@ -243,6 +243,17 @@ sub _build_game_map_data {
   );
 }
 
+sub _request_target {
+  my ($self, $http_request) = @_;
+
+  my $uri = $http_request->uri;
+  my $target = $uri->path;
+  my $query = $uri->query;
+  $target .= '?' . $query if defined $query && length $query;
+
+  return $target;
+}
+
 sub _fetch {
   my ($self, $endpoint, $http_request, %params) = @_;
 
@@ -265,12 +276,9 @@ sub _fetch {
   $self->_debug("RESPONSE: " . $response->code . " " . $response->message);
 
   unless ($response->is_success) {
-    my $uri = $http_request->uri;
-    my $target = $uri->path;
-    my $query = $uri->query;
-    $target .= '?' . $query if defined $query && length $query;
     croak sprintf("API request failed: %s %s (%s %s)",
-      $response->code, $response->message, $http_request->method, $target);
+      $response->code, $response->message, $http_request->method,
+      $self->_request_target($http_request));
   }
 
   my $data = eval { $self->json->decode($response->decoded_content) };
@@ -346,9 +354,11 @@ sub _fetch_all_pages {
     last unless $pagination && $pagination->{hasNextPage};
 
     if ($current_page >= $self->max_pages) {
-      warn 'metaforge: the pagination stopped after ' . $self->max_pages
-        . ' pages, the answer may be incomplete' . "\n";
-      last;
+      my $pages = $self->max_pages == 1 ? 'page' : 'pages';
+      my $request = $self->request->$request_method(%params);
+      croak sprintf("the pagination stopped after %d %s,"
+          . ' the answer is incomplete (%s %s)',
+        $self->max_pages, $pages, $request->method, $self->_request_target($request));
     }
 
     $current_page++;
@@ -397,7 +407,8 @@ sub items_all {
     my $items = $api->items_all(%params);
 
 Fetches all pages and returns complete ArrayRef of all items.
-Use with caution on large datasets.
+Use with caution on large datasets. The call dies with an error when
+the C<max_pages> limit is reached.
 
 =cut
 
@@ -441,6 +452,7 @@ sub arcs_all {
     my $arcs = $api->arcs_all(%params);
 
 Fetches all pages and returns complete ArrayRef of all ARCs.
+The call dies with an error when the C<max_pages> limit is reached.
 
 =cut
 
@@ -481,6 +493,7 @@ sub quests_all {
     my $quests = $api->quests_all(%params);
 
 Fetches all pages and returns complete ArrayRef of all quests.
+The call dies with an error when the C<max_pages> limit is reached.
 
 =cut
 

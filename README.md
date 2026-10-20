@@ -122,6 +122,9 @@ my $pagination = $result->{pagination};
 my $all_items = $api->items_all;
 ```
 
+The number of pages is limited (`max_pages`, 100 by default). When the limit
+is reached, the call dies with an error instead of returning a partial answer.
+
 ## Caching
 
 Responses are cached by default to reduce API load:

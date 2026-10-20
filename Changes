@@ -21,8 +21,8 @@
    crafting, sold-by and recycle sections empty
  - Fix Result::Quest::from_hashref reading camelCase keys the API does not
    send
- - The pagination stops after 100 pages and says that the answer may be
-   incomplete
+ - The pagination stops after 100 pages and dies with an error instead of
+   returning an incomplete answer
  - An API error names the method and the path of the request
  - The README names the cache directory and the maps that the code uses
 

@@ -47,12 +47,53 @@ subtest 'max_pages defaults to 100' => sub {
     'the default page limit is 100');
 };
 
-subtest 'the pagination stops at the page limit' => sub {
+subtest 'the pagination dies at the page limit' => sub {
   my $ua = Stub::UA->new;
   my $api = WWW::MetaForge::ArcRaiders->new(
     ua        => $ua,
     use_cache => 0,
     max_pages => 3,
+  );
+
+  # The client used to warn and hand out the truncated list; the warning
+  # must not pass for the error the client raises now.
+  my @warnings;
+  local $SIG{__WARN__} = sub { push @warnings, $_[0] };
+
+  # The alarm keeps the test from hanging when the pagination does not stop.
+  local $SIG{ALRM} = sub { die "the pagination did not stop at the limit\n" };
+  alarm 5;
+  my $items = eval { $api->items_all };
+  my $error = $@;
+  alarm 0;
+
+  ok($error, 'the call dies instead of returning an incomplete list');
+  is($items, undef, 'no incomplete list is returned');
+  is(scalar @warnings, 0, 'the client does not warn instead of dying');
+  is($ua->requests, 3, 'the client made exactly max_pages requests');
+  like(
+    $error,
+    qr/\Qthe pagination stopped after 3 pages, the answer is incomplete\E/,
+    'the message names the limit and the incomplete answer'
+  );
+  like(
+    $error,
+    qr{\(GET /api/arc-raiders/items\?page=3\)},
+    'the message names the method, the path and the page'
+  );
+  unlike(
+    $error,
+    qr/API request failed/,
+    'the message does not claim that the request failed'
+  );
+};
+
+subtest 'a page limit of one dies and names the limit' => sub {
+  my $ua = Stub::UA->new;
+  my $api = WWW::MetaForge::ArcRaiders->new(
+    ua        => $ua,
+    use_cache => 0,
+    max_pages => 1,
   );
 
   my @warnings;
@@ -65,17 +106,19 @@ subtest 'the pagination stops at the page limit' => sub {
   my $error = $@;
   alarm 0;
 
-  if ($error) {
-    fail("the pagination did not stop at the limit: $error");
-    return;
-  }
-
-  is($ua->requests, 3, 'the client made exactly max_pages requests');
-  is(scalar @$items, 3, 'the data of every page is in the result');
+  ok($error, 'the call dies instead of returning an incomplete list');
+  is($items, undef, 'no incomplete list is returned');
+  is(scalar @warnings, 0, 'the client does not warn instead of dying');
+  is($ua->requests, 1, 'the client made exactly one request');
   like(
-    $warnings[0] // '',
-    qr/\Qthe pagination stopped after 3 pages, the answer may be incomplete\E/,
-    'the client warns that the answer may be incomplete'
+    $error,
+    qr/\Qthe pagination stopped after 1 page, the answer is incomplete\E/,
+    'the message names the limit and the incomplete answer'
+  );
+  unlike(
+    $error,
+    qr/API request failed/,
+    'the message does not claim that the request failed'
   );
 };
 
@@ -89,8 +132,9 @@ subtest 'a pagination that ends does not warn' => sub {
 
   my @warnings;
   local $SIG{__WARN__} = sub { push @warnings, $_[0] };
-  my $items = $api->items_all;
+  my $items = eval { $api->items_all };
 
+  is($@, '', 'the call does not die');
   is($ua->requests, 1, 'the client made one request');
   is(scalar @$items, 1, 'the result holds one page of data');
   is(scalar @warnings, 0, 'no warning about an incomplete answer');
