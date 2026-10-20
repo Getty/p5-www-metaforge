@@ -1,3 +1,5 @@
+Revision history for WWW-MetaForge
+
 {{$NEXT}}
 
  - Declare LWP::Protocol::https as a prerequisite; the API is HTTPS-only, so
