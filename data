@@ -1,0 +1,27 @@
+---
+claimed_at: 2026-10-20T09:36:32Z
+claimed_by: www-metaforge-worker
+class: standard
+completed: 2026-10-20T09:36:32Z
+created: 2026-10-20T08:50:35Z
+id: 15
+priority: low
+started: 2026-10-20T09:25:12Z
+status: done
+tags:
+- errors
+title: The error messages need the method and the path
+updated: 2026-10-20T09:36:32Z
+---
+
+The error messages name neither the method nor the path.
+
+lib/WWW/MetaForge/ArcRaiders.pm:254-257 and lib/WWW/MetaForge/GameMapData.pm:183-186 croak with sprintf("API request failed: %s %s", $response->code, $response->message). The url stands only in the debug log (:248).
+
+Failure case: "metaforge-arcraiders map nonexistent" answers "API request failed: 400 Bad Request". The user does not see which endpoint and which parameter went wrong.
+
+Decide: the croak message names the method and the path as well.
+
+Commit 3b984f3 auf Branch k14-k16: croak nennt jetzt Methode, Pfad und Query (z.B. 'API request failed: 400 Bad Request (GET /api/arc-raiders/items?search=Ferro)'), ohne Host. Test t/35-api-error-message.t (rot gegen das alte lib), volle Suite gruen (21 Dateien, 186 Tests).
+
+Commit-Hash aktualisiert: bdeb3ad (die alte Fassung 3b984f3 ist ersetzt).
