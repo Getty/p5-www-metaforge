@@ -21,6 +21,8 @@
    crafting, sold-by and recycle sections empty
  - Fix Result::Quest::from_hashref reading camelCase keys the API does not
    send
+ - The pagination stops after 100 pages and says that the answer may be
+   incomplete
 
 0.002     2026-01-11 04:45:55Z
 

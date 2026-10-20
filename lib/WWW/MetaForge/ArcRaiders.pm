@@ -149,6 +149,19 @@ Boolean, default true. Set to false to disable caching.
 
 =cut
 
+has max_pages => (
+  is      => 'ro',
+  default => 100,
+);
+
+=attr max_pages
+
+Maximum number of pages the C<items_all>, C<arcs_all> and C<quests_all>
+methods fetch. Defaults to 100. When the limit is reached, the client
+warns that the answer may be incomplete.
+
+=cut
+
 has cache_dir => (
   is => 'ro',
 );
@@ -327,6 +340,13 @@ sub _fetch_all_pages {
 
     my $pagination = $result->{pagination};
     last unless $pagination && $pagination->{hasNextPage};
+
+    if ($current_page >= $self->max_pages) {
+      warn 'metaforge: the pagination stopped after ' . $self->max_pages
+        . ' pages, the answer may be incomplete' . "\n";
+      last;
+    }
+
     $current_page++;
   }
 
