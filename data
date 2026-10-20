@@ -1,0 +1,38 @@
+---
+class: standard
+completed: 2026-10-20T16:50:05Z
+created: 2026-10-20T16:36:33Z
+id: 19
+priority: low
+started: 2026-10-20T16:50:05Z
+status: done
+tags:
+- release
+- changes
+title: Der Changes traegt keine Kopfzeile
+updated: 2026-10-20T16:50:05Z
+---
+
+Der Changes dieser Distribution traegt keine Kopfzeile.
+
+Die Hausform (Skill getty-git-commit-style) sieht so aus:
+
+    Revision history for <name>
+
+    {$NEXT}
+      - ...
+
+Zwoelf der achtzehn Distributionen der WWW-Flotte tragen die Kopfzeile, sechs
+nicht. Diese Distribution gehoert zu den sechs.
+
+Es wird genau eine Zeile ergaenzt: die Kopfzeile mit dem Namen aus dist.ini
+(WWW-MetaForge) und die Leerzeile darunter. Sonst nichts.
+
+Kein neuer Eintrag unter {$NEXT}: die Karte aendert die Form der Datei, nicht
+ihren Inhalt. Die Einrueckung der Eintraege (2 oder 4 Leerzeichen) bleibt
+unangetastet - sie ist je Datei verschieden und nicht Teil dieser Karte.
+
+Aenderungen ausserhalb von Changes: nicht.
+Commit-Betreff nennt die Karte als (kNN), kein #NN.
+
+Koordination: der Commit a089b96 steht auf main (ff-only gemergt). Die Karte hat der Koordinator ausgefuehrt, weil das Repo (CLAUDE.md, Delegationstabelle) die Commits dem www-metaforge-release-manager vorbehaelt. Geaendert wurde genau eine Zeile: die Kopfzeile 'Revision history for WWW-MetaForge' mit der Leerzeile darunter. Kein neuer Eintrag unter {{$NEXT}}, die Einrueckung der Eintraege (ein Leerzeichen) bleibt unangetastet. Die Aenderung betrifft nur die Changes-Datei, die kein Test liest.
