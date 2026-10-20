@@ -1,0 +1,28 @@
+---
+claimed_at: 2026-10-20T09:36:28Z
+claimed_by: www-metaforge-worker
+class: standard
+completed: 2026-10-20T09:36:28Z
+created: 2026-10-20T08:50:31Z
+id: 14
+priority: medium
+started: 2026-10-20T09:25:06Z
+status: done
+tags:
+- api
+- limits
+title: The pagination needs an upper limit of pages
+updated: 2026-10-20T09:36:28Z
+---
+
+The pagination has no upper limit of pages.
+
+lib/WWW/MetaForge/ArcRaiders.pm:323-331 runs while (1) and breaks only when the pagination says hasNextPage is false. The same shape is in the other list methods of the distribution.
+
+Failure case: the API answers (a bug or a changed format) again and again with hasNextPage => 1. The loop runs with HTTP requests without end, there is no way out, and the cache grows without limit.
+
+Decide: the pagination gets a maximum number of pages (100) as a further condition of the break.
+
+Commit eb60625 auf Branch k14-k16 (max_pages, Seitengrenze, Warnung); Test t/34-pagination-limit.t; Suite gruen.
+
+Commit-Hash aktualisiert: 995a68c (der Warn-Text endet jetzt mit einem Zeilenumbruch, wie es die Datei sonst auch tut; die alte Fassung eb60625 ist ersetzt).
