@@ -1,0 +1,43 @@
+---
+claimed_at: 2026-10-20T16:34:48Z
+claimed_by: k18-metaforge
+class: standard
+completed: 2026-10-20T16:34:48Z
+created: 2026-10-20T16:14:12Z
+id: 18
+priority: medium
+started: 2026-10-20T16:34:48Z
+status: done
+tags:
+- release
+- prereq
+title: Das cpanfile nennt Types::Standard nicht
+updated: 2026-10-20T16:35:02Z
+---
+
+lib/WWW/MetaForge/GameMapData/Result/MapMarker.pm:5 (ferner die Result-Klassen unter ArcRaiders/Result/) laden Types::Standard. Das cpanfile nennt nur Type::Tiny - Types::Standard ist eine eigene Distribution und kein Kernmodul. Ein frischer Install bricht deshalb beim Laden der Bibliothek ab, nicht beim Bauen.
+
+Ergaenzt wird `requires 'Types::Standard';` im cpanfile.
+
+Zusaetzlich: HTTP::Request und HTTP::Response stammen aus derselben Distribution HTTP::Message. Im cpanfile steht heute HTTP::Request, die Tests laden aber HTTP::Response - die Karte zieht auf HTTP::Message um, damit die Distribution benannt ist und beide Module gedeckt sind.
+
+Dazu kommt t/cpanfile.t nach dem Hausmuster (siehe p5-www-hetzner): eine Liste der Laufzeit- und Test-Voraussetzungen, die das cpanfile nennen muss. Der Test muss gegen das alte cpanfile rot sein - Types::Standard fehlt dort - das ist der Nachweis, dass er die Luecke auch findet.
+
+Umsetzung (Branch k18-metaforge, von lokalem main 3048143):
+
+- cpanfile: requires 'Types::Standard'; ergaenzt (Types::Standard ist eine eigene Distribution, kein Kernmodul). requires 'HTTP::Request'; durch requires 'HTTP::Message'; ersetzt - HTTP::Request und HTTP::Response stammen aus derselben Distribution, damit ist die Distribution benannt und beide Module sind gedeckt. requires 'Type::Tiny'; bleibt (Types::Standard laedt Type::Tiny, so wie in p5-www-idrac, -keycloak und -authentik).
+- t/cpanfile.t neu, Hausmuster wie p5-www-idrac: liest das cpanfile nach Phase (runtime / on test), haelt eine hart kodierte Liste der Laufzeit-Voraussetzungen (DateTime, HTTP::Message, JSON::MaybeXS, LWP::Protocol::https, LWP::UserAgent, Moo, MooX::Cmd, MooX::Options, namespace::clean, Path::Tiny, Type::Tiny, Types::Standard, URI) und der Test-Voraussetzungen (Capture::Tiny, Test::More). Die Liste wurde an lib/, bin/ und t/ abgeglichen; Kernmodule (Carp, Digest::MD5, Encode, File::Temp, FindBin, Getopt::Long, Test::More) brauchen keine Deklaration.
+- Changes: ein Eintrag unter dem naechsten Abschnitt.
+
+Roter Beweis (gegen das alte cpanfile, nicht gegen das alte lib/): das cpanfile aus main wiederhergestellt, prove -lr t/cpanfile.t -> FAIL, 2 von 15 Tests: 'HTTP::Message is a declared prerequisite' und 'Types::Standard is a declared prerequisite'. Mit dem neuen cpanfile: PASS, 15 Tests.
+
+Suite offline: prove -lr t/ -> 22 Dateien, 202 Tests, alle gruen (kein Netz, keine Live-Aufrufe). dzil build laeuft sauber durch, die Prereqs werden aus dem cpanfile uebernommen.
+
+Der Baum ist commit-ready; der Commit gehoert laut Repo-Regel dem www-metaforge-release-manager. Vorgeschlagener Betreff: Declare the missing prerequisites (k18)
+
+Also found (nicht behoben):
+- Das cpanfile ist nicht alphabetisch sortiert (die Hausregel getty-perl-core verlangt alphabetisch, p5-www-mailboxorg prueft das sogar im Test). Unangetastet gelassen, weil die Karte nur zwei Eintraege nennt.
+- requires 'Digest::MD5'; im cpanfile ist ueberfluessig, Digest::MD5 ist seit Perl 5.007003 Kernmodul. Bleibt unangetastet.
+- Die Changes-Datei hat keine Zeile 'Revision history for WWW-MetaForge' - der Skill getty-git-commit-style sieht sie vor.
+
+Koordination: der Commit des Release-Managers steht auf main (e6f6286 'Declare the missing prerequisites (k18)'), ff-only gemergt. Der rote Beweis wurde nachgeprueft: gegen das alte cpanfile FAIL 2/15, mit dem neuen PASS 15. Suite offline: 22 Dateien, 202 Tests, gruen. Die drei Nebenbefunde des Workers (cpanfile nicht alphabetisch, 'requires Digest::MD5' ueberfluessig, Changes ohne Zeile 'Revision history for WWW-MetaForge') sind nicht Teil dieser Karte und werden als eigene Karte nachgezogen.
