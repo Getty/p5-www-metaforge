@@ -1,6 +1,6 @@
 ---
 name: www-metaforge-core
-description: "Load before editing WWW::MetaForge — the MetaForge.app game data API client: layers, endpoints, the result-class contract, and the exact-API-format rule."
+description: "Load before editing WWW::MetaForge — the MetaForge.app game data API client: layers, endpoints, the result-class contract, the exact-API-format rule, the hazards and the downstream twin."
 ---
 
 # WWW::MetaForge — core
@@ -53,6 +53,36 @@ behind a silently-wrong value.
 Corollary: an attribute that only ever holds `undef` because the API never
 sends the field is a bug — delete it.
 
+## Hazards — the mechanisms behind the short rules
+
+**The API is the spec, and it moves.** The trap: a `//` fallback makes a real
+API change look like a working client with silently wrong data. When the
+response changes, change the result class *and* its fixture in `t/fixtures/` in
+the same commit — a fixture that lags behind the class lets the suite pass
+against a format the API no longer sends.
+
+**A tidied fixture makes the whole suite lie.** Fixtures must be byte-faithful
+to the real response — same keys, same camelCase, same nesting. "Tidy" JSON is
+the classic way to freeze a stale format into the test suite.
+
+**`prove -l t/` can hang, not just fail.** The live-API tests hit the network
+with no timeout, so a slow API looks like a wedged suite. Debug per file:
+`timeout 25 perl -Ilib -It/lib t/NN-foo.t`. Never report "tests pass" from a
+run you killed.
+
+**Dropping a Result attribute breaks the CLI silently at the source level.**
+`CLI/Cmd/*` calls accessors directly and only dies at runtime, which the
+offline suite may not reach. Grep the CLI for the accessor before removing it.
+
+**A downstream twin consumes this distribution.** `p5-mcp-arcraiders`
+(`MCP::ArcRaiders`) `use`s `WWW::MetaForge::ArcRaiders` and
+`WWW::MetaForge::Cache` directly — it constructs the facade with an injected
+`ua`/`cache` and reads Result accessors. Changing the `ArcRaiders` public
+method signatures, the `Cache` constructor/namespace behaviour, or a Result
+attribute is a breaking change *for that repo too*. It is a separate
+distribution: never edit it from here — record the impact as a karr ticket on
+the `p5-mcp-arcraiders` board (cross-repo handoff), not a direct change.
+
 ## Testing
 
 ```bash
@@ -67,3 +97,8 @@ USE_LIVE_API=1 prove -l t/     # against the live API
   test file before adding one.
 - Some tests only run with `USE_LIVE_API=1`; those hit the network and can hang
   when the API is slow — run a single file with a timeout when debugging.
+
+## Related
+
+- `p5-mcp-arcraiders` — the downstream twin (`MCP::ArcRaiders`). What changes
+  here is breaking there; its board (`karr` in that repo) takes the ticket.
