@@ -29,7 +29,8 @@ not restated here.
 ## Delegation
 
 Delegate behavior-relevant code to the right agent instead of touching it yourself —
-principle, lanes and project hazards are in `.claude/rules/www-metaforge-rules.md`.
+the delegation lock and the publish gate are shared house rules (skilletor bundle
+`getty-cpan-dist@getty`); lanes and project hazards are in `.claude/rules/www-metaforge-rules.md`.
 
 | Task | Agent |
 |---|---|
