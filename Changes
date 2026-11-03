@@ -44,6 +44,12 @@ Revision history for WWW-MetaForge
    options and guide links
  - `arcraiders items --category` and `--rarity` filter on the server across
    all pages, matching the exact API value
+ - Arc: add `data` with the ARC's variants; `arcraiders arcs --loot` requests
+   includeLoot=true; `arcraiders arc` shows whether an ARC flies and the
+   rarity of each drop
+ - Quest: add `description`, `additional_rewards` and `manifest`;
+   `arcraiders quest` shows the trader, prerequisites, description, required
+   and granted items by name and quantity, and all rewards
 
 0.002     2026-01-11 04:45:55Z
 

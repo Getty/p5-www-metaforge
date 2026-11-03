@@ -55,11 +55,15 @@ sub _print_arc_details {
 
   _print_field("ID", $arc->id);
 
+  my @variants = @{ $arc->data->{variants} // [] };
+  _print_field("Flying", (grep { $_->{can_fly} } @variants) ? 'yes' : 'no') if @variants;
+
   if ($arc->description) {
     print "\nDescription:\n";
-    my $desc = $arc->description;
-    $desc =~ s/(.{1,58})\s/$1\n  /g;  # Word wrap
-    print "  $desc\n";
+    (my $desc = $arc->description) =~ s/\A\s+|\s+\z//g;
+    $desc =~ s/\s+/ /g;
+    $desc =~ s/(.{1,58})(?:\s|\z)/  $1\n/g;  # Word wrap
+    print $desc;
   }
 
   if ($arc->loot && @{$arc->loot}) {
@@ -69,7 +73,7 @@ sub _print_arc_details {
         my $item = $drop->{item};
         my $name = ref $item eq 'HASH' ? $item->{name} : undef;
         next unless defined $name;
-        printf "  %s\n", $name;
+        printf "  %-40s  %s\n", $name, $item->{rarity} // '-';
       }
     }
   }
@@ -113,9 +117,11 @@ Output includes:
 
 =item * Name and ID
 
+=item * Whether the ARC flies, when the API sends its variants
+
 =item * Description text
 
-=item * Loot drop table
+=item * Loot drop table with the rarity of each drop
 
 =item * Last updated timestamp
 

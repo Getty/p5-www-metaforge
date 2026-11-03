@@ -48,6 +48,12 @@ has loot => (
   default => sub { [] },
 );
 
+has data => (
+  is      => 'ro',
+  isa     => HashRef,
+  default => sub { {} },
+);
+
 has _raw => (
   is  => 'ro',
   isa => HashRef,
@@ -65,6 +71,7 @@ sub from_hashref {
     created_at  => $data->{created_at},
     updated_at  => $data->{updated_at},
     loot        => $data->{loot} // [],
+    data        => $data->{data} // {},
     _raw        => $data,
   );
 }
@@ -112,8 +119,15 @@ ISO timestamp of last update.
 
 =attr loot
 
-ArrayRef of loot drops, only populated when fetched with C<includeLoot =E<gt> 'true'>:
+ArrayRef of loot drops, only populated when fetched with C<includeLoot =E<gt> 'true'>
+(the API ignores other values such as C<1>):
 C<[{ id, item => { id, icon, name, rarity, item_type }, item_id, created_at }]>.
+
+=attr data
+
+HashRef of extra ARC data, empty for ARCs the API sends without it:
+C<< { updated_at, variants => [{ can_fly }] } >>. C<can_fly> is a JSON
+boolean per variant of the ARC.
 
 =method from_hashref
 

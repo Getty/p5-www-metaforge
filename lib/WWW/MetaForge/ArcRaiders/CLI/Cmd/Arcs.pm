@@ -30,7 +30,7 @@ sub execute {
   my $app = $chain->[0];
 
   my %params;
-  $params{includeLoot} = 1 if $self->loot;
+  $params{includeLoot} = 'true' if $self->loot;
   $params{page} = $self->page if $self->page;
 
   my ($arcs, $pagination);

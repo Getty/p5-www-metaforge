@@ -437,7 +437,10 @@ sub arcs {
     my $arcs = $api->arcs(%params);
 
 Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Arc> from
-first page. Supports C<includeLoot> parameter.
+first page. The API documents the parameters C<page>, C<limit> (default 50,
+max 100), C<id>, C<search>, C<includeLoot>, C<sortBy> and C<sortOrder>.
+The loot list is only sent with C<< includeLoot => 'true' >>; the API
+ignores other values such as C<1>.
 
 =cut
 
@@ -478,7 +481,8 @@ sub quests {
     my $quests = $api->quests(%params);
 
 Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Quest> from
-first page. Supports C<type> parameter.
+first page. The API documents the parameters C<id>, C<page>, C<limit>
+(default 40, max 100), C<search>, C<sortBy> and C<sortOrder>.
 
 =cut
 

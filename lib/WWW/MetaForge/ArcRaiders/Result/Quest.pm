@@ -17,6 +17,11 @@ has name => (
   required => 1,
 );
 
+has description => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
 has objectives => (
   is      => 'ro',
   isa     => ArrayRef,
@@ -98,6 +103,18 @@ has rewards => (
   default => sub { [] },
 );
 
+has additional_rewards => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
+has manifest => (
+  is      => 'ro',
+  isa     => HashRef,
+  default => sub { {} },
+);
+
 has _raw => (
   is  => 'ro',
   isa => HashRef,
@@ -108,6 +125,7 @@ sub from_hashref {
   return $class->new(
     id             => $data->{id},
     name           => $data->{name},
+    description    => $data->{description},
     objectives     => $data->{objectives} // [],
     xp             => $data->{xp},
     granted_items  => $data->{granted_items} // [],
@@ -123,6 +141,8 @@ sub from_hashref {
     position       => $data->{position},
     required_items => $data->{required_items} // [],
     rewards        => $data->{rewards} // [],
+    additional_rewards => $data->{additional_rewards} // [],
+    manifest       => $data->{manifest} // {},
     _raw           => $data,
   );
 }
@@ -149,6 +169,10 @@ Quest identifier (string slug).
 
 Quest name.
 
+=attr description
+
+Quest description text.
+
 =attr objectives
 
 ArrayRef of objective strings.
@@ -159,7 +183,7 @@ Experience points reward.
 
 =attr granted_items
 
-ArrayRef of items granted on quest completion.
+ArrayRef of items the quest grants, in the same shape as C<rewards>.
 
 =attr created_at
 
@@ -171,7 +195,7 @@ ISO timestamp of last update.
 
 =attr locations
 
-ArrayRef of location strings.
+ArrayRef of location hashes: C<< [{ map, x, y }] >> or C<< [{ map, id }] >>.
 
 =attr marker_category
 
@@ -183,7 +207,8 @@ Quest image URL.
 
 =attr guide_links
 
-ArrayRef of guide link URLs.
+ArrayRef of guide links. The API sends the key, but on 2026-11-03 it was
+empty for every quest.
 
 =attr guide_url
 
@@ -199,17 +224,36 @@ Sort order for quest listing.
 
 =attr position
 
-HashRef with x/y coordinates for map position.
+HashRef with x/y coordinates for map position, or C<undef> when the API
+sends C<null>.
 
 =attr required_items
 
-ArrayRef of required items: C<[{ item => "Name", quantity => 5 }]>.
+ArrayRef of required items, in the same shape as C<rewards>.
 
 =attr rewards
 
-ArrayRef of rewards with nested item structure:
-C<[{ item => { id, icon, name, rarity, item_type }, quantity => "5" }]>.
-Note: quantity is a string.
+ArrayRef of item rewards with nested item structure:
+C<< [{ id, item => { id, icon, name, rarity, item_type }, item_id, quantity }] >>.
+C<id> and C<quantity> are integers.
+
+=attr additional_rewards
+
+ArrayRef of rewards that are not items:
+C<< [{ kind, name, quantity }] >>. C<kind> is C<currency> (C<name> e.g.
+C<XP>, C<Coins>, C<Raider Tokens>) or C<cosmetic-option>, which also
+carries C<group> and C<setting> and, for some, C<included_with>
+(e.g. C<< { group => 'Aviator', setting => 'Color', name => 'Dusted Cream' } >>).
+C<quantity> is an integer.
+
+=attr manifest
+
+HashRef with the quest's structure:
+C<< { cadence, conditions, coverage, objective_graph, objective_root, prerequisites, updated_at } >>.
+C<prerequisites> lists the quests to finish first:
+C<< [{ quest_id, name, required_state }] >>. C<objective_graph> is a list of
+objective nodes C<< { id, kind, description, action => { type, amount }, children, hidden, optional, required_count, round_constraint } >>
+starting at the node named by C<objective_root>.
 
 =method from_hashref
 

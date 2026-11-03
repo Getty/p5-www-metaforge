@@ -54,6 +54,18 @@ sub _print_quest_details {
   print "=" x 60, "\n";
 
   _print_field("ID", $quest->id);
+  _print_field("Trader", $quest->trader_name);
+
+  my @prerequisites = @{ $quest->manifest->{prerequisites} // [] };
+  _print_field("Requires", join(', ', map { $_->{name} } @prerequisites)) if @prerequisites;
+
+  if (defined $quest->description && length $quest->description) {
+    print "\nDescription:\n";
+    (my $desc = $quest->description) =~ s/\A\s+|\s+\z//g;
+    $desc =~ s/\s+/ /g;
+    $desc =~ s/(.{1,58})(?:\s|\z)/  $1\n/g;  # Word wrap
+    print $desc;
+  }
 
   if ($quest->objectives && @{$quest->objectives}) {
     print "\nObjectives:\n";
@@ -63,40 +75,37 @@ sub _print_quest_details {
     }
   }
 
-  if ($quest->required_items && @{$quest->required_items}) {
+  if (@{$quest->required_items}) {
     print "\nRequired Items:\n";
-    for my $req (@{$quest->required_items}) {
-      my $name = $req->{item} // $req->{name} // 'Unknown';
-      my $qty  = $req->{quantity} // $req->{amount} // 1;
-      printf "  %dx %s\n", $qty, $name;
-    }
+    printf "  %dx %s\n", $_->{quantity}, $_->{item}{name} for @{$quest->required_items};
   }
 
-  my @reward_parts;
-  push @reward_parts, $quest->xp . " XP" if $quest->xp;
+  if (@{$quest->granted_items}) {
+    print "\nGranted Items:\n";
+    printf "  %dx %s\n", $_->{quantity}, $_->{item}{name} for @{$quest->granted_items};
+  }
 
-  if (@reward_parts) {
+  my @rewards = (
+    ( map { _additional_reward($_) } @{$quest->additional_rewards} ),
+    ( map { sprintf '%dx %s', $_->{quantity}, $_->{item}{name} } @{$quest->rewards} ),
+  );
+  if (@rewards) {
     print "\nRewards:\n";
-    print "  ", join(", ", @reward_parts), "\n";
-  }
-
-  if ($quest->rewards && @{$quest->rewards}) {
-    print "  Item Rewards:\n" unless @reward_parts;
-    for my $reward (@{$quest->rewards}) {
-      if (ref $reward eq 'HASH') {
-        # Handle both formats: {item => "Name"} and {item => {name => "Name"}}
-        my $item = $reward->{item};
-        my $name = ref $item eq 'HASH' ? $item->{name} : ($item // $reward->{name});
-        next unless defined $name;
-        my $qty  = $reward->{quantity} // $reward->{amount} // 1;
-        printf "    %dx %s\n", $qty, $name;
-      }
-    }
+    print "  $_\n" for @rewards;
   }
 
   if ($quest->updated_at) {
     print "\nLast Updated: ", $quest->updated_at, "\n";
   }
+}
+
+# additional_rewards: currency ("5000 XP") or cosmetic-option
+# ("Aviator Color: Dusted Cream")
+sub _additional_reward {
+  my ($reward) = @_;
+  return $reward->{kind} eq 'cosmetic-option'
+    ? sprintf('%s %s: %s', $reward->{group}, $reward->{setting}, $reward->{name})
+    : sprintf('%d %s', $reward->{quantity}, $reward->{name});
 }
 
 sub _print_field {
@@ -131,13 +140,15 @@ Quest details displayed include:
 
 =over 4
 
-=item * Name and ID
+=item * Name, ID, the trader who gives the quest and the quests to finish first
+
+=item * Description text
 
 =item * Objectives list
 
-=item * Required items with quantities
+=item * Required and granted items with quantities
 
-=item * Rewards (XP and items)
+=item * Rewards (XP, coins, cosmetics and items)
 
 =item * Last updated timestamp
 
