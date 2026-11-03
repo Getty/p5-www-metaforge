@@ -103,6 +103,8 @@ Revision history for WWW-MetaForge
  - Fix quests and quests_paginated dying on an id no quest carries: the API
    answers it with 404 Not Found, they return an empty list as items and arcs
    do; quests_raw still dies there
+ - Fix the PARSED debug line counting one record for every response with an
+   envelope: it counts the entries of data, and the traders of /traders
  - Add Cache get_entry, the stored entry with its timestamp, ignoring the
    TTL; event_timers_hourly uses it instead of reading the cache file itself
  - Fix the CLI not decoding its arguments: `quest "Celeste’s Journals"` found

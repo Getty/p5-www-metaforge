@@ -304,7 +304,16 @@ sub _fetch {
   my $data = eval { $self->json->decode($response->decoded_content) };
   croak "Failed to parse JSON response: $@" if $@;
 
-  my $count = ref $data eq 'ARRAY' ? scalar(@$data) : 1;
+  # Records of the data section (_extract_data): the entries of a list (items,
+  # arcs, quests, events-schedule, weekly-trials, the bare hideout list), the
+  # traders of the traders object (keyed by trader name; like traders, a hash
+  # without id is that object), 1 for the single record of a quest lookup by
+  # id. Envelope fields (pagination, ermal, cachedAt, the window boundaries)
+  # are no records.
+  my $records = $self->_extract_data($data);
+  my $count = ref $records eq 'ARRAY' ? scalar(@$records)
+    : ref $records eq 'HASH' && !exists $records->{id} ? scalar(keys %$records)
+    : 1;
   $self->_debug("PARSED: $count records");
 
   if ($self->use_cache && !$skip_cache) {
