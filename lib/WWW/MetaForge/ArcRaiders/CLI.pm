@@ -4,6 +4,8 @@ our $VERSION = '0.003';
 
 use Moo;
 use WWW::MetaForge::ArcRaiders;
+use Carp qw(croak);
+use Encode qw(decode FB_CROAK LEAVE_SRC);
 use Getopt::Long qw(:config pass_through);
 use namespace::clean;
 use MooX::Cmd;
@@ -53,6 +55,30 @@ has json => (
 
 Output results as JSON. Use C<--json> or C<-j> flag, or set via
 C<WWW_METAFORGE_ARCRAIDERS_JSON> environment variable.
+
+=cut
+
+before new_with_cmd => sub {
+  # perl decoded @ARGV itself under -CA or PERL_UNICODE=A
+  return if ${^UNICODE} & 32;
+  @ARGV = map {
+    my $arg   = $_;
+    my $chars = eval { decode('UTF-8', $arg, FB_CROAK | LEAVE_SRC) };
+    croak __PACKAGE__.'->new_with_cmd: command line argument is not UTF-8: '.$arg
+      unless defined $chars;
+    $chars;
+  } @ARGV;
+};
+
+=method new_with_cmd
+
+    WWW::MetaForge::ArcRaiders::CLI->new_with_cmd;
+
+Decodes C<@ARGV> from UTF-8 before L<MooX::Cmd> and L<MooX::Options> read
+it, so command arguments and option values are character strings like the
+names in the API data: C<quest "CelesteE<0x2019>s Journals"> finds the quest. An
+argument that is not valid UTF-8 croaks. When perl has decoded C<@ARGV>
+already (C<-CA>, or C<A> in C<PERL_UNICODE>) it is left as it is.
 
 =cut
 

@@ -86,6 +86,9 @@ Revision history for WWW-MetaForge
    and are fetched again, and clear removes both
  - Add Cache get_entry, the stored entry with its timestamp, ignoring the
    TTL; event_timers_hourly uses it instead of reading the cache file itself
+ - Fix the CLI not decoding its arguments: `quest "Celeste’s Journals"` found
+   nothing and echoed the name double encoded; arguments and option values are
+   now decoded from UTF-8, and an argument that is not UTF-8 is an error
 
 0.002     2026-01-11 04:45:55Z
 
