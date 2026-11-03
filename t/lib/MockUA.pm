@@ -3,8 +3,27 @@ use strict;
 use warnings;
 use Path::Tiny;
 use HTTP::Response;
+use LWP::UserAgent;
 use Encode;
 use JSON::MaybeXS;
+
+# Network lock: the default suite never talks to the network. Loading MockUA
+# (without WWW_METAFORGE_USE_LIVE_API) makes any real LWP::UserAgent request
+# die loudly with the URL, so a test that bypasses the mock cannot pass by
+# accident (or hang on a slow API).
+unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
+  no warnings 'redefine';
+  for my $method (qw(request simple_request)) {
+    no strict 'refs';
+    *{"LWP::UserAgent::$method"} = sub {
+      my ($self, $http_request) = @_;
+      my $target = ref $http_request && $http_request->can('uri')
+        ? $http_request->method . ' ' . $http_request->uri
+        : '(unknown request)';
+      die "MockUA: network access blocked in the offline suite: $target\n";
+    };
+  }
+}
 
 sub new {
   my ($class, %args) = @_;

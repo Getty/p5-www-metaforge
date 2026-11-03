@@ -231,13 +231,16 @@ has game_map_data => (
 =attr game_map_data
 
 L<WWW::MetaForge::GameMapData> instance used for C<map_data> calls.
-Configured automatically with ARC Raiders specific marker class.
+Configured automatically with ARC Raiders specific marker class, and with
+this object's C<ua>, C<cache>, C<use_cache> and C<debug>, so an injected
+user agent also serves the map data requests.
 
 =cut
 
 sub _build_game_map_data {
   my ($self) = @_;
   return WWW::MetaForge::GameMapData->new(
+    ua           => $self->ua,     # Share (or injected) user agent
     debug        => $self->debug,
     use_cache    => $self->use_cache,
     cache        => $self->cache,  # Share cache with ArcRaiders
