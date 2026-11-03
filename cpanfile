@@ -1,20 +1,20 @@
 
-requires 'Moo';
-requires 'Type::Tiny';
-requires 'Types::Standard';
 requires 'DateTime';
-requires 'LWP::UserAgent';
-requires 'LWP::Protocol::https';
-requires 'JSON::MaybeXS', '1.000000';
-requires 'HTTP::Message';
-requires 'Path::Tiny', '0.043';
 requires 'Digest::MD5';
-requires 'URI';
-requires 'namespace::clean';
+requires 'HTTP::Message';
+requires 'JSON::MaybeXS', '1.000000';
+requires 'LWP::Protocol::https';
+requires 'LWP::UserAgent';
+requires 'Moo';
 requires 'MooX::Cmd';
 requires 'MooX::Options';
+requires 'namespace::clean';
+requires 'Path::Tiny', '0.043';
+requires 'Type::Tiny';
+requires 'Types::Standard';
+requires 'URI';
 
 on test => sub {
-  requires 'Test::More';
   requires 'Capture::Tiny';
+  requires 'Test::More';
 };
