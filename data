@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T06:23:40Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:23:36Z
+created: 2026-11-03T05:56:32Z
+id: 39
+priority: medium
+started: 2026-11-03T06:23:36Z
+status: done
+tags:
+- release
+title: 'Changes: aeltere Fix-Eintraege unter NEXT gegen 0.002 pruefen'
+updated: 2026-11-03T06:23:40Z
+---
+
+Hub Runde 2 Punkt 11. Was 0.002 noch nicht hatte, als Ergaenzung formulieren; was in 0.002 fehlerhaft war, bleibt Fix.
+
+Geprueft gegen 50dc3a7 (v0.002): alle drei Fix-Eintraege beschreiben Fehler, die in 0.002 schon waren (includeComponents, Quest camelCase, CLI-Encoding). Bleiben Fix, keine Aenderung.
