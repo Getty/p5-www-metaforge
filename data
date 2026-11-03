@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-11-03T05:20:17Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:20:17Z
+created: 2026-11-03T04:33:22Z
+id: 21
+priority: high
+started: 2026-11-03T04:57:29Z
+status: done
+tags:
+- api
+- events
+title: Events laufen auf events-schedule
+updated: 2026-11-03T05:20:18Z
+---
+
+Hub-Auftrag Punkt 2. events-schedule ist die Quelle; event-timers ist DEPRECATED (liefert noch das alte times-Format). Entscheidung zu event_timers/Result::EventTimer nach Live-Vergleich, Begruendung in den Bericht. CLI events/event auf der aktuellen Quelle.
+
+2026-11-03 05:15 Phase 2 (Plan A) umgesetzt, Tree commit-ready (nicht committet). lib: EventTimer.pm (from_hashref raus, region-Attribut, from_grouped ueber TimeSlot->from_hashref, next_time ohne Wraparound, POD inkl. _raw), EventTimer/TimeSlot.pm (HH:MM-Zweig + Mitternachtslogik raus), ArcRaiders.pm (_group_event_timers ohne // ''-Fallbacks, gruppiert bei region=all nach name+map+region; POD event_timers mit region/map/name, includeAll nicht unterstuetzt; POD event_timers_cached TTL-Hinweis), Request.pm (POD), CLI/Cmd/Event.pm (Datum im Schedule, --map nimmt Karten-IDs, eigene Meldung bei falscher Karte, tote POD-Punkte raus). Events.pm unveraendert. prove -lr -j4 t offline: 28/29 gruen, t/16 rot (prueft Altformat: EventTimer->from_hashref, HH:MM-Slots) -> Test-Writer. Offen fuer Test-Writer: Fixture events-schedule.json byte-treu, event-timers.json loeschen, MockUA-Route, eingefrorene Uhr. Downstream p5-mcp-arcraiders: kein Bruch; Ticket dort: stale Fixture event-timers.json. Produktfrage: --region in der CLI.
+
+Committed as 70b74e4
