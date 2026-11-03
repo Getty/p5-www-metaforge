@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-11-03T07:06:20Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:06:20Z
+created: 2026-11-03T06:44:07Z
+id: 46
+priority: low
+started: 2026-11-03T06:54:05Z
+status: done
+tags:
+- drift
+- api
+- docs
+title: Fassade quests(id => unbekannt) stirbt mit 404, items/arcs liefern leere Liste;
+  POD sagt es nicht
+updated: 2026-11-03T07:06:20Z
+---
+
+Live 2026-11-03: quests?id=<unbekannt> -> 404 {"error":"Quest not found"}; items?id= und arcs?id= mit unbekannter ID -> 200 und leere data. Die Fassade (quests, quests_paginated) reicht den 404 als "API request failed: 404 ..." durch, die POD von quests/quests_paginated (ArcRaiders.pm ~Z.492-511) erwaehnt das nicht. Die CLI faengt es seit f1ba16b selbst ab (Cmd/Quest.pm). Offen fuer Getty: POD ergaenzen, oder die Fassade bei 404 auf id-Abfragen eine leere Liste liefern lassen (Aenderung der oeffentlichen API, trifft p5-mcp-arcraiders nicht: das nutzt nur quests_all).
+
+Commit 58bfc42: quests and quests_paginated return an empty list for an unknown id
