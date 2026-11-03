@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-11-03T06:51:24Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:22:19Z
+created: 2026-11-03T05:24:55Z
+id: 32
+priority: low
+started: 2026-11-03T06:14:09Z
+status: done
+tags:
+- docs
+- cli
+title: POD/CLAUDE.md nennen das CLI-Tool arcraiders, ausgeliefert wird metaforge-arcraiders
+updated: 2026-11-03T06:51:24Z
+---
+
+Beim k26-Durchgang gefunden: =head1 CLI in lib/WWW/MetaForge.pm und die SYNOPSIS der CLI/Cmd/*-Module nennen das Tool `arcraiders`; ausgeliefert wird bin/metaforge-arcraiders, dist.ini benennt nichts um. CLAUDE.md sagt ebenfalls "installed as arcraiders". Klaeren, welcher Name gilt (Maintainer), dann POD/CLAUDE.md angleichen.
+
+Commit 5676f28. POD/Usage erledigt; CLAUDE.md- und Skill-Teil nicht umgesetzt, Patch liegt dem Hub-Bericht bei
+
+Config-Teil (CLAUDE.md, SKILL.md) vom Hub in ee0ea52 eingespielt; damit vollstaendig.
