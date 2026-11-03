@@ -195,7 +195,9 @@ sub clear {
   my ($self, $endpoint) = @_;
 
   if (defined $endpoint) {
-    for my $file ($self->cache_dir->children(qr/^\Q$endpoint\E_/)) {
+    # The MD5 right after the name: event_timers does not match the entries
+    # of event_timers_hourly
+    for my $file ($self->cache_dir->children(qr/^\Q$endpoint\E_[0-9a-f]{32}(?:\.v2)?\.json\z/)) {
       $file->remove;
     }
   } else {
@@ -208,7 +210,10 @@ sub clear {
     $cache->clear('items');  # Clear specific endpoint
     $cache->clear;           # Clear all
 
-Remove cached files, those of older file formats included.
+Remove cached files, those of older file formats included. With an endpoint,
+the entries of exactly that endpoint go, for every parameter set; an endpoint
+whose name merely starts the same way keeps its entries, so
+C<clear('event_timers')> leaves those of C<event_timers_hourly>.
 
 =cut
 

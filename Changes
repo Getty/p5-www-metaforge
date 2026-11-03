@@ -105,6 +105,9 @@ Revision history for WWW-MetaForge
    do; quests_raw still dies there
  - Fix the PARSED debug line counting one record for every response with an
    envelope: it counts the entries of data, and the traders of /traders
+ - Fix Cache clear('event_timers') also removing the event_timers_hourly
+   entries: clear($endpoint) removes the entries of exactly that endpoint,
+   every parameter set and both file formats
  - Add Cache get_entry, the stored entry with its timestamp, ignoring the
    TTL; event_timers_hourly uses it instead of reading the cache file itself
  - Fix the CLI not decoding its arguments: `quest "Celeste’s Journals"` found

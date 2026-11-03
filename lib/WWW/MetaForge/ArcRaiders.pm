@@ -790,8 +790,9 @@ sub _event_timers_stale {
 }
 
 # The events-schedule response behind event_timers_cached and event_timers_raw.
-# A stale entry is fetched again and overwritten; Cache clear would also
-# remove the event_timers_hourly entries, which share the name prefix.
+# A stale entry is fetched again and overwritten with set, which replaces just
+# this parameter set; Cache clear would remove the entries of every region and
+# filter, fresh ones included.
 sub _event_timers_response {
   my ($self, %params) = @_;
   my $req = $self->request->event_timers(%params);
