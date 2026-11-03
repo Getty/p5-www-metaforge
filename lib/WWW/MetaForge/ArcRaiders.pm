@@ -6,7 +6,7 @@ use Moo;
 use LWP::UserAgent;
 use JSON::MaybeXS;
 use Carp qw(croak);
-use List::Util qw(min);
+use List::Util qw(max min);
 use namespace::clean;
 
 our $DEBUG = $ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG};
@@ -728,8 +728,8 @@ would turn into time slots at the epoch.
 =cut
 
 # Group the flat events-schedule records by name+map (+region, which the API
-# sends per record only for region=all) into EventTimer objects
-sub _group_event_timers {
+# sends per record only for region=all): one ArrayRef of records per timer
+sub _event_timer_records {
   my ($self, $data) = @_;
 
   return [] unless $data && ref $data eq 'ARRAY';
@@ -741,24 +741,55 @@ sub _group_event_timers {
     push @{ $grouped{ join "\0", @key } }, $event;
   }
 
-  # Build EventTimer objects from grouped data
-  my @timers;
-  for my $key (sort keys %grouped) {
-    my $events = $grouped{$key};
-    push @timers, WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped(
-      $events->[0]{name}, $events->[0]{map}, $events
-    );
-  }
-
-  return \@timers;
+  return [ map { $grouped{$_} } sort keys %grouped ];
 }
 
-# event_timers_cached: use cache (for when you don't need live data)
-sub event_timers_cached {
+# Build EventTimer objects from the grouped records
+sub _group_event_timers {
+  my ($self, $data) = @_;
+  return [ map {
+    WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped($_->[0]{name}, $_->[0]{map}, $_)
+  } @{ $self->_event_timer_records($data) } ];
+}
+
+# A cached events-schedule entry is stale once a timer that still had a run
+# ahead when it was fetched has started its last run in it: from then on its
+# next_time is undef, while the API, whose window moves on, knows later runs.
+# Timers without a run ahead at fetch time do not count; when no timer had
+# one, the entry is always stale. Seconds as in TimeSlot (int of ms / 1000).
+sub _event_timers_stale {
+  my ($self, $entry) = @_;
+  my $fetched = $entry->{timestamp} // 0;
+  my @last_starts = grep { $_ > $fetched }
+    map { int(max(map { $_->{startTime} } @$_) / 1000) }
+    @{ $self->_event_timer_records($self->_extract_data($entry->{data})) };
+  return !@last_starts || time() >= min(@last_starts);
+}
+
+# The events-schedule response behind event_timers_cached and event_timers_raw.
+# A stale entry is fetched again and overwritten; Cache clear would also
+# remove the event_timers_hourly entries, which share the name prefix.
+sub _event_timers_response {
   my ($self, %params) = @_;
   my $req = $self->request->event_timers(%params);
-  my $response = $self->_fetch('event_timers', $req, %params);
-  my $data = $self->_extract_data($response);
+
+  if ($self->use_cache) {
+    my $entry = $self->cache->get_entry('event_timers', \%params);
+    if ($entry && $self->_event_timers_stale($entry)) {
+      $self->_debug("CACHE STALE (a timer ran out of runs): event_timers");
+      my $response = $self->_fetch('event_timers', $req, %params, _skip_cache => 1);
+      $self->cache->set('event_timers', \%params, $response);
+      $self->_debug("CACHE SET: event_timers");
+      return $response;
+    }
+  }
+
+  return $self->_fetch('event_timers', $req, %params);
+}
+
+sub event_timers_cached {
+  my ($self, %params) = @_;
+  my $data = $self->_extract_data($self->_event_timers_response(%params));
   return $self->_group_event_timers($data);
 }
 
@@ -766,17 +797,17 @@ sub event_timers_cached {
 
     my $events = $api->event_timers_cached(%params);
 
-Like C<event_timers> but uses cache. Only use when you don't need
-real-time event status.
+Like C<event_timers>, but served from the cache.
 
-The schedule window reaches about 42 hours, most of it ahead. The default
-cache never expires, so a cached schedule runs out: once the window has
-passed, no event is active and none lies ahead. Give the cache a TTL for
-C<event_timers> to refetch in time:
+The cached response is fetched again as soon as one of its timers that still
+had a run ahead when it was fetched has started its last run in it: from then
+on its C<next_time> would be undef, while the API, whose window moves on,
+already knows later runs. Timers without a run ahead at fetch time do not
+count, and a response without any run ahead is not served from the cache. A
+TTL for C<event_timers> (see L<WWW::MetaForge::Cache/ttl>) applies on top.
 
-    my $api = WWW::MetaForge::ArcRaiders->new(
-      cache => WWW::MetaForge::Cache->new(ttl => { event_timers => 3600 }),
-    );
+Runs that enter the API's window after the fetch show up with the next
+fetch; C<event_timers_hourly> fetches once an hour.
 
 =cut
 
@@ -865,6 +896,8 @@ sub items_raw {
 =method map_data_raw
 
 Same as the corresponding methods but return raw HashRef/ArrayRef instead of result objects.
+C<event_timers_raw> shares the cache entry and its expiry rule with
+C<event_timers_cached>.
 
 =cut
 
@@ -899,8 +932,7 @@ sub weekly_trials_raw {
 
 sub event_timers_raw {
   my ($self, %params) = @_;
-  my $req = $self->request->event_timers(%params);
-  return $self->_fetch('event_timers', $req, %params);
+  return $self->_event_timers_response(%params);
 }
 
 sub map_data_raw {

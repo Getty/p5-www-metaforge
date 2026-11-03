@@ -59,6 +59,10 @@ Revision history for WWW-MetaForge
    next_time returns undef when no slot of the schedule window lies ahead;
    with region => 'all' the timers are grouped per region and carry the new
    attribute region
+ - event_timers_cached and event_timers_raw keep the cached events schedule
+   until a timer that had a run ahead when it was fetched starts its last
+   one, then fetch it again, so a cached timer's next_time does not run out
+   while the API knows later runs; a TTL for event_timers still applies
  - The event_timers documentation lists the query parameters the live API
    accepts (region, map, name)
  - The event command shows the date of every slot, takes map IDs for --map
