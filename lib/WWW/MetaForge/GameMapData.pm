@@ -279,6 +279,11 @@ Clear cached responses.
 
 =head1 ATTRIBUTION
 
-This module uses the MetaForge API: L<https://metaforge.app>
+The map data comes from MetaForge ARC Raiders:
+L<https://metaforge.app/arc-raiders>
+
+A public project using this data must attribute MetaForge and link to
+that page. The terms of usage are quoted in
+L<WWW::MetaForge::ArcRaiders/ATTRIBUTION>.
 
 =cut

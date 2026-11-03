@@ -70,6 +70,10 @@ Revision history for WWW-MetaForge
    catalog trials and ->weekly_trials_window the window times; the "trials"
    command shows them. A cached answer is kept only until the trial window
    changes
+ - Name MetaForge ARC Raiders (https://metaforge.app/arc-raiders) as the
+   data source in the README and in the POD of WWW::MetaForge,
+   WWW::MetaForge::GameMapData and metaforge-arcraiders, and list the newer
+   ARC Raiders data and commands there
 
 0.002     2026-01-11 04:45:55Z
 

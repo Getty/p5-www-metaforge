@@ -28,12 +28,35 @@ WWW::MetaForge::ArcRaiders::CLI->new_with_cmd;
   # List traders
   metaforge-arcraiders traders
 
+  # Ermal's offers and permanent services
+  metaforge-arcraiders ermal
+
+  # List hideout stations, or show one level by level
+  metaforge-arcraiders hideout
+  metaforge-arcraiders hideout gunsmith
+
+  # Weekly trials of the running and the next window
+  metaforge-arcraiders trials
+
   # Show event timers
   metaforge-arcraiders events
+
+  # List ARCs
+  metaforge-arcraiders arcs
+
+  # Show map markers (dam, spaceport, ..., pendola-pass)
+  metaforge-arcraiders map pendola-pass
 
 =head1 DESCRIPTION
 
 Command-line interface for querying the MetaForge ARC Raiders API.
+
+=head1 ATTRIBUTION
+
+All data comes from MetaForge ARC Raiders:
+L<https://metaforge.app/arc-raiders>
+
+The terms of usage are quoted in L<WWW::MetaForge::ArcRaiders/ATTRIBUTION>.
 
 =head1 SUPPORT
 

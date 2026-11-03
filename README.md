@@ -1,9 +1,12 @@
 # WWW::MetaForge
 
 Perl client library for the [MetaForge.app](https://metaforge.app) game data API.
+All game data comes from [MetaForge ARC Raiders](https://metaforge.app/arc-raiders).
 
 Currently supports **ARC Raiders** with:
-- Items, ARCs, Quests, Traders
+- Items, ARCs, Quests, Traders and Ermal's offers
+- Hideout stations with their upgrade levels
+- Weekly trials with their window times
 - Event timers with live status
 - Interactive map data (POIs, loot locations, etc.)
 
@@ -39,12 +42,27 @@ metaforge-arcraiders quests
 # Show traders and their inventory
 metaforge-arcraiders traders
 
+# Ermal's offers and permanent services
+metaforge-arcraiders ermal
+
+# Hideout stations, or one station level by level
+metaforge-arcraiders hideout
+metaforge-arcraiders hideout gunsmith
+
+# Weekly trials of the running and the next window
+metaforge-arcraiders trials
+metaforge-arcraiders trials --catalog  # trials that are not scheduled
+
 # Event timers (sorted by time)
 metaforge-arcraiders events
 metaforge-arcraiders events --active   # only currently active
+metaforge-arcraiders event "Night Raid" --map stella-montis
 
 # ARCs (missions/events)
 metaforge-arcraiders arcs
+
+# Map markers
+metaforge-arcraiders map dam
 ```
 
 ### Global Options
@@ -87,6 +105,15 @@ for my $trader (@$traders) {
         say "  Sells Ferro I for $info->{trader_price}";
     }
 }
+
+# Hideout: what the second Gunsmith level takes
+my ($gunsmith) = grep { $_->id eq 'weapon-bench' } @{ $api->hideout };
+say "$_->{quantity}x $_->{id}" for @{ $gunsmith->level(2)->required_items };
+
+# Weekly trials of the running window
+say $_->name for grep { $_->is_active } @{ $api->weekly_trials };
+my $window = $api->weekly_trials_window;   # epoch seconds
+say "Next trials start at " . gmtime($window->next_window_start);
 
 # Event timers
 my $events = $api->event_timers;
@@ -146,6 +173,7 @@ Cache location defaults to:
 - Windows: `%LOCALAPPDATA%/metaforge/`
 
 **Note:** `event_timers()` always fetches fresh data (time-critical). Use `event_timers_cached()` if you want cached data.
+A cached weekly trials response is used only until its trial window changes.
 
 ## Raw API Access
 
@@ -194,6 +222,10 @@ All API methods return typed result objects:
 | `arcs` | `WWW::MetaForge::ArcRaiders::Result::Arc` |
 | `quests` | `WWW::MetaForge::ArcRaiders::Result::Quest` |
 | `traders` | `WWW::MetaForge::ArcRaiders::Result::Trader` |
+| `ermal` | `WWW::MetaForge::ArcRaiders::Result::Ermal` |
+| `hideout` | `WWW::MetaForge::ArcRaiders::Result::HideoutStation` |
+| `weekly_trials` | `WWW::MetaForge::ArcRaiders::Result::WeeklyTrial` |
+| `weekly_trials_window` | `WWW::MetaForge::ArcRaiders::Result::WeeklyTrialWindow` |
 | `event_timers` | `WWW::MetaForge::ArcRaiders::Result::EventTimer` |
 | `map_data` | `WWW::MetaForge::ArcRaiders::Result::MapMarker` |
 
@@ -201,7 +233,12 @@ Each result object provides typed accessors and the original data via `->_raw`.
 
 ## Attribution
 
-This module uses the MetaForge API: https://metaforge.app
+All data comes from MetaForge: https://metaforge.app/arc-raiders
+
+The data is maintained by the MetaForge team and community contributors.
+MetaForge asks every public project that uses the API to credit them with a
+link to https://metaforge.app/arc-raiders, and paid or monetized projects to
+contact them first on their Discord: https://discord.gg/8UEK9TrQDs
 
 ## Support
 

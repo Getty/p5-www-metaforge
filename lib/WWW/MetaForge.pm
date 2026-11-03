@@ -28,7 +28,7 @@ WWW::MetaForge provides Perl interfaces to the MetaForge gaming APIs.
 
 =over 4
 
-=item * L<WWW::MetaForge::ArcRaiders> - ARC Raiders game data (items, quests, traders, events, maps)
+=item * L<WWW::MetaForge::ArcRaiders> - ARC Raiders game data (items, ARCs, quests, traders, Ermal's offers, hideout stations, weekly trials, event timers, map data)
 
 =item * L<WWW::MetaForge::GameMapData> - Generic game map marker data
 
@@ -45,10 +45,13 @@ The distribution includes the C<arcraiders> command-line tool:
 
 =head1 ATTRIBUTION
 
-This module uses the MetaForge API: L<https://metaforge.app>
+All game data comes from MetaForge ARC Raiders, maintained by the
+MetaForge team and community contributors:
+L<https://metaforge.app/arc-raiders>
 
-Data is community-maintained. Please attribute MetaForge when using
-this data in public projects.
+A public project using this data must attribute MetaForge and link to
+that page. The terms of usage are quoted in
+L<WWW::MetaForge::ArcRaiders/ATTRIBUTION>.
 
 =head1 SEE ALSO
 
