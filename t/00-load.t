@@ -21,10 +21,12 @@ use_ok('WWW::MetaForge::ArcRaiders::Result::Item');
 use_ok('WWW::MetaForge::ArcRaiders::Result::Arc');
 use_ok('WWW::MetaForge::ArcRaiders::Result::Quest');
 use_ok('WWW::MetaForge::ArcRaiders::Result::Trader');
+use_ok('WWW::MetaForge::ArcRaiders::Result::Ermal');
 use_ok('WWW::MetaForge::ArcRaiders::Result::EventTimer');
 use_ok('WWW::MetaForge::ArcRaiders::Result::MapMarker');
 
 # CLI
 use_ok('WWW::MetaForge::ArcRaiders::CLI');
+use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Ermal');
 
 done_testing;

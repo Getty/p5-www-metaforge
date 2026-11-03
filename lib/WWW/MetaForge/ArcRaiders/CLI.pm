@@ -112,6 +112,7 @@ sub execute {
     print "  event    Show details for a single event\n";
     print "  traders  List all traders\n";
     print "  trader   Show details for a single trader\n";
+    print "  ermal    Show Ermal's offers and permanent services\n";
     print "  map      Show map markers for a map\n";
     print "\nOptions:\n";
     print "  -d, --debug     Enable debug output\n";
@@ -125,6 +126,7 @@ sub execute {
     print "  metaforge-arcraiders quest a-bad-feeling\n";
     print "  metaforge-arcraiders events\n";
     print "  metaforge-arcraiders trader Apollo\n";
+    print "  metaforge-arcraiders ermal\n";
     print "  metaforge-arcraiders map dam\n";
   }
 }

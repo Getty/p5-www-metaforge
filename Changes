@@ -50,6 +50,8 @@ Revision history for WWW-MetaForge
  - Quest: add `description`, `additional_rewards` and `manifest`;
    `arcraiders quest` shows the trader, prerequisites, description, required
    and granted items by name and quantity, and all rewards
+ - Add Result::Ermal and the `ermal` method for Ermal's offers and permanent
+   services from the traders response, and the CLI command `arcraiders ermal`
 
 0.002     2026-01-11 04:45:55Z
 

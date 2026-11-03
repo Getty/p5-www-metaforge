@@ -2,6 +2,12 @@
 use strict;
 use warnings;
 use Test::More;
+use File::Temp qw(tempdir);
+use FindBin;
+use lib "$FindBin::Bin/lib";
+use MockUA;
+
+use WWW::MetaForge::ArcRaiders;
 
 use_ok('WWW::MetaForge::ArcRaiders::Result::Trader');
 
@@ -104,6 +110,34 @@ subtest 'empty inventory' => sub {
   is(ref $trader->inventory, 'ARRAY', 'inventory is array');
   is(scalar @{$trader->inventory}, 0, 'inventory is empty');
   ok(!$trader->has_item('Anything'), 'has_item false on empty inventory');
+};
+
+# t/fixtures/traders.json is the unchanged live /traders response: the traders
+# with an inventory under `data`, Ermal separately under `ermal`.
+subtest 'live traders fixture through the API' => sub {
+  my $api = WWW::MetaForge::ArcRaiders->new(
+    ua        => MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures"),
+    cache_dir => tempdir(CLEANUP => 1),
+    use_cache => 0,
+  );
+  my $traders = $api->traders;
+  my %trader = map { $_->name => $_ } @$traders;
+
+  is_deeply([ map { $_->name } @$traders ], [qw( Apollo Celeste Lance Shani TianWen )],
+    'the five inventory traders, sorted; Ermal is not among them');
+  is_deeply({ map { $_->name => scalar @{ $_->inventory } } @$traders },
+    { Apollo => 18, Celeste => 30, Lance => 19, Shani => 11, TianWen => 30 },
+    'inventory sizes');
+
+  my $kit = $trader{Apollo}->find_item('Barricade Kit');
+  is($kit->{id}, 'barricade-kit', 'item id');
+  is($kit->{trader_price}, 1920, 'trader_price');
+  is($kit->{value}, 640, 'value');
+  is($kit->{rarity}, 'Uncommon', 'rarity');
+  is($kit->{item_type}, 'Quick Use', 'item_type');
+  is($kit->{description}, 'A deployable cover that can block incoming damage until it breaks.', 'description');
+  is_deeply($trader{Apollo}->_raw->{inventory}, $api->traders_raw->{data}{Apollo}, '_raw inventory is the data.Apollo list');
+  ok($trader{Apollo}->has_item('barricade kit'), 'has_item on live data');
 };
 
 done_testing;

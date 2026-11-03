@@ -17,6 +17,7 @@ use WWW::MetaForge::ArcRaiders::Result::Item;
 use WWW::MetaForge::ArcRaiders::Result::Arc;
 use WWW::MetaForge::ArcRaiders::Result::Quest;
 use WWW::MetaForge::ArcRaiders::Result::Trader;
+use WWW::MetaForge::ArcRaiders::Result::Ermal;
 use WWW::MetaForge::ArcRaiders::Result::EventTimer;
 use WWW::MetaForge::ArcRaiders::Result::MapMarker;
 
@@ -51,7 +52,7 @@ use WWW::MetaForge::ArcRaiders::Result::MapMarker;
 =head1 DESCRIPTION
 
 Perl interface to the MetaForge ARC Raiders API for game data
-(items, ARCs, quests, traders, event timers, map data).
+(items, ARCs, quests, traders, Ermal's offers, event timers, map data).
 
 =cut
 
@@ -547,7 +548,32 @@ sub traders {
 
     my $traders = $api->traders(%params);
 
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Trader>.
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Trader>, one per
+trader in the C<data> section of the C</traders> response.
+
+=cut
+
+sub ermal {
+  my ($self, %params) = @_;
+  my $req = $self->request->traders(%params);
+  my $response = $self->_fetch('traders', $req, %params);
+  return unless ref $response->{ermal} eq 'HASH';
+  return WWW::MetaForge::ArcRaiders::Result::Ermal->from_hashref($response->{ermal});
+}
+
+=method ermal
+
+    my $ermal = $api->ermal;
+    for my $offer ($ermal->offers->@*) {
+        say $offer->{offer_title};
+    }
+
+Returns a L<WWW::MetaForge::ArcRaiders::Result::Ermal> with Ermal's
+time-limited offers and permanent services. The API sends them as the C<ermal> section of
+the C</traders> response, next to C<data>; this method reads the same
+response as C<traders> and shares its cache entry, so calling both costs one
+request when caching is on. Returns undef when the response carries no
+C<ermal> section. The raw section is in C<< $api->traders_raw->{ermal} >>.
 
 =cut
 
