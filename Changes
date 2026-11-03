@@ -80,6 +80,12 @@ Revision history for WWW-MetaForge
  - Fix the CLI output encoding: --json printed UTF-8 encoded twice, and
    text run from Perl (new_with_cmd) printed Latin-1 bytes or warned
    "Wide character"; every command now prints UTF-8 encoded exactly once
+ - Fix the cache writing its JSON files UTF-8 encoded twice; they are now
+   encoded once and the file name carries the format version
+   (<endpoint>_<md5>.v2.json), so files of the old format are no longer read
+   and are fetched again, and clear removes both
+ - Add Cache get_entry, the stored entry with its timestamp, ignoring the
+   TTL; event_timers_hourly uses it instead of reading the cache file itself
 
 0.002     2026-01-11 04:45:55Z
 

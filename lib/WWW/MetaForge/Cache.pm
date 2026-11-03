@@ -24,6 +24,12 @@ File-based caching for MetaForge API responses. Cache files are stored following
 XDG Base Directory Specification on Unix (C<~/.cache/metaforge/>) and
 LOCALAPPDATA on Windows.
 
+Each entry is one JSON file, encoded to UTF-8 exactly once, named
+C<< <endpoint>_<md5>.v2.json >> after the endpoint and the MD5 of the encoded
+parameters. The C<v2> is the file format version: files of older versions
+(C<< <endpoint>_<md5>.json >>) are never read, so their entries are simply
+fetched again. L</clear> removes them along with the current ones.
+
 =cut
 
 # Default: 0 = never expire (cache forever until manually cleared)
@@ -80,7 +86,9 @@ has json => (
 
 =attr json
 
-L<JSON::MaybeXS> instance for serialization.
+L<JSON::MaybeXS> instance for serialization. The cache files are written and
+read as raw bytes, so a replacement must encode to UTF-8 itself (C<utf8>, like
+the default) and stay C<canonical>, as the cache key is built from it.
 
 =cut
 
@@ -99,10 +107,12 @@ sub _build_cache_dir {
   return $dir;
 }
 
+# v2: the JSON is UTF-8 encoded exactly once. v1 files (<endpoint>_<md5>.json)
+# were encoded twice and are not read; refetching is the migration.
 sub _cache_key {
   my ($self, $endpoint, $params) = @_;
   my $param_str = $self->json->encode($params // {});
-  return $endpoint . '_' . md5_hex($param_str) . '.json';
+  return $endpoint . '_' . md5_hex($param_str) . '.v2.json';
 }
 
 sub _cache_file {
@@ -113,11 +123,8 @@ sub _cache_file {
 sub get {
   my ($self, $endpoint, $params) = @_;
 
-  my $file = $self->_cache_file($endpoint, $params);
-  return undef unless $file->is_file;
-
-  my $cached = eval { $self->json->decode($file->slurp_utf8) };
-  return undef unless $cached && ref $cached eq 'HASH';
+  my $cached = $self->get_entry($endpoint, $params);
+  return undef unless $cached;
 
   # TTL 0 or undef = never expire
   my $ttl = $self->ttl->{$endpoint};
@@ -137,6 +144,30 @@ Returns cached data or undef if missing/expired.
 
 =cut
 
+sub get_entry {
+  my ($self, $endpoint, $params) = @_;
+
+  my $file = $self->_cache_file($endpoint, $params);
+  return undef unless $file->is_file;
+
+  my $cached = eval { $self->json->decode($file->slurp_raw) };
+  return undef unless $cached && ref $cached eq 'HASH';
+
+  return $cached;
+}
+
+=method get_entry
+
+    if (my $entry = $cache->get_entry($endpoint, \%params)) {
+      my $age = time - $entry->{timestamp};
+    }
+
+Returns the stored entry as a HashRef with C<timestamp> (epoch seconds of
+the L</set>), C<endpoint>, C<params> and C<data>, or undef if missing.
+Ignores the TTL, for callers with their own expiry rule.
+
+=cut
+
 sub set {
   my ($self, $endpoint, $params, $data) = @_;
 
@@ -148,7 +179,7 @@ sub set {
     data      => $data,
   };
 
-  $file->spew_utf8($self->json->encode($cached));
+  $file->spew_raw($self->json->encode($cached));
   return $data;
 }
 
@@ -177,7 +208,7 @@ sub clear {
     $cache->clear('items');  # Clear specific endpoint
     $cache->clear;           # Clear all
 
-Remove cached files.
+Remove cached files, those of older file formats included.
 
 =cut
 

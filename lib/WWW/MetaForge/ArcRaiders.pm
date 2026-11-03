@@ -791,19 +791,16 @@ sub event_timers_hourly {
   # Check if we have valid cached data from this hour
   my $cache_key = 'event_timers_hourly';
   if ($self->use_cache) {
-    my $cache_file = $self->cache->_cache_file($cache_key, \%params);
-    if ($cache_file->is_file) {
-      my $cached = eval { $self->json->decode($cache_file->slurp_utf8) };
-      if ($cached && ref $cached eq 'HASH') {
-        my $cached_time = $cached->{timestamp} // 0;
-        # Valid if cached in the same hour
-        if ($cached_time >= $current_hour) {
-          $self->_debug("CACHE HIT (hourly): $cache_key");
-          my $data = $cached->{data};
-          return $self->_group_event_timers($data);
-        }
-        $self->_debug("CACHE EXPIRED (new hour): $cache_key");
+    my $cached = $self->cache->get_entry($cache_key, \%params);
+    if ($cached) {
+      my $cached_time = $cached->{timestamp} // 0;
+      # Valid if cached in the same hour
+      if ($cached_time >= $current_hour) {
+        $self->_debug("CACHE HIT (hourly): $cache_key");
+        my $data = $cached->{data};
+        return $self->_group_event_timers($data);
       }
+      $self->_debug("CACHE EXPIRED (new hour): $cache_key");
     }
   }
 
