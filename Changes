@@ -22,6 +22,8 @@ Revision history for WWW-MetaForge
  - Remove the --type option of `metaforge-arcraiders quests`: quests carry no
    type in the API and the API ignores a type parameter, so it never
    filtered anything
+ - The quest examples in the POD of WWW::MetaForge::ArcRaiders::Request and
+   ::Result::Quest use parameters the API takes (id, search)
  - Add Result::Arc attribute `loot` (the CLI requests includeLoot=true) and
    Result::Quest attribute `guide_url`; `guide_links` is dead upstream
  - Fix the CLI item lookup not sending includeComponents, which left the

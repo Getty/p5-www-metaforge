@@ -151,7 +151,7 @@ sub from_hashref {
 
 =head1 SYNOPSIS
 
-  my $quests = $api->quests(type => 'StoryQuest');
+  my $quests = $api->quests(search => 'Celeste');
   for my $quest (@$quests) {
       say $quest->name;
       say "  " . $_ for $quest->objectives->@*;

@@ -89,7 +89,7 @@ sub quests {
 
 =method quests
 
-    my $req = $factory->quests(type => 'StoryQuest');
+    my $req = $factory->quests(id => 'celestes-journals');
 
 Returns L<HTTP::Request> for C</quests> endpoint.
 
