@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T06:05:45Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:05:45Z
+created: 2026-11-03T05:06:28Z
+id: 31
+priority: low
+started: 2026-11-03T05:58:01Z
+status: done
+tags:
+- cleanup
+- cache
+title: event_timers_hourly greift auf das private Cache::_cache_file zu
+updated: 2026-11-03T06:05:45Z
+---
+
+event_timers_hourly liest cache->_cache_file und das Dateiformat direkt, dupliziert Cache::get und ignoriert ttl. clear_cache(event_timers) loescht auch event_timers_hourly_*-Dateien (Praefix). Gefunden in der k21-Analyse 2026-11-03; nicht Teil des Hub-Auftrags.
+
+Committed in a232bb0
