@@ -1,0 +1,21 @@
+---
+claimed_at: 2026-11-03T06:54:18Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:54:18Z
+created: 2026-11-03T06:29:37Z
+id: 45
+priority: low
+started: 2026-11-03T06:54:18Z
+status: done
+tags:
+- cli
+- events
+title: 'CLI: unbekannte --region still europe; Warnung braucht die gelieferte Region
+  aus dem Umschlag'
+updated: 2026-11-03T06:54:18Z
+---
+
+Gefunden in Runde 2 bei k36: Die API liefert fuer unbekannte region stillschweigend europe; das Umschlagfeld region nennt die gelieferte. event_timers verwirft den Umschlag, event_timers_raw geht durch den Cache. Eine Warnung braeuchte eine Fassaden-Aenderung (gelieferte Region neben den Timern). Produktfrage, nicht umgesetzt.
+
+Hub Runde 3: bleibt wie es ist; die POD von events/event dokumentiert, dass eine unbekannte Region still europe liefert. Keine Warnung.
