@@ -2,6 +2,8 @@
 # ABSTRACT: CLI for the MetaForge ARC Raiders API
 # PODNAME: metaforge-arcraiders
 
+our $VERSION = '0.003';
+
 use strict;
 use warnings;
 use open ':std', ':encoding(UTF-8)';
