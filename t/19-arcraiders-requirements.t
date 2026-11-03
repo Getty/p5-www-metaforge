@@ -19,13 +19,18 @@ my $api = WWW::MetaForge::ArcRaiders->new(
   use_cache => 0,
 );
 
-# Fixture crafting chain (real items, from t/fixtures/items.json, verified
-# against the live API via `curl "https://metaforge.app/api/arc-raiders/items?includeComponents=true&limit=200"`):
+# Fixture crafting chain (real items from the live API, unchanged files):
+# the recipes sit on page 1 (t/fixtures/items.json) but the materials they
+# need sit on later pages. MockUA serves the byte-faithful page files
+# t/fixtures/items-page-N.json for page N (8, 11, 15, 20, 23, 30) and empty
+# pages in between, so items_all (which find_item_by_name loads) walks all
+# 31 pages and sees the whole chain without any hand-edited fixture:
 #
-#   Adrenaline Shot          -> Plastic Parts x3, Chemicals x3
-#   Advanced Electrical Components -> Wires x3, Electrical Components x2
-#   Electrical Components    -> Plastic Parts x8, Rubber Parts x4
-#   Wires / Rubber Parts / Plastic Parts / Chemicals -> base materials (no components)
+#   Adrenaline Shot          (page 1)  -> Plastic Parts x3, Chemicals x3
+#   Advanced Electrical Components (page 1) -> Wires x3, Electrical Components x2
+#   Electrical Components    (page 11) -> Plastic Parts x8, Rubber Parts x4
+#   Chemicals (page 8), Plastic Parts (page 20), Rubber Parts (page 23),
+#   Wires (page 30) -> base materials (no components)
 
 subtest 'find_item_by_name works' => sub {
   my $item = $api->find_item_by_name('Electrical Components');

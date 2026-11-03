@@ -24,14 +24,14 @@ option category => (
   is      => 'ro',
   format  => 's',
   short   => 'c',
-  doc     => 'Filter by item category',
+  doc     => 'Filter by item category (exact API item_type, e.g. "Quick Use")',
 );
 
 option rarity => (
   is      => 'ro',
   format  => 's',
   short   => 'r',
-  doc     => 'Filter by item rarity',
+  doc     => 'Filter by item rarity (exact API value, e.g. "Legendary")',
 );
 
 option page => (
@@ -53,6 +53,8 @@ sub execute {
 
   my %params;
   $params{search} = $self->search if $self->search;
+  $params{item_type} = $self->category if $self->category;
+  $params{rarity} = $self->rarity if $self->rarity;
   $params{page} = $self->page if $self->page;
   $params{limit} = $self->limit if $self->limit;
 
@@ -64,16 +66,6 @@ sub execute {
     my $result = $app->api->items_paginated(%params);
     $items = $result->{data};
     $pagination = $result->{pagination};
-  }
-
-  # Apply local filters
-  if ($self->category) {
-    my $cat = lc($self->category);
-    $items = [ grep { $_->item_type && lc($_->item_type) =~ /\Q$cat\E/ } @$items ];
-  }
-  if ($self->rarity) {
-    my $rar = lc($self->rarity);
-    $items = [ grep { $_->rarity && lc($_->rarity) eq $rar } @$items ];
   }
 
   if ($app->json) {
@@ -115,6 +107,7 @@ sub execute {
   arcraiders items
   arcraiders items --search Ferro
   arcraiders items --category Weapon --rarity Rare
+  arcraiders items --category 'Quick Use' --all
 
 =head1 DESCRIPTION
 
@@ -134,11 +127,13 @@ Maximum number of results to display.
 
 =item --category, -c
 
-Filter by item category.
+Filter by item category. The API filters on C<item_type> and matches the
+exact, case-sensitive value (C<Weapon>, C<Quick Use>, C<Topside Material>).
 
 =item --rarity, -r
 
-Filter by item rarity.
+Filter by item rarity. The API matches the exact, case-sensitive value
+(C<Common>, C<Uncommon>, C<Rare>, C<Epic>, C<Legendary>, C<Amplified>).
 
 =item --page, -p
 

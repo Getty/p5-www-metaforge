@@ -4,6 +4,7 @@ use warnings;
 use Test::More;
 use File::Temp qw(tempdir);
 use FindBin;
+use JSON::MaybeXS ();
 use lib "$FindBin::Bin/lib";
 
 use_ok('WWW::MetaForge::ArcRaiders');
@@ -50,11 +51,25 @@ subtest 'items_all returns all items' => sub {
   ok(ref $all eq 'ARRAY', 'returns arrayref');
   ok(scalar @$all > 0, 'not empty');
 
-  # MockUA serves the fixture as page 1 (hasNextPage true) and a synthesized
-  # empty terminal page for page 2, so items_all accumulates exactly the
-  # single fixture page before stopping.
-  my $result = $api->items_paginated();
-  is(scalar @$all, scalar @{$result->{data}}, 'same count (single page)');
+  # MockUA serves t/fixtures/items.json as page 1 and the page files
+  # items-page-N.json (live pages 8, 11, 15, 20, 23, 30) where they exist;
+  # the other pages up to totalPages are empty. items_all walks all 31 pages
+  # and accumulates exactly the rows of the page files on disk.
+  my $first = $api->items_paginated();
+  is($first->{pagination}{totalPages}, 31, 'page 1 reports 31 pages');
+  is($first->{pagination}{total}, 1512, 'page 1 reports 1512 items');
+
+  my @page_files = glob("$FindBin::Bin/fixtures/items-page-*.json");
+  is(scalar @page_files, 6, 'six page files next to items.json');
+  my $expected = scalar @{ $first->{data} };
+  for my $file (@page_files) {
+    open my $fh, '<:raw', $file or die "Cannot open $file: $!";
+    $expected += scalar @{ JSON::MaybeXS::decode_json(do { local $/; <$fh> })->{data} };
+  }
+  is(scalar @$all, $expected, 'items_all returns page 1 plus every page file');
+  my %seen;
+  $seen{ $_->id }++ for @$all;
+  is(scalar keys %seen, scalar @$all, 'every item once, no page served twice');
 };
 
 subtest 'items_paginated with search' => sub {

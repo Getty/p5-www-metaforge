@@ -53,11 +53,11 @@ sub execute {
     return;
   }
 
-  _print_item_details($item);
+  _print_item_details($item, $app->api);
 }
 
 sub _print_item_details {
-  my ($item) = @_;
+  my ($item, $api) = @_;
 
   print "=" x 60, "\n";
   printf "%s\n", $item->name // 'Unknown';
@@ -65,14 +65,29 @@ sub _print_item_details {
 
   _print_field("ID",          $item->id);
   _print_field("Category",    $item->item_type);
+  _print_field("Subcategory", $item->subcategory);
   _print_field("Rarity",      $item->rarity);
   _print_field("Weight",      $item->weight);
   _print_field("Stack Size",  $item->stack_size);
   _print_field("Base Value",  $item->value);
+  _print_field("Workbench",   $item->workbench);
+  _print_field("Ammo Type",   $item->ammo_type);
+  _print_field("Shield Type", $item->shield_type);
+  _print_field("Loot Area",   $item->loot_area);
+  _print_field("Cosmetic",    $item->cosmetic->{kind});
+  _print_field("Slot",        $item->cosmetic->{slot});
+  _print_field("Variant Of",  $item->cosmetic->{parentName});
+  _print_field("Option",      $item->cosmetic->{optionName});
+  _print_field("Guide",       $item->guide_url);
 
   if ($item->description) {
     print "\nDescription:\n";
     print "  ", $item->description, "\n";
+  }
+
+  if ($item->flavor_text) {
+    print "\nFlavor Text:\n";
+    print "  ", $item->flavor_text, "\n";
   }
 
   if ($item->stat_block && %{$item->stat_block}) {
@@ -82,32 +97,42 @@ sub _print_item_details {
     }
   }
 
-  if ($item->components && @{$item->components}) {
-    print "\nCrafting Requirements:\n";
-    for my $req (@{$item->components}) {
-      my $component = $req->{component};
-      my $name = ref($component) eq 'HASH' ? $component->{name} : $component;
-      my $qty  = $req->{quantity} // 1;
-      printf "  %dx %s\n", $qty, $name // 'Unknown';
-    }
-  }
+  _print_list("Crafting Requirements",
+    map { sprintf '%dx %s', $_->{quantity}, $_->{component}{name} } @{$item->components});
 
-  if ($item->sold_by && @{$item->sold_by}) {
-    print "\nSold By:\n";
-    for my $seller (@{$item->sold_by}) {
-      printf "  %s (%s)\n", $seller->{trader_name} // 'Unknown', $seller->{price} // '-';
-    }
-  }
+  _print_list("Used In",
+    map { sprintf '%s (needs %dx)', $_->{item}{name}, $_->{quantity} } @{$item->used_in});
 
-  if ($item->recycle_components && @{$item->recycle_components}) {
-    print "\nRecycle Yield:\n";
-    for my $req (@{$item->recycle_components}) {
-      my $component = $req->{component};
-      my $name = ref($component) eq 'HASH' ? $component->{name} : $component;
-      my $qty  = $req->{quantity} // 1;
-      printf "  %dx %s\n", $qty, $name // 'Unknown';
-    }
+  _print_list("Sold By",
+    map { sprintf '%s (%s)', $_->{trader_name}, $_->{price} } @{$item->sold_by});
+
+  _print_list("Recycle Yield",
+    map { sprintf '%dx %s', $_->{quantity}, $_->{component}{name} } @{$item->recycle_components});
+
+  _print_list("Recycled From",
+    map { sprintf '%s (yields %dx)', $_->{item}{name}, $_->{quantity} } @{$item->recycle_from});
+
+  _print_list("Dropped By",
+    map { sprintf '%s [%s]', $_->{arc}{name}, $_->{arc}{id} } @{$item->dropped_by});
+
+  _print_list("Compatible With",
+    map { $_->{mod}{name} } @{$item->mods});
+
+  my (@maps, %spots);
+  for my $location (@{$item->locations}) {
+    push @maps, $location->{map} unless $spots{$location->{map}}++;
   }
+  _print_list("Locations",
+    map { $api->map_display_name($_) . ($spots{$_} > 1 ? " ($spots{$_} spots)" : '') } @maps);
+
+  my @settings;
+  for my $setting (@{$item->cosmetic->{settings} // []}) {
+    push @settings, $setting->{name} . ': ' . join(', ', map { $_->{name} } @{$setting->{options}});
+  }
+  _print_list("Customization", @settings);
+
+  _print_list("Guides",
+    map { $_->{label} . ': ' . $_->{url} } @{$item->guide_links});
 
   if ($item->updated_at) {
     print "\nLast Updated: ", $item->updated_at, "\n";
@@ -116,8 +141,15 @@ sub _print_item_details {
 
 sub _print_field {
   my ($label, $value) = @_;
-  return unless defined $value;
+  return unless defined $value && length $value;
   printf "%-15s %s\n", "$label:", $value;
+}
+
+sub _print_list {
+  my ($title, @lines) = @_;
+  return unless @lines;
+  print "\n$title:\n";
+  print "  $_\n" for @lines;
 }
 
 1;
@@ -145,17 +177,29 @@ including:
 
 =over 4
 
-=item * Name, category, rarity
+=item * Name, category, subcategory, rarity
 
-=item * Weight, stack size, base value
+=item * Weight, stack size, base value, workbench
 
-=item * Description and stats
+=item * Ammo type, shield type, loot area
 
-=item * Crafting requirements
+=item * Cosmetic kind, slot and customization options
+
+=item * Description, flavor text and stats
+
+=item * Crafting requirements and the items it is used in
 
 =item * Vendors that sell the item
 
-=item * Recycle yield
+=item * Recycle yield and the items that recycle into it
+
+=item * ARCs that drop the item
+
+=item * Compatible mods or weapons
+
+=item * Map locations
+
+=item * Guide links
 
 =item * Last updated timestamp
 

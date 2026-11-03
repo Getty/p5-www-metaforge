@@ -4,6 +4,7 @@ use warnings;
 use Path::Tiny;
 use HTTP::Response;
 use LWP::UserAgent;
+use URI;
 use Encode;
 use JSON::MaybeXS;
 
@@ -25,22 +26,119 @@ unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
   }
 }
 
+# What this mock simplifies compared to the live API:
+#  - fixtures are byte-faithful live responses; the mock only selects,
+#    gates or filters what it serves, it never edits the files
+#  - /items: page 1 is t/fixtures/items.json, page N is
+#    t/fixtures/items-page-N.json when that file exists, otherwise an
+#    empty page (data [], pagination consistent with the page-1 totals), so a
+#    walk over all pages ends after totalPages with the pages on disk
+#  - /items item_type and rarity filter the page-1 fixture exactly and
+#    case-sensitively (AND); the result is one page, pagination recomputed
+#    (total, totalPages 0 or 1, no next page). Other parameters (search,
+#    limit, ...) are not evaluated.
+#  - every request is recorded, see requests()
+
+my @ITEM_RELATIONS = qw(
+  components dropped_by mods recycle_components recycle_from
+  relationships sold_by used_in
+);
+
 sub new {
   my ($class, %args) = @_;
   return bless {
     fixtures_dir => $args{fixtures_dir} // 't/fixtures',
+    requests     => [],
   }, $class;
+}
+
+# URIs (strings) of all requests this UA has answered, in order
+sub requests { return @{ $_[0]{requests} } }
+sub last_request { return $_[0]{requests}[-1] }
+
+sub _query {
+  my ($self, $uri) = @_;
+  my @pairs = URI->new($uri)->query_form;
+  my %query;
+  while (my ($key, $value) = splice @pairs, 0, 2) { $query{$key} = $value }
+  return %query;
+}
+
+sub _json { return JSON::MaybeXS->new(canonical => 1) }
+
+sub _response {
+  my ($self, $content) = @_;
+  my $response = HTTP::Response->new(200, 'OK');
+  $response->content(Encode::encode('UTF-8', $content));
+  $response->header('Content-Type' => 'application/json');
+  return $response;
+}
+
+sub _items_response {
+  my ($self, $uri) = @_;
+  my %query = $self->_query($uri);
+  my $page  = defined $query{page} && $query{page} =~ /^\d+$/ ? int($query{page}) : 1;
+  my $dir   = path($self->{fixtures_dir});
+  my $first = $dir->child('items.json');
+  return HTTP::Response->new(404, 'Fixture not found: items.json') unless $first->is_file;
+
+  my $envelope = $self->_json->decode($first->slurp_utf8);
+  my $filtered = grep { defined $query{$_} } qw(item_type rarity);
+  my $content;
+
+  if ($filtered) {
+    my @rows = grep {
+      my $row = $_;
+      !grep { defined $query{$_} && !(defined $row->{$_} && $row->{$_} eq $query{$_}) } qw(item_type rarity)
+    } @{ $envelope->{data} };
+    my $total = scalar @rows;
+    $envelope->{data} = $page == 1 ? \@rows : [];
+    $envelope->{pagination} = {
+      page        => $page,
+      limit       => $query{limit} ? int($query{limit}) : $envelope->{pagination}{limit},
+      total       => $total,
+      totalPages  => $total ? 1 : 0,
+      hasNextPage => \0,
+      hasPrevPage => $page > 1 ? \1 : \0,
+    };
+  } elsif ($page > 1) {
+    my $file = $dir->child("items-page-$page.json");
+    if ($file->is_file) {
+      $envelope = $self->_json->decode($file->slurp_utf8);
+    } else {
+      my $total_pages = $envelope->{pagination}{totalPages};
+      $envelope->{data} = [];
+      $envelope->{pagination}{page}        = $page;
+      $envelope->{pagination}{hasNextPage} = $page < $total_pages ? \1 : \0;
+      $envelope->{pagination}{hasPrevPage} = \1;
+    }
+  }
+
+  # Query-param gating: without includeComponents=true the live API leaves
+  # the relation keys out altogether (they are not empty, they are absent).
+  if (($query{includeComponents} // '') ne 'true') {
+    for my $row (grep { ref eq 'HASH' } @{ $envelope->{data} }) {
+      delete @{$row}{@ITEM_RELATIONS};
+    }
+  }
+
+  # Unfiltered page 1 is served verbatim (the bytes of the fixture file).
+  $content = !$filtered && $page == 1 && ($query{includeComponents} // '') eq 'true'
+    ? $first->slurp_utf8
+    : $self->_json->encode($envelope);
+  return $self->_response($content);
 }
 
 sub request {
   my ($self, $http_request) = @_;
   my $uri = $http_request->uri;
+  push @{ $self->{requests} }, "$uri";
+
+  return $self->_items_response($uri) if $uri =~ m{/api/arc-raiders/items\b};
 
   my $fixture_file;
   if ($uri =~ /\/traders/) {
     $fixture_file = 'traders.json';
-  } elsif ($uri =~ /\/items/) {
-    $fixture_file = 'items.json';
   } elsif ($uri =~ /\/quests/) {
     $fixture_file = 'quests.json';
   } elsif ($uri =~ /\/events-schedule/) {
@@ -82,35 +180,18 @@ sub request {
     }
   }
 
-  # Query-param gating: the live API only sends the heavy relations when
-  # asked for them (includeComponents on /items, includeLoot on /arcs). The
-  # fixtures are captured with the flag set, so without it we strip the gated
-  # fields -- a caller that forgets the param then sees empty data offline,
-  # exactly as live (karr k12).
-  my %gated;
-  if ($fixture_file eq 'items.json' && $uri !~ /[?&]includeComponents=true\b/) {
-    %gated = (components => [], recycle_components => [], sold_by => []);
-  } elsif ($fixture_file eq 'arcs.json' && $uri !~ /[?&]includeLoot=true\b/) {
-    %gated = (loot => undef);
-  }
-  if (%gated) {
+  # Query-param gating for /arcs: the live API only sends the loot relation
+  # with includeLoot=true. The fixture is captured with the flag set, so
+  # without it the key is removed (karr k12).
+  if ($fixture_file eq 'arcs.json' && $uri !~ /[?&]includeLoot=true\b/) {
     my $decoded = eval { JSON::MaybeXS->new->decode($content) };
     if (ref $decoded eq 'HASH' && ref $decoded->{data} eq 'ARRAY') {
-      for my $row (grep { ref eq 'HASH' } @{$decoded->{data}}) {
-        for my $key (keys %gated) {
-          next unless exists $row->{$key};
-          if (defined $gated{$key}) { $row->{$key} = [] } else { delete $row->{$key} }
-        }
-      }
+      delete $_->{loot} for grep { ref eq 'HASH' } @{$decoded->{data}};
       $content = JSON::MaybeXS->new->encode($decoded);
     }
   }
 
-  my $response = HTTP::Response->new(200, 'OK');
-  $response->content(Encode::encode('UTF-8', $content));
-  $response->header('Content-Type' => 'application/json');
-
-  return $response;
+  return $self->_response($content);
 }
 
 1;

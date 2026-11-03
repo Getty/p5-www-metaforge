@@ -382,7 +382,14 @@ sub items {
     my $items = $api->items(%params);
 
 Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Item> from
-first page. Supports C<search>, C<page>, C<limit> parameters.
+first page. The API documents the parameters C<page>, C<limit> (default 50,
+max 1000, max 100 with C<includeComponents>), C<id>, C<item_type>,
+C<rarity>, C<search>, C<loadout_slot>, C<workbench>, C<subcategory>,
+C<shield_type>, C<includeComponents>, C<sortBy>, C<sortOrder> and
+C<minimal>. C<item_type> and C<rarity> match exactly and case-sensitively.
+The relations (C<components>, C<recycle_components>, C<recycle_from>,
+C<used_in>, C<sold_by>, C<dropped_by>, C<mods>, C<relationships>) are only
+sent with C<< includeComponents => 'true' >>.
 
 =cut
 
@@ -784,14 +791,6 @@ Find an item by its ID.
 
 =cut
 
-# Extract component name from crafting requirement
-# Handles both string format and object format from API
-sub _component_name {
-  my ($self, $component) = @_;
-  return unless defined $component;
-  return ref($component) eq 'HASH' ? $component->{name} : $component;
-}
-
 sub calculate_requirements {
   my ($self, %args) = @_;
   my $items = $args{items} // [];
@@ -812,7 +811,7 @@ sub calculate_requirements {
     my $crafting = $item->components // [];
     if (@$crafting) {
       for my $mat (@$crafting) {
-        my $mat_name = $self->_component_name($mat->{component});
+        my $mat_name = $mat->{component}{name};
         my $mat_count = ($mat->{quantity} // 1) * $count;
         $total{$mat_name} += $mat_count if $mat_name;
       }
@@ -911,7 +910,7 @@ sub calculate_base_requirements {
 
     # Recursively resolve each material
     for my $mat (@$crafting) {
-      my $mat_name = $self->_component_name($mat->{component});
+      my $mat_name = $mat->{component}{name};
       my $mat_count = ($mat->{quantity} // 1) * $count;
       $resolve->($mat_name, $mat_count, $depth + 1) if $mat_name;
     }

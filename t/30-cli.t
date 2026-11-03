@@ -6,6 +6,7 @@ use File::Temp qw(tempdir);
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use Capture::Tiny qw(capture_stdout);
+use URI;
 
 # Skip if Capture::Tiny not available
 BEGIN {
@@ -23,9 +24,10 @@ my $cache_dir = tempdir(CLEANUP => 1);
 sub mock_cli {
   require MockUA;
   my $cli = WWW::MetaForge::ArcRaiders::CLI->new();
-  # Inject mock API
+  # Inject mock API; the UA stays reachable to see which queries arrived
+  $cli->{mock_ua} = MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures");
   $cli->{api} = WWW::MetaForge::ArcRaiders->new(
-    ua        => MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures"),
+    ua        => $cli->{mock_ua},
     cache_dir => $cache_dir,
     use_cache => 0,
   );
@@ -75,32 +77,87 @@ subtest 'Items command with search' => sub {
   like($output, qr/Adrenaline/, 'shows results');
 };
 
+# --category and --rarity go to the API as item_type and rarity (exact,
+# case-sensitive, AND). MockUA evaluates them like the live API, so a CLI
+# that filters locally, or sends another parameter name, shows items from the
+# unfiltered page 1 and fails here.
+sub item_queries {
+  my ($cli) = @_;
+  return map { { URI->new($_)->query_form } } $cli->{mock_ua}->requests;
+}
+
 subtest 'Items command with category filter' => sub {
   require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
 
   my $cli = mock_cli();
-  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(category => 'Weapon');
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(category => 'Quick Use');
 
   my $output = capture_stdout {
     $cmd->execute([], [$cli]);
   };
 
-  # Category filter is local, should only show weapons
-  like($output, qr/Weapon/, 'shows weapons');
-  unlike($output, qr/\[chemicals\]/, 'does not show materials');
+  my ($query) = item_queries($cli);
+  is($query->{item_type}, 'Quick Use', 'the category went to the API as item_type');
+  ok(!exists $query->{category}, 'no category parameter was sent');
+
+  like($output, qr/\[adrenaline-shot\]/, 'shows a Quick Use item of page 1');
+  like($output, qr/\[acoustic-guitar\]/, 'shows another Quick Use item of page 1');
+  unlike($output, qr/\[abyss-outfit\]/, 'does not show an outfit');
+  unlike($output, qr/\[advanced-electrical-components\]/, 'does not show a refined material');
+  unlike($output, qr/\[amplified-anvil\]/, 'does not show a weapon');
+};
+
+subtest 'Items command with category filter is case-sensitive' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(category => 'quick use');
+
+  my $output = capture_stdout {
+    $cmd->execute([], [$cli]);
+  };
+
+  my ($query) = item_queries($cli);
+  is($query->{item_type}, 'quick use', 'the value went to the API unchanged');
+  like($output, qr/No items found/, 'the exact match finds nothing for another casing');
 };
 
 subtest 'Items command with rarity filter' => sub {
   require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
 
   my $cli = mock_cli();
-  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(rarity => 'Rare');
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(rarity => 'Legendary');
 
   my $output = capture_stdout {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Rare/, 'shows rare items');
+  my ($query) = item_queries($cli);
+  is($query->{rarity}, 'Legendary', 'the rarity went to the API as rarity');
+
+  like($output, qr/\[acoustic-guitar\]/, 'shows a Legendary item');
+  like($output, qr/\[advanced-camera-blueprint\]/, 'shows another Legendary item');
+  unlike($output, qr/\[adrenaline-shot\]/, 'does not show a Common item');
+  unlike($output, qr/\[advanced-camera\]/, 'does not show a Rare item');
+};
+
+subtest 'Items command with category and rarity filter (AND)' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Items;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Items->new(category => 'Quick Use', rarity => 'Legendary');
+
+  my $output = capture_stdout {
+    $cmd->execute([], [$cli]);
+  };
+
+  my ($query) = item_queries($cli);
+  is($query->{item_type}, 'Quick Use', 'item_type sent');
+  is($query->{rarity}, 'Legendary', 'rarity sent');
+  like($output, qr/\[acoustic-guitar\]/, 'shows the Legendary Quick Use item');
+  unlike($output, qr/\[advanced-camera-blueprint\]/, 'does not show a Legendary Blueprint');
+  unlike($output, qr/\[adrenaline-shot\]/, 'does not show a Common Quick Use item');
+  like($output, qr/^1 item\(s\) shown/m, 'exactly one item') or diag($output);
 };
 
 subtest 'Items command JSON output' => sub {
@@ -210,6 +267,32 @@ subtest 'Item command - single item lookup' => sub {
   like($output, qr/1x Plastic Parts/, 'lists recycled Plastic Parts');
 
   like($output, qr/Last Updated:/, 'shows updated_at timestamp');
+};
+
+subtest 'Item command - Recycled From and Dropped By' => sub {
+  require WWW::MetaForge::ArcRaiders::CLI::Cmd::Item;
+
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Item->new();
+
+  # advanced-arc-powercell (page 1 of the live fixture): recycle_from holds
+  # 2x frigate-inductor and 4x assessor-matrix, dropped_by eleven ARCs.
+  my $output = capture_stdout {
+    $cmd->execute(['advanced-arc-powercell'], [$cli]);
+  };
+
+  like($output, qr/Advanced ARC Powercell/, 'shows item name');
+  like($output, qr/Recycled From:/, 'shows the Recycled From section');
+  like($output, qr/Frigate Inductor/, 'lists the first recycle source');
+  like($output, qr/Assessor Matrix/, 'lists the second recycle source');
+  like($output, qr/Dropped By:/, 'shows the Dropped By section');
+  like($output, qr/Leaper/, 'lists the name of the first dropping ARC');
+  like($output, qr/Vaporizer|Bombardier/, 'lists later dropping ARCs');
+  like($output, qr/Used In:/, 'shows the Used In section');
+  like($output, qr/Surge Shield Recharger/, 'lists the fourth used_in entry');
+
+  my ($query) = map { { URI->new($_)->query_form } } $cli->{mock_ua}->requests;
+  is($query->{includeComponents}, 'true', 'the item command asks for includeComponents=true');
 };
 
 subtest 'Item command - no argument shows usage' => sub {

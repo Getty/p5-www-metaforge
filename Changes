@@ -35,6 +35,15 @@ Revision history for WWW-MetaForge
    instead of failing on a missing module; t/cpanfile.t holds the list
  - map_data uses the user agent given to WWW::MetaForge::ArcRaiders, so an
    injected user agent also serves the map requests
+ - Items expose recycle_from, dropped_by, mods, locations, cosmetic,
+   relationships, guide_links, guide_url, flavor_text, subcategory,
+   ammo_type, shield_type, loot_area, article, unlocks_weapon and
+   created_at
+ - `arcraiders item` shows what an item is used in, what recycles into it,
+   which ARCs drop it, compatible mods or weapons, map locations, cosmetic
+   options and guide links
+ - `arcraiders items --category` and `--rarity` filter on the server across
+   all pages, matching the exact API value
 
 0.002     2026-01-11 04:45:55Z
 
