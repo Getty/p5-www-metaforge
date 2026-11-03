@@ -1,0 +1,14 @@
+---
+class: standard
+created: 2026-11-03T07:40:28Z
+id: 50
+priority: low
+status: backlog
+tags:
+- cli
+title: 'CLI: Fehlermeldung zu einer unbekannten Option mit Nicht-ASCII-Namen geht
+  als Latin-1 auf STDERR'
+updated: 2026-11-03T07:40:28Z
+---
+
+Gefunden bei k42 (Runde 3). `metaforge-arcraiders --nöpe items` meldet `Unknown option: n\366pe`, ein einzelnes Latin-1-Byte statt UTF-8; `items --nöpe` (Fehlerweg von MooX::Options) genauso. Ursache: `@ARGV` ist im `before new_with_cmd`-Hook schon zu Zeichen dekodiert, STDERR bekommt seine UTF-8-Schicht aber erst in `prepare_output`, also nach dem Parsen der Optionen. Vor k42 nicht sichtbar, weil `pass_through` jede unbekannte Option still schluckte. Exit 1 und Erkennung stimmen, nur die Kodierung der Meldung nicht.
