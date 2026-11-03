@@ -7,26 +7,17 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 
 use WWW::MetaForge::ArcRaiders;
-use WWW::MetaForge::GameMapData;
 use MockUA;
 
 # Fixture t/fixtures/map-data-pendola-pass.json is a verbatim selection (one
 # record per category) of the live game-map-data response for pendola-pass.
 
-# map_data goes through a child GameMapData that builds its own LWP::UserAgent
-# unless one is injected, so MockUA is handed to it explicitly (offline).
-my $ua        = MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures");
-my $cache_dir = tempdir(CLEANUP => 1);
-my $api       = WWW::MetaForge::ArcRaiders->new(
-  ua            => $ua,
-  cache_dir     => $cache_dir,
-  use_cache     => 0,
-  game_map_data => WWW::MetaForge::GameMapData->new(
-    ua           => $ua,
-    cache_dir    => $cache_dir,
-    use_cache    => 0,
-    marker_class => 'WWW::MetaForge::ArcRaiders::Result::MapMarker',
-  ),
+# map_data goes through a child GameMapData; the ArcRaiders facade hands it
+# its own ua, so injecting MockUA once keeps the test offline.
+my $api = WWW::MetaForge::ArcRaiders->new(
+  ua        => MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures"),
+  cache_dir => tempdir(CLEANUP => 1),
+  use_cache => 0,
 );
 
 # id => expected values, copied from the fixture records
@@ -100,6 +91,26 @@ subtest 'convenience accessors follow the mapped fields' => sub {
   my ($rack) = grep { $_->id eq '002ff375-4e66-49ea-8476-dbdbc6282bd4' } @$markers;
   is($rack->type, 'containers/base_container', 'type is category/subcategory');
   is($rack->name, 'Server Rack', 'name is instanceName');
+};
+
+subtest 'community, sourceID, routeID and lootAreas' => sub {
+  my %by_id = map { $_->id => $_ } @$markers;
+  my %source = (
+    '0023ebfc-b483-4843-a09c-7fb91bdc4100' => '03e73c4fd02cb7eeca25f136',
+    '002ff375-4e66-49ea-8476-dbdbc6282bd4' => '3ca77fc0e4f9a403eb1e7ebb',
+    '01149bfe-eed0-43a2-b8d1-23c8e39d5ef5' => '41ea412051a3dcc0605b06ba',
+    '0227a844-7f15-4a88-bd39-9b8539c0c159' => 'c63a146f325a28e0927c2765',
+    '0b96bb89-2df1-4fd6-9866-2368dd792fe0' => '82c6687bded529b2d5165810',
+    'e5d25a47-893e-4884-8bce-acb7a4bb6518' => '08c44e870ffadec256519cf7',
+  );
+  is($by_id{$_}->source_id, $source{$_}, "source_id of $_") for sort keys %source;
+  is($by_id{$_}->route_id, undef, "route_id of $_ is null") for sort keys %source;
+  is($by_id{$_}->community, 0, "community of $_ is false")
+    for grep { $_ ne 'e5d25a47-893e-4884-8bce-acb7a4bb6518' } sort keys %source;
+  is($by_id{'e5d25a47-893e-4884-8bce-acb7a4bb6518'}->community, 1, 'the quest marker is a community marker');
+  is($by_id{'e5d25a47-893e-4884-8bce-acb7a4bb6518'}->lootAreas, '', 'lootAreas may be the empty string');
+  is($by_id{'0023ebfc-b483-4843-a09c-7fb91bdc4100'}->lootAreas, undef, 'lootAreas may be null');
+  is($by_id{'0b96bb89-2df1-4fd6-9866-2368dd792fe0'}->eventConditionMask, 1, 'eventConditionMask');
 };
 
 done_testing;

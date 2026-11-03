@@ -26,9 +26,6 @@ our $DEBUG = $ENV{WWW_METAFORGE_GAMEMAPDATA_DEBUG};
         say $marker->type . " at " . $marker->x . "," . $marker->y;
     }
 
-    # Filter by marker type
-    my $loot = $api->map_data(map => 'dam', type => 'loot');
-
 =head1 DESCRIPTION
 
 Perl interface to the MetaForge Game Map Data API. This API provides
@@ -209,13 +206,6 @@ sub _extract_markers {
   if (exists $response->{allData}) {
     return $response->{allData};
   }
-  # Fallback: {"markers": [...]} or {"data": {"markers": [...]}}
-  if (exists $response->{markers}) {
-    return $response->{markers};
-  }
-  if (exists $response->{data} && ref $response->{data} eq 'HASH') {
-    return $response->{data}{markers} // [];
-  }
 
   return $response;
 }
@@ -248,13 +238,14 @@ sub map_data {
 =method map_data
 
     my $markers = $api->map_data(map => 'dam');
-    my $markers = $api->map_data(map => 'dam', type => 'loot');
 
 Returns ArrayRef of L<WWW::MetaForge::GameMapData::Result::MapMarker>
-(or subclass specified by C<marker_class>).
+(or subclass specified by C<marker_class>), one per record in the
+C<allData> list of the response.
 
-Required parameter: C<map> - name of the map to fetch markers for.
-Optional parameter: C<type> - filter by marker type.
+Required parameter: C<map> (or C<mapID>) - the map to fetch markers for.
+C<tableID> defaults to C<arc_map_data>. These two are the parameters the
+API documents; an unknown map answers with an empty list.
 
 =cut
 

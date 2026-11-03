@@ -14,10 +14,7 @@ use namespace::clean;
     my $req = WWW::MetaForge::GameMapData::Request->new;
 
     # Build request for map data
-    my $http_req = $req->map_data(map => 'Dam');
-
-    # With type filter
-    my $http_req = $req->map_data(map => 'Dam', type => 'loot');
+    my $http_req = $req->map_data(map => 'dam');
 
 =head1 DESCRIPTION
 
@@ -57,9 +54,10 @@ sub map_data {
 
 =method map_data
 
-    my $http_req = $req->map_data(map => 'Dam');
+    my $http_req = $req->map_data(map => 'dam');
 
-Returns L<HTTP::Request> for fetching map marker data.
+Returns L<HTTP::Request> for fetching map marker data. C<map> is sent as
+C<mapID>, C<tableID> defaults to C<arc_map_data>.
 
 =cut
 

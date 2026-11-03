@@ -53,6 +53,24 @@ subtest 'map_data returns markers' => sub {
   diag("Sample: " . ($marker->type // 'undef') . " at (" . ($marker->x // '?') . ", " . ($marker->y // '?') . ")");
 };
 
+subtest 'fixture markers map the API keys' => sub {
+  plan skip_all => 'fixture values only hold offline' if $ENV{WWW_METAFORGE_USE_LIVE_API};
+
+  my $markers = $api->map_data(map => 'dam');
+  is(scalar @$markers, 8, 'one marker per record of the fixture');
+  is($_->mapID, 'dam', 'mapID of ' . $_->id) for @$markers;
+
+  my %by_id = map { $_->id => $_ } @$markers;
+  my $generator = $by_id{'00e5f6e7-d55b-97b1-385b-34e4741fa2e3'};
+  is($generator->lat, 2040.55, 'lat');
+  is($generator->lng, 3657.3, 'lng');
+  is($generator->community, 1, 'community');
+  is($generator->source_id, '410d0e8a63efb9f88699659d', 'source_id');
+  is($by_id{'1c08e459-3da5-d1f7-e1bf-10e442fa6fc4'}->route_id, '10e6170b3c30915aa28be9c1', 'route_id');
+  is($by_id{'0041bc88-c9e8-48e1-9d1f-38a35e688761'}->community, 0, 'community false');
+  is($generator->_raw->{lootAreas}, 'Industrial, Security', '_raw carries the record');
+};
+
 subtest 'map_data_raw returns unwrapped data' => sub {
   my $raw = eval { $api->map_data_raw(map => 'dam') };
   return fail("API error: $@") if $@;

@@ -36,8 +36,8 @@ has eventConditionMask => (
 );
 
 has lootAreas => (
-  is => 'ro',
-  # Can be null, string, or array depending on marker type
+  is  => 'ro',
+  isa => Maybe[Str],
 );
 
 sub from_hashref {
@@ -53,6 +53,9 @@ sub from_hashref {
     updated_at     => $data->{updated_at},
     added_by       => $data->{added_by},
     last_edited_by => $data->{last_edited_by},
+    community      => $data->{community},
+    source_id      => $data->{sourceID},
+    route_id       => $data->{routeID},
     _raw           => $data,
     # ARC Raiders specific
     category           => $data->{category},
@@ -97,7 +100,8 @@ ARC Raiders specific attributes.
 =head1 INHERITED ATTRIBUTES
 
 See L<WWW::MetaForge::GameMapData::Result::MapMarker> for base attributes
-(id, lat, lng, zlayers, mapID, updated_at, added_by, last_edited_by).
+(id, lat, lng, zlayers, mapID, updated_at, added_by, last_edited_by,
+community, source_id, route_id).
 
 =attr category
 
@@ -121,7 +125,8 @@ Event condition bitmask.
 
 =attr lootAreas
 
-Loot area data (can be null, string, or array).
+Comma-separated loot area names (e.g. C<"Industrial, Security">), an empty
+string, or C<undef>.
 
 =method type
 

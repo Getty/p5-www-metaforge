@@ -2,7 +2,7 @@ package WWW::MetaForge::GameMapData::Result::MapMarker;
 # ABSTRACT: Base map marker result object for MetaForge Game Map Data API
 our $VERSION = '0.003';
 use Moo;
-use Types::Standard qw(Str Num Int HashRef Maybe);
+use Types::Standard qw(Str Num Int Bool HashRef Maybe);
 use namespace::clean;
 
 # Generic fields common to all game map data
@@ -50,6 +50,22 @@ has last_edited_by => (
   isa => Maybe[Str],
 );
 
+has community => (
+  is     => 'ro',
+  isa    => Bool,
+  coerce => sub { $_[0] ? 1 : 0 },
+);
+
+has source_id => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
+has route_id => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
 has _raw => (
   is  => 'ro',
   isa => HashRef,
@@ -67,6 +83,9 @@ sub from_hashref {
     updated_at     => $data->{updated_at},
     added_by       => $data->{added_by},
     last_edited_by => $data->{last_edited_by},
+    community      => $data->{community},
+    source_id      => $data->{sourceID},
+    route_id       => $data->{routeID},
     _raw           => $data,
   );
 }
@@ -138,6 +157,19 @@ Username who added this marker.
 =attr last_edited_by
 
 Username who last edited this marker.
+
+=attr community
+
+Boolean (C<1>/C<0>) from the API's C<community> flag.
+
+=attr source_id
+
+Identifier from the API's C<sourceID> key, or C<undef>.
+
+=attr route_id
+
+Identifier from the API's C<routeID> key, or C<undef>. On ARC Raiders maps
+it is set on ARC markers and groups the markers of one ARC route.
 
 =method from_hashref
 

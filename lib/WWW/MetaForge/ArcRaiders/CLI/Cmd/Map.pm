@@ -52,11 +52,12 @@ sub execute {
   for my $marker (@$markers) {
     my $type = $marker->type // '-';
     my $name = $marker->name;
-    printf "  %-35s (%s, %s)%s\n",
+    printf "  %-35s (%s, %s)%s%s\n",
       $type,
       defined $marker->x ? $marker->x : '?',
       defined $marker->y ? $marker->y : '?',
-      (defined $name && length $name) ? "  $name" : '';
+      (defined $name && length $name) ? "  $name" : '',
+      $marker->community ? '  [community]' : '';
   }
 
   printf "\n%d marker(s) found.\n", scalar(@$markers);
@@ -85,8 +86,9 @@ C<spaceport>). Running the command without an argument prints the list of
 available maps.
 
 Each marker line shows its type (C<category> or C<category/subcategory>), its
-map coordinates and, where present, its instance name. Use C<--type> to filter
-the markers by a category or subcategory substring.
+map coordinates, where present its instance name, and C<[community]> for a
+marker the API flags as C<community>. Use C<--type> to filter the markers by a
+category or subcategory substring.
 
 When the C<--json> flag (inherited from the parent command) is set, the raw
 marker data is printed as JSON instead of the formatted display.

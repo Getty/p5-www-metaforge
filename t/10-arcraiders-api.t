@@ -146,6 +146,34 @@ subtest 'Map data endpoint returns valid structure' => sub {
   diag("Sample: " . ($marker->name // 'undef') . " at (" . ($marker->x // '?') . ", " . ($marker->y // '?') . ")");
 };
 
+subtest 'Fixture contents come through the API (offline only)' => sub {
+  plan skip_all => 'fixture values only hold offline' unless $using_mock;
+
+  my $arcs = $api->arcs;
+  is(scalar @$arcs, 26, 'arcs: the whole inventory');
+  is($arcs->[0]->id, 'arc-assessor', 'arcs: first id');
+  is($arcs->[2]->id, 'rollbot', 'arcs: third id');
+  is($arcs->[2]->data->{updated_at}, '2026-09-20T19:16:18.001037+00:00', 'arcs: data comes through');
+  ok(!$arcs->[2]->data->{variants}[0]{can_fly}, 'arcs: rollbot cannot fly');
+  is_deeply($arcs->[0]->loot, [], 'arcs: no loot without includeLoot=true');
+  is(scalar @{ $api->arcs(includeLoot => 'true')->[2]->loot }, 14, 'arcs: includeLoot=true brings the loot of rollbot');
+
+  my $quests = $api->quests;
+  is(scalar @$quests, 40, 'quests: first page of 40');
+  is($quests->[0]->id, 'a-bad-feeling', 'quests: first id');
+  is($quests->[0]->manifest->{prerequisites}[0]{quest_id}, 'off-the-raider', 'quests: manifest prerequisites come through');
+
+  my $traders = $api->traders;
+  is(scalar @$traders, 5, 'traders: five inventory traders');
+
+  is(scalar @{ $api->traders_raw->{ermal}{offers} }, 10, 'traders_raw keeps the ermal section');
+  isa_ok($api->ermal, 'WWW::MetaForge::ArcRaiders::Result::Ermal');
+  is(scalar @{ $api->ermal->offers }, 10, 'ermal: ten offers');
+
+  my $markers = $api->map_data(map => 'dam');
+  is(scalar @$markers, 8, 'map_data: one marker per fixture record');
+};
+
 subtest 'Maps list returns valid data' => sub {
   my @maps = $api->maps;
   ok(@maps > 0, 'has maps');
