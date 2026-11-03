@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T06:22:17Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:22:17Z
+created: 2026-11-03T05:24:56Z
+id: 33
+priority: low
+started: 2026-11-03T06:14:10Z
+status: done
+tags:
+- docs
+title: Gebaute POD von metaforge-arcraiders enthaelt SUPPORT doppelt
+updated: 2026-11-03T06:22:17Z
+---
+
+bin/metaforge-arcraiders hat einen handgeschriebenen =head1 SUPPORT; Pod::Weaver aus [@Author::GETTY] haengt einen eigenen an. In der gebauten POD steht SUPPORT daher zweimal (beim k26-Durchgang gefunden, war schon vorher so).
+
+Commit 681b09b
