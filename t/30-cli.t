@@ -399,7 +399,10 @@ subtest 'Event command - active event' => sub {
   like($output, qr/Status:\s+ACTIVE/, 'Night Raid | Stella Montis is active');
   like($output, qr/Ends in:\s+30m/, 'ends in 30m');
   like($output, qr/^  Tue 03 Nov 05:00 - 06:00$/m, 'the running slot with date');
-  is(scalar(() = $output =~ /^  \w{3} \d\d \w{3} \d\d:\d\d - \d\d:\d\d$/mg), 21, 'all 21 runs of the window are listed');
+  # k36: runs that have ended (Mon 23:00, Tue 01:00, Tue 03:00) are not listed
+  is(scalar(() = $output =~ /^  \w{3} \d\d \w{3} \d\d:\d\d - \d\d:\d\d$/mg), 18, 'the 18 running and upcoming runs of the 21 in the window are listed');
+  like($output, qr/^Schedule \(UTC\):\n  Tue 03 Nov 05:00 - 06:00\n/m, 'the running slot comes first');
+  unlike($output, qr/Mon 02 Nov 23:00|Tue 03 Nov 01:00|Tue 03 Nov 03:00/, 'the three runs that have ended are gone');
 };
 
 subtest 'Event command - ambiguous name' => sub {

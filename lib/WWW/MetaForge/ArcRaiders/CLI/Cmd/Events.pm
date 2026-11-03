@@ -12,12 +12,21 @@ option active => (
   doc   => 'Show only currently active events',
 );
 
+option region => (
+  is     => 'ro',
+  format => 's',
+  short  => 'r',
+  doc    => 'Server region (e.g., north-america, all); without it the API default, europe',
+);
+
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
   $app->prepare_output;
 
-  my $events = $app->api->event_timers;
+  my $events = $app->api->event_timers(
+    defined $self->region ? ( region => $self->region ) : (),
+  );
 
   if ($self->active) {
     $events = [ grep { $_->is_active_now } @$events ];
@@ -69,7 +78,10 @@ sub execute {
       $time_info = "in $until" if $until;
     }
 
-    printf "%-30s  %-15s  %-10s  %s\n", $name, $map, $status, $time_info;
+    # only region=all records carry a region
+    my $region = defined $event->region ? sprintf('%-13s  ', $event->region) : '';
+
+    printf "%-30s  %-15s  %s%-10s  %s\n", $name, $map, $region, $status, $time_info;
   }
 
   printf "\n%d event(s) found.\n", scalar(@$events);
@@ -82,6 +94,10 @@ sub execute {
   metaforge-arcraiders events
   metaforge-arcraiders events --active
   metaforge-arcraiders events -a
+
+  # Schedule of another server region, or of all regions
+  metaforge-arcraiders events --region north-america
+  metaforge-arcraiders events -r all
 
   # JSON output
   metaforge-arcraiders --json events
@@ -100,6 +116,8 @@ For each event, the output displays:
 
 =item * Map name (if available)
 
+=item * Server region, with C<--region all> only
+
 =item * Status indicator C<[ACTIVE]> for running events
 
 =item * Time information (either "ends in X" or "in X")
@@ -112,5 +130,20 @@ For each event, the output displays:
 
 Show only currently active events. This filters out upcoming events that
 haven't started yet.
+
+=head2 --region, -r
+
+Server region of the schedule, passed to the API unchanged. Each region has
+its own schedule. Without C<--region> no region is sent and the API default
+applies, C<europe>.
+Values seen from the live API: C<europe>, C<north-america>, C<oceania>,
+C<east-asia>, C<brazil> and C<all>. The API answers an unknown region with
+the C<europe> schedule, without an error.
+
+C<all> lists every event once per region and map, with the region in its own
+column.
+
+  metaforge-arcraiders events --region north-america
+  metaforge-arcraiders events -r all
 
 =cut

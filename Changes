@@ -72,8 +72,13 @@ Revision history for WWW-MetaForge
    while the API knows later runs; a TTL for event_timers still applies
  - The event_timers documentation lists the query parameters the live API
    accepts (region, map, name)
- - The event command shows the date of every slot, takes map IDs for --map
+ - The event command shows the date of each slot, takes map IDs for --map
    and names the maps an event runs on when the given map does not match
+ - metaforge-arcraiders events and event take --region (-r) to show the
+   schedule of another server region, or of all regions with the region on
+   each line; without it the API default (europe) applies
+ - metaforge-arcraiders event lists the running and upcoming runs of an
+   event; runs that have ended are left out
  - Add the hideout: ->hideout returns each hideout station with what its
    upgrade levels take, and the "hideout" command lists the stations or
    shows one level by level

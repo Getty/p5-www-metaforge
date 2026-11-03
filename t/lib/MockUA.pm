@@ -38,7 +38,10 @@ unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
 #    (total, totalPages 0 or 1, no next page). Other parameters (search,
 #    limit, ...) are not evaluated.
 #  - /events-schedule serves t/fixtures/events-schedule.json (region europe)
-#    whatever the query: region, map and name are not evaluated
+#    whatever the query, except region=all: that serves the byte-faithful
+#    t/fixtures/events-schedule-region-all.json (5 regions, every record
+#    carries its region). Any other region value is not evaluated (the live
+#    API answers an unknown region with europe); map and name are not either
 #  - /hideout and /weekly-trials serve t/fixtures/hideout.json and
 #    t/fixtures/weekly-trials.json verbatim; both endpoints take no
 #    parameters, a query string changes nothing. The weekly-trials
@@ -149,7 +152,9 @@ sub request {
   } elsif ($uri =~ /\/quests/) {
     $fixture_file = 'quests.json';
   } elsif ($uri =~ /\/events-schedule/) {
-    $fixture_file = 'events-schedule.json';
+    $fixture_file = $uri =~ /[?&]region=all(?:&|$)/
+      ? 'events-schedule-region-all.json'
+      : 'events-schedule.json';
   } elsif ($uri =~ m{/hideout\b}) {
     $fixture_file = 'hideout.json';
   } elsif ($uri =~ m{/weekly-trials\b}) {

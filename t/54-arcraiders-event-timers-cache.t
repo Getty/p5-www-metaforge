@@ -190,7 +190,8 @@ subtest 'region => all: the timers are told apart by region' => sub {
 
     my $timers = $api->event_timers_cached(%params);
     is(timer_requests($ua), 1, 'the europe timer ran out of runs: one request');
-    is(scalar @$timers, 35, 'the fresh response');
+    # fresh response = t/fixtures/events-schedule-region-all.json: 830 records, 180 name+map+region groups
+    is(scalar @$timers, 180, 'the fresh response');
   }
   {
     # same records without the region key: one timer, its last run is ahead
