@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T04:44:24Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T04:44:24Z
+created: 2026-11-03T04:33:26Z
+id: 25
+priority: medium
+started: 2026-11-03T04:34:29Z
+status: done
+tags:
+- research
+title: 'Recherche: loadouts und Skill Tree'
+updated: 2026-11-03T04:44:24Z
+---
+
+Hub-Auftrag Punkt 4. Woher holt die Website die Skill-Tree-Daten (Netzwerkpfade im Seiten-JS)? Sind loadouts Spieldaten oder Community-Inhalte? Spieldaten werden umgesetzt, der Rest mit Begruendung in den Bericht.
+
+Recherche fertig. Skill Tree: kein API-Endpunkt; Baum-Definition (version 1+2, 93 Knoten) fest im gehashten SvelteKit-Bundle _app/immutable/chunks/wlR75qPs.js, Seite /arc-raiders/skill-builder hat SSR data:null. Netz nur fuer Community-Builds (GET /api/arc-raiders/skill-builds, user_id/username/avatar). loadouts: Community-Inhalte (uuid, user, profile.username, Freitext name/description, tags, loadout_data mit Item-Kopien), 640 Eintraege paginiert. Empfehlung: beides nicht umsetzen, Begruendung in den Bericht.
