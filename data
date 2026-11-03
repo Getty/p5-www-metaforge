@@ -1,0 +1,21 @@
+---
+claimed_at: 2026-11-03T05:30:18Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:30:17Z
+created: 2026-11-03T04:33:28Z
+id: 26
+priority: medium
+started: 2026-11-03T05:24:52Z
+status: done
+tags:
+- docs
+title: Quelle MetaForge in POD und README
+updated: 2026-11-03T05:30:18Z
+---
+
+Hub-Auftrag Punkt 5. POD und README nennen MetaForge als Quelle mit Link auf https://metaforge.app/arc-raiders.
+
+2026-11-03 05:24 POD part done (www-metaforge-worker, uncommitted): ATTRIBUTION in WWW/MetaForge.pm, GameMapData.pm and bin/metaforge-arcraiders now names MetaForge ARC Raiders as the source with L<https://metaforge.app/arc-raiders> and points to WWW::MetaForge::ArcRaiders/ATTRIBUTION for the terms. Also brought the ArcRaiders feature list in WWW/MetaForge.pm and the bin SYNOPSIS up to date (ARCs, Ermal, hideout, trials, map/pendola-pass). podchecker clean on the dzil-built files; prove -lr -j4 t: 29 files, 314 tests, PASS. README already carried the arc-raiders link. Drift, not in scope: (1) WWW/MetaForge.pm =head1 CLI and CLI/Cmd/* POD call the tool 'arcraiders', but the binary ships as metaforge-arcraiders (dist.ini has no rename; CLAUDE.md also says 'installed as arcraiders'). (2) The woven bin/metaforge-arcraiders POD has SUPPORT twice: the handwritten one plus the one Pod::Weaver adds. Both are this repo's board.
+
+Committed in dad4db4
