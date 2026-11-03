@@ -1,0 +1,31 @@
+---
+claimed_at: 2026-11-03T05:09:34Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:09:34Z
+created: 2026-11-03T04:33:21Z
+id: 20
+priority: high
+started: 2026-11-03T04:40:51Z
+status: done
+tags:
+- api
+- results
+- fixtures
+title: Abgleich der bestehenden Endpunkte mit der Live-API
+updated: 2026-11-03T05:09:34Z
+---
+
+Hub-Auftrag 2026-11-03 Punkt 1. items (includeComponents), arcs (includeLoot), quests, traders, game-map-data gegen die Live-Antwort mit genau den Client-Parametern pruefen. Jedes gesendete Feld nach der Exaktformat-Regel modellieren (auch recycle_from, dropped_by; traders liefert neu den Top-Level-Key ermal). Nicht mehr gesendete Felder entfernen, vorher CLI greppen. Fixtures frisch und byte-treu.
+
+k20a: Live-Gesamtbestand items (31 Seiten, 1512 Items, includeComponents=true) unter ~/.claude/jobs/98d08401/tmp/live/ abgelegt und analysiert. Neue Felder: ammo_type article cosmetic created_at dropped_by flavor_text guide_links guide_url locations loot_area mods recycle_from relationships shield_type subcategory unlocks_weapon; sources immer null. Server-Filter rarity/item_type exakt+case-sensitiv bestätigt. Setze Result::Item + CLI item/items um.
+
+k20a fertig (Worker): Result::Item +17 Attribute (flavor_text subcategory shield_type loot_area ammo_type article guide_url guide_links locations cosmetic unlocks_weapon recycle_from mods dropped_by relationships created_at), nichts entfernt; sources immer null -> nicht modelliert. CLI item zeigt Used In/Recycled From/Dropped By/Compatible With/Locations/Customization/Guides + Felder. CLI items: --category/--rarity jetzt Server-Filter item_type/rarity (exakt, case-sensitiv). prove -lr -j4 t: 1 rot (t/30-cli.t #5, MockUA filtert item_type nicht) -> Test-Writer. Fixture items.json ist sortiert/veraltet -> neu aus live/items_page_1_includeComponents_true.json. Offen für Test-Writer: MockUA-Gating (8 Keys fehlen ohne includeComponents, nicht leer) + item_type/rarity-Filter.
+
+k20b (worker b): arcs/quests/traders/game-map-data gegen live 2026-11-03 abgeglichen (Rohantworten ~/.claude/jobs/98d08401/tmp/live/). Neu: Arc.data; Quest.description/additional_rewards/manifest; MapMarker.community/source_id/route_id (Basisklasse); lootAreas jetzt Maybe[Str]; neue Result::Ermal + ArcRaiders->ermal (teilt traders-Cache) + CLI 'ermal'. CLI: arcs --loot sendet includeLoot=true (vorher 1, von der API ignoriert); quest druckte required_items als HASH(0x..), jetzt Name/Menge + Beschreibung, Trader, Voraussetzungen, XP/Coins/Kosmetik; arc zeigt Flying + Seltenheit; map markiert [community]. GameMapData: spekulative markers/data.markers-Fallbacks entfernt. Nicht modelliert (immer null/leer): arcs.guide_url, quests.additional_granted_items. Offline-Suite mit HEAD-Item-Dateien gruen (210/210). Drift fuer Tickets: (1) camelCase-Attribute der MapMarker-Klassen (mapID, instanceName, behindLockedDoor, eventConditionMask, lootAreas) widersprechen dem snake_case-Vertrag - Board p5-www-metaforge, breaking fuer p5-mcp-arcraiders; (2) quests --type sendet einen Parameter, den die API ignoriert - Maintainer-Frage; (3) Board p5-mcp-arcraiders: get_quests reicht type durch (ignoriert) und liefert nur Seite 1 (40 von 123).
+
+k20a-Tests: items.json = Live-Seite 1 (cmp), items-page-{8,11,15,20,23,30}.json, MockUA (Gating, item_type/rarity, Netzsperre, requests()), t/12 t/18 t/19 t/30 t/33 neu angepasst, neu t/37 t/38. t/31 rot (Test-Writer b).
+
+k20b-Tests: Fixtures arcs/quests/traders 1:1 aus Live (cmp), map-data-dam aus 8 unveraenderten Rohtext-Datensaetzen; neue Tests t/40-t/43 (Ermal, Ermal-CLI, quest/arc/arcs-CLI, Dam-Marker), t/lib/RecordingUA.pm; bestehende t/10,13,14,15,17,20,22,31,36 angepasst.
+
+Committed in 5cf4a38 (items), ec2b512 (arcs, quests), cdc6892 (Ermal), 4ef70b1 (map markers); d5b5810 holds the shared ua.
