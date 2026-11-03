@@ -1,0 +1,24 @@
+---
+claimed_at: 2026-11-03T05:30:16Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:30:15Z
+created: 2026-11-03T04:33:25Z
+id: 24
+priority: medium
+started: 2026-11-03T04:57:31Z
+status: done
+tags:
+- api
+- feature
+title: 'weekly-trials: Result, Fassade, CLI'
+updated: 2026-11-03T05:30:16Z
+---
+
+Hub-Auftrag Punkt 4. Undokumentierter Endpunkt /api/arc-raiders/weekly-trials ({data:[...]} plus activeWindowEnd/nextWindowStart). Result-Klasse, Fassaden-Methode, CLI-Kommando, Cache wie bestehende.
+
+Phase 1 (worker): neue Dateien Result/WeeklyTrial.pm, Result/WeeklyTrialWindow.pm (activeWindowEnd/nextWindowStart, Sekunden), CLI/Cmd/Trials.pm (trials, --catalog). Fassade: weekly_trials (Liste) + weekly_trials_window, ein Cache-Eintrag. Patch A in tmp/k23/phase2-k23-k24.patch; optionaler Patch B tmp/k23/phase2-optional-weekly-trials-cache.patch (Cache nur bis zur naechsten Fenstergrenze, sonst bleibt is_active nach Fensterende stehen - Maintainer-Entscheidung). Nicht modelliert: map_condition (immer null).
+
+Phase 2 eingespielt: Patch A + Patch B (Cache bis zur ersten Fenstergrenze; Entscheidung Orchestrator) sauber per git apply. cache-window.t 6/6 gegen lib/. Hinweis Test-Writer: Fixture-Grenze ist 2026-11-03 10:00 UTC - Cache-Tests mit use_cache=1 muessen den Eintrag per cache->set mit kuenftiger Grenze vorbelegen, sonst holt jeder Aufruf neu.
+
+Committed in 6e4e15e
