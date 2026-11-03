@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-11-03T05:45:17Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:45:16Z
+created: 2026-11-03T05:06:27Z
+id: 30
+priority: high
+started: 2026-11-03T05:31:20Z
+status: done
+tags:
+- bug
+- cli
+title: 'CLI: UTF-8-Ausgabe doppelt kodiert bzw. Wide-character-Warnungen'
+updated: 2026-11-03T05:45:17Z
+---
+
+bin/metaforge-arcraiders setzt use open :std :encoding(UTF-8); die CLI-Kommandos kodieren JSON zusaetzlich mit JSON::MaybeXS->new(utf8 => 1) → --json gibt doppelt kodiertes UTF-8 aus (ä → C3 83 C2 A4, nachgewiesen in der k21-Analyse). Textausgabe ohne Layer (Tests, direkte Nutzung von CLI) warnt Wide character in print bei Live-Texten mit typografischen Zeichen (Quest.pm, Quests.pm, Arc.pm).
+
+Worker: Umgesetzt, Baum commit-bereit, nicht committet. Variante a: JSON wird als Zeichenkette kodiert (utf8 => 1 in allen 14 Encodern der 13 Cmd-Dateien entfernt, canonical unverändert). Neue Methode CLI->prepare_output setzt :encoding(UTF-8) auf STDOUT/STDERR, außer der Handle hat schon ein utf8-Flag. Jedes Cmd ruft sie als erste Anweisung in execute auf; use open aus bin/metaforge-arcraiders entfernt. Bytes vorher/nachher bei ’ (U+2019) und × (U+00D7): bin --json c3a2c280c299 bzw. c383c297 -> e28099 bzw. c397; Text programmatisch d7 (Latin-1) und Wide-char-Warnungen -> c397, 0 Warnungen. prove -lr -j4 t: PASS, 357 Tests, 0x Wide character (vorher 8), t/50-live-api.t übersprungen (kein Live-Lauf). Drift (Karten für den Hauptagenten): (1) @ARGV wird nicht dekodiert, z. B. quest mit Name 'Celeste’s Journals' wird nicht gefunden und doppelt kodiert ausgegeben, war vorher genauso; (2) Cache.pm schreibt doppelt kodiert auf die Platte (spew_utf8 über utf8=>1-JSON), liest es aber symmetrisch zurück, daher in sich konsistent; (3) canonical uneinheitlich, nur Trials hat es. Bei Cache-Miss und -Hit unterscheidet sich die Schlüsselreihenfolge von --json. Testplan im Worker-Bericht.
+
+Committed as 2896843 (Fix the CLI encoding its output twice or not at all)
