@@ -6,13 +6,6 @@ use MooX::Cmd;
 use MooX::Options;
 use JSON::MaybeXS;
 
-option type => (
-  is     => 'ro',
-  format => 's',
-  short  => 't',
-  doc    => 'Filter by quest type',
-);
-
 option page => (
   is     => 'ro',
   format => 'i',
@@ -32,7 +25,6 @@ sub execute {
   $app->prepare_output;
 
   my %params;
-  $params{type} = $self->type if $self->type;
   $params{page} = $self->page if $self->page;
 
   my ($quests, $pagination);
@@ -80,7 +72,6 @@ sub execute {
 =head1 SYNOPSIS
 
   metaforge-arcraiders quests
-  metaforge-arcraiders quests --type main
   metaforge-arcraiders quests --page 2
   metaforge-arcraiders quests --all
   metaforge-arcraiders quests --json
@@ -94,13 +85,6 @@ Quest information is displayed with the quest name and ID. When JSON output
 is enabled (C<--json>), the raw API response data is returned.
 
 =head1 OPTIONS
-
-=head2 --type, -t
-
-Filter quests by type. Only quests matching the specified type will be returned.
-
-  metaforge-arcraiders quests --type main
-  metaforge-arcraiders quests -t daily
 
 =head2 --page, -p
 
