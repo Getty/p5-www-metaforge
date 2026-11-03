@@ -105,6 +105,9 @@ Revision history for WWW-MetaForge
  - Fix the CLI not decoding its arguments: `quest "Celeste’s Journals"` found
    nothing and echoed the name double encoded; arguments and option values are
    now decoded from UTF-8, and an argument that is not UTF-8 is an error
+ - Fix `metaforge-arcraiders quest <name>` dying with "API request failed: 404":
+   the API answers a quest id it does not know with 404 Not Found, the command
+   then searches by name
  - `--json` output has sorted keys in every command
  - Fix metaforge-arcraiders documenting SUPPORT twice: its Discord, IRC and
    repository links are under COMMUNITY, SUPPORT is generated once

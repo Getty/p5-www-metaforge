@@ -61,10 +61,15 @@ subtest 'lower case matches too' => sub {
 };
 
 subtest 'not found: the message repeats the argument encoded once' => sub {
-  my ($stdout, $stderr, $exit) = run_bin(['quest', "Nope\xE2\x80\x99s"]);
-  like($stdout, qr/Quest 'Nope\xE2\x80\x99s' not found\./, 'message with E2 80 99');
+  my ($stdout, $stderr, $exit) = run_bin(['quest', "Nope\xE2\x80\x99s Quest"]);
+  # live (2026-11-03) the API answers quests?id=<unknown> with 404
+  # {"error":"Quest not found"}; the mock does the same, so "not found" has
+  # to come from the command, not from a 200 with empty data
+  is($exit, 0, 'exit 0');
+  like($stdout, qr/Quest 'Nope\xE2\x80\x99s Quest' not found\./, 'message with E2 80 99');
   unlike($stdout, qr/\xC3\xA2\xC2\x80\xC2\x99/, 'not C3 A2 C2 80 C2 99 (double encoding)');
   is($stderr, '', 'nothing on STDERR');
+  unlike($stderr.$stdout, qr/API request failed/, 'the 404 of the id lookup does not surface');
 };
 
 subtest 'an argument that is not UTF-8 fails loud' => sub {

@@ -106,6 +106,40 @@ subtest 'quest - JSON output and unknown quest' => sub {
   like($output, qr/Quest 'no-such-quest' not found/, 'unknown quest is reported');
 };
 
+subtest 'quest - by name, which is not the id (the id lookup answers 404)' => sub {
+  my ($cli, $ua) = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
+
+  my $output;
+  my $error = do { local $@; eval { $output = capture_stdout { $cmd->execute(['A Bad Feeling'], [$cli]) }; 1 } ? '' : $@ };
+  is($error, '', 'no exception');
+  unlike($output, qr/API request failed|not found/, 'neither an error nor "not found"');
+  like($output, qr/^A Bad Feeling$/m,       'name');
+  like($output, qr/^ID:\s+a-bad-feeling$/m, 'the quest with id a-bad-feeling');
+  is(query_of(($ua->seen_uris)[0])->{id}, 'A Bad Feeling', 'it tried the argument as id first');
+};
+
+subtest 'quest - a known id costs exactly one request' => sub {
+  my ($cli, $ua) = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
+
+  my $output = capture_stdout { $cmd->execute(['celestes-journals'], [$cli]) };
+  like($output, qr/^ID:\s+celestes-journals$/m, 'found');
+  my @uris = $ua->seen_uris;
+  is(scalar @uris, 1, 'one request, no quests_all');
+  is(query_of($uris[0])->{id}, 'celestes-journals', 'by id');
+};
+
+subtest 'quest - an unknown quest is reported, not a die' => sub {
+  my ($cli) = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest->new();
+
+  my $output;
+  my $error = do { local $@; eval { $output = capture_stdout { $cmd->execute(['no-such-quest'], [$cli]) }; 1 } ? '' : $@ };
+  is($error, '', 'no exception (the id lookup answers 404 live)');
+  like($output, qr/^Quest 'no-such-quest' not found\.$/m, 'reported');
+};
+
 subtest 'arcs --loot sends includeLoot=true' => sub {
   my ($cli, $ua) = mock_cli();
   $cli->{json} = 1;

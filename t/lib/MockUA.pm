@@ -47,6 +47,15 @@ unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
 #    parameters, a query string changes nothing. The weekly-trials
 #    fixture is a snapshot: its window boundaries (activeWindowEnd,
 #    nextWindowStart) lie in the past once that moment has passed.
+#  - /quests with an id that no record of t/fixtures/quests.json carries
+#    answers 404 Not Found, body {"error":"Quest not found"} (live, curl,
+#    2026-11-03: quests?id=celestes-journals is 200, quests?id=<unknown> is
+#    404; items?id and arcs?id with an unknown id stay 200 with empty data,
+#    so only quests are gated). Found by the live acceptance of k34, which
+#    the offline suite missed because the mock used to answer every id with
+#    200. A known id serves the fixture as before; RecordingUA (and with it
+#    OfflineLWP, the bin subprocess) sits on top of this mock, so the 404
+#    holds there too.
 #  - every request is recorded, see requests()
 
 my @ITEM_RELATIONS = qw(
@@ -170,6 +179,19 @@ sub request {
   }
 
   my $file = path($self->{fixtures_dir}, $fixture_file);
+
+  if ($fixture_file eq 'quests.json' && $file->is_file) {
+    my %query = $self->_query($uri);
+    if (defined $query{id}) {
+      my $decoded = $self->_json->decode($file->slurp_utf8);
+      unless (grep { ($_->{id} // '') eq $query{id} } @{ $decoded->{data} }) {
+        my $response = HTTP::Response->new(404, 'Not Found');
+        $response->content('{"error":"Quest not found"}');
+        $response->header('Content-Type' => 'application/json');
+        return $response;
+      }
+    }
+  }
 
   unless ($file->is_file) {
     return HTTP::Response->new(404, 'Fixture not found: ' . $fixture_file);
