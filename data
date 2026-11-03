@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T06:51:24Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:51:24Z
+created: 2026-11-03T04:34:30Z
+id: 28
+priority: low
+started: 2026-11-03T06:51:24Z
+status: done
+tags:
+- drift
+- docs
+title: Live-Test-Variable in Agenten-Briefs und Skill stimmt nicht mit dem Code ueberein
+updated: 2026-11-03T06:51:24Z
+---
+
+Agenten-Briefs (www-metaforge-test-writer, www-metaforge-worker) und Skill www-metaforge-core nennen USE_LIVE_API=1; t/10-arcraiders-api.t und t/20-gamemapdata.t lesen WWW_METAFORGE_USE_LIVE_API. Gefunden beim Hub-Auftrag 2026-11-03.
+
+Umgesetzt vom Hub in ee0ea52 (Agent-Briefs, SKILL.md: WWW_METAFORGE_USE_LIVE_API).
