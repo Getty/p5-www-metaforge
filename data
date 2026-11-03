@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T06:13:12Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:13:12Z
+created: 2026-11-03T05:57:59Z
+id: 40
+priority: medium
+started: 2026-11-03T05:58:07Z
+status: done
+tags:
+- cli
+title: JSON-Ausgabe (Option --json) ist in allen CLI-Kommandos canonical
+updated: 2026-11-03T06:13:12Z
+---
+
+Hub Runde 2 Punkt 10.
+
+Commit 87e0c6a
