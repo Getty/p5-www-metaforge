@@ -1,0 +1,23 @@
+---
+claimed_at: 2026-11-03T04:40:35Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T04:40:35Z
+created: 2026-11-03T04:33:23Z
+id: 22
+priority: medium
+started: 2026-11-03T04:34:28Z
+status: done
+tags:
+- maps
+title: Karte Pendola Pass
+updated: 2026-11-03T04:40:38Z
+---
+
+Hub-Auftrag Punkt 3. Map-ID, die game-map-data live annimmt (Probe: pendola-pass liefert 200 mit Markern).
+
+worker: pendola-pass in @MAPS + %MAP_DISPLAY_NAMES ('Pendola Pass'), maps-POD, README Available Maps. Live-ID per Probe bestätigt (5459 Marker, mapID=pendola-pass). Keine weitere Kartenaufzählung in lib/bin (map-CLI-Hilfe, GameMapData-POD nennen nur Beispiele). prove -lr t offline: PASS (22 Dateien, 204 Tests). Tree commit-ready, für Test-Writer: Kartenlisten-Assertion in t/10 + t/31, optional Fixture-Ausschnitt map-data-pendola-pass.json.
+
+Tests: t/10 (komplette Kartenliste + Display-Name), t/31 (Liste + pendola-pass-Marker), neues t/36-arcraiders-map-pendola-pass.t, Fixture t/fixtures/map-data-pendola-pass.json (6 Rohtext-Datensaetze, byte-treu). Uncommitted.
+
+Committed as 1e7518f (Add the Pendola Pass map)
