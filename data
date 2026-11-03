@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T07:07:07Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:07:07Z
+created: 2026-11-03T06:29:36Z
+id: 44
+priority: low
+started: 2026-11-03T06:54:04Z
+status: done
+tags:
+- debug
+title: Debug-Ausgabe PARSED zaehlt bei Antworten mit Umschlag immer 1 record (ArcRaiders.pm
+  ~Z.305)
+updated: 2026-11-03T07:07:07Z
+---
+
+Gefunden in Runde 2 beim Events-CLI: _fetch meldet PARSED: 1 records fuer jede Antwort, die als Objekt mit data-Feld kommt, z. B. events-schedule.
+
+Commit b6fc49c: PARSED debug line counts the records of the data section
