@@ -126,7 +126,7 @@ sub _print_field {
   metaforge-arcraiders quest "A Bad Feeling"
 
   # Output as JSON
-  metaforge-arcraiders quest a-bad-feeling --json
+  metaforge-arcraiders --json quest a-bad-feeling
 
 =head1 DESCRIPTION
 

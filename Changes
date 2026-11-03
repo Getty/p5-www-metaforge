@@ -28,6 +28,10 @@ Revision history for WWW-MetaForge
    Result::Quest attribute `guide_url`; `guide_links` is dead upstream
  - Fix the CLI item lookup not sending includeComponents, which left the
    crafting, sold-by and recycle sections empty
+ - Fix the CLI accepting options it does not know: an unknown option, also a
+   global option behind the command (`items --json`), is an error with
+   "Unknown option" and exit 1. --json, --debug, --no-cache and --help go
+   before the command, as the help and the examples show
  - Fix Result::Quest::from_hashref reading camelCase keys the API does not
    send
  - The pagination stops after 100 pages and dies with an error instead of

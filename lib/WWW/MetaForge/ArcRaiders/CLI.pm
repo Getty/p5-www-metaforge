@@ -6,7 +6,7 @@ use Moo;
 use WWW::MetaForge::ArcRaiders;
 use Carp qw(croak);
 use Encode qw(decode FB_CROAK LEAVE_SRC);
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 use namespace::clean;
 use MooX::Cmd;
 
@@ -19,6 +19,11 @@ use MooX::Cmd;
 
 Main CLI class for the ARC Raiders API client. Uses L<MooX::Cmd> for
 subcommand handling.
+
+The global options C<--debug>, C<--json>, C<--no-cache> and C<--help> go in
+front of the command: C<metaforge-arcraiders --json items>. An option the
+program or the command does not know is an error: the message goes to
+C<STDERR> and the program exits with status 1 before any API request.
 
 =cut
 
@@ -85,13 +90,22 @@ already (C<-CA>, or C<A> in C<PERL_UNICODE>) it is left as it is.
 around BUILDARGS => sub {
   my ($orig, $class, @args) = @_;
 
-  # Parse global options from @ARGV before MooX::Cmd processes it
-  my ($debug, $no_cache, $json);
-  GetOptions(
-    'debug|d'    => \$debug,
-    'no-cache'   => \$no_cache,
-    'json|j'     => \$json,
-  );
+  # MooX::Cmd hands this class only the arguments in front of the command
+  # name, the command gets the rest. So @ARGV holds global options only, and
+  # one this class does not know is an error, not something to pass on.
+  # --help needs no value: execute shows the overview when no command follows.
+  my ($debug, $no_cache, $json, $help);
+  unless (GetOptions(
+    'debug|d'  => \$debug,
+    'no-cache' => \$no_cache,
+    'json|j'   => \$json,
+    'help|h'   => \$help,
+  )) {
+    # GetOptions has printed "Unknown option: ..." already; exit 1 like
+    # MooX::Options does for an unknown command option
+    print STDERR "Run 'metaforge-arcraiders --help' for the global options and the commands.\n";
+    exit 1;
+  }
 
   my $args = $class->$orig(@args);
   $args->{debug}    = $debug    if $debug;
@@ -151,7 +165,7 @@ sub execute {
   # No subcommand given - show help
   if (!@$chain || @$chain == 1) {
     print "metaforge-arcraiders - CLI for MetaForge ARC Raiders API\n\n";
-    print "Usage: metaforge-arcraiders <command> [options]\n\n";
+    print "Usage: metaforge-arcraiders [global options] <command> [options]\n\n";
     print "Commands:\n";
     print "  items    List all items (or search)\n";
     print "  item     Show details for a single item\n";
@@ -167,10 +181,11 @@ sub execute {
     print "  hideout  List hideout stations, or show one with its levels\n";
     print "  trials   Show the active and upcoming weekly trials\n";
     print "  map      Show map markers for a map\n";
-    print "\nOptions:\n";
+    print "\nGlobal options (in front of the command):\n";
     print "  -d, --debug     Enable debug output\n";
     print "  -j, --json      Output as JSON\n";
     print "  --no-cache      Disable caching\n";
+    print "  -h, --help      Show this overview\n";
     print "\nExamples:\n";
     print "  metaforge-arcraiders items --search Ferro\n";
     print "  metaforge-arcraiders item ferro-i\n";

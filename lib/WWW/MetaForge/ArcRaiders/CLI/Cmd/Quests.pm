@@ -74,7 +74,7 @@ sub execute {
   metaforge-arcraiders quests
   metaforge-arcraiders quests --page 2
   metaforge-arcraiders quests --all
-  metaforge-arcraiders quests --json
+  metaforge-arcraiders --json quests
 
 =head1 DESCRIPTION
 

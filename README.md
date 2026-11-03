@@ -67,10 +67,14 @@ metaforge-arcraiders map dam
 
 ### Global Options
 
+Global options go before the command:
+
 ```bash
 --json      # Output as JSON
 --no-cache  # Skip cache, fetch fresh data
 --debug     # Show debug output
+
+metaforge-arcraiders --json items --search Ferro
 ```
 
 ## API Usage
