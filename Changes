@@ -100,6 +100,9 @@ Revision history for WWW-MetaForge
    encoded once and the file name carries the format version
    (<endpoint>_<md5>.v2.json), so files of the old format are no longer read
    and are fetched again, and clear removes both
+ - Fix quests and quests_paginated dying on an id no quest carries: the API
+   answers it with 404 Not Found, they return an empty list as items and arcs
+   do; quests_raw still dies there
  - Add Cache get_entry, the stored entry with its timestamp, ignoring the
    TTL; event_timers_hourly uses it instead of reading the cache file itself
  - Fix the CLI not decoding its arguments: `quest "Celeste’s Journals"` found

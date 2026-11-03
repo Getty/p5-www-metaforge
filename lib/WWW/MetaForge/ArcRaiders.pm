@@ -276,6 +276,7 @@ sub _fetch {
   my ($self, $endpoint, $http_request, %params) = @_;
 
   my $skip_cache = delete $params{_skip_cache};
+  my $not_found_ok = delete $params{_not_found_ok};
 
   if ($self->use_cache && !$skip_cache) {
     my $cached = $self->cache->get($endpoint, \%params);
@@ -294,6 +295,7 @@ sub _fetch {
   $self->_debug("RESPONSE: " . $response->code . " " . $response->message);
 
   unless ($response->is_success) {
+    return if $not_found_ok && $response->code == 404;
     croak sprintf("API request failed: %s %s (%s %s)",
       $response->code, $response->message, $http_request->method,
       $self->_request_target($http_request));
@@ -342,11 +344,19 @@ sub _to_objects {
 }
 
 # Generic paginated fetch - returns {data => [...], pagination => {...}}
+#
+# The quests endpoint answers an id that no quest carries with 404
+# {"error":"Quest not found"}, where items and arcs answer 200 with empty
+# data. For a quest lookup by id that 404 means no quest: data is empty and
+# pagination undef, as the API sends no pagination for a quest id at all.
+# Nothing is cached for it, the API sent no response to store.
 sub _fetch_paginated {
   my ($self, $endpoint, $request_method, $result_class, %params) = @_;
 
   my $req = $self->request->$request_method(%params);
-  my $response = $self->_fetch($endpoint, $req, %params);
+  my $response = $self->_fetch($endpoint, $req, %params,
+    $endpoint eq 'quests' && defined $params{id} ? ( _not_found_ok => 1 ) : (),
+  );
   my $data = $self->_extract_data($response);
   my $pagination = ref $response eq 'HASH' ? $response->{pagination} : undef;
 
@@ -495,7 +505,9 @@ sub quests {
 
 Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::Quest> from
 first page. The API documents the parameters C<id>, C<page>, C<limit>
-(default 40, max 100), C<search>, C<sortBy> and C<sortOrder>.
+(default 40, max 100), C<search>, C<sortBy> and C<sortOrder>. An C<id> that
+no quest carries returns an empty ArrayRef, as with C<items> and C<arcs>;
+the API answers it with 404 Not Found.
 
 =cut
 
@@ -508,7 +520,9 @@ sub quests_paginated {
 
     my $result = $api->quests_paginated(%params);
 
-Returns HashRef with C<data> and C<pagination> info.
+Returns HashRef with C<data> and C<pagination> info. An C<id> that no quest
+carries returns empty C<data> and undef C<pagination>, as the API sends no
+pagination for an C<id> query; the API answers it with 404 Not Found.
 
 =cut
 

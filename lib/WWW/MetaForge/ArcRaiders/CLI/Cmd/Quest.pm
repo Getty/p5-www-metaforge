@@ -18,14 +18,9 @@ sub execute {
     return;
   }
 
-  # Try fetching by ID first (API supports id= query param). An id no quest
-  # carries answers 404 Not Found ({"error":"Quest not found"}): no quest by
-  # that id, so on to the search by name. Every other error still dies.
-  my $quests = eval { $app->api->quests_paginated(id => $quest_id)->{data} };
-  unless ($quests) {
-    die $@ unless $@ =~ /\AAPI request failed: 404 /;
-    $quests = [];
-  }
+  # Try fetching by ID first (API supports id= query param)
+  my $result = $app->api->quests_paginated(id => $quest_id);
+  my $quests = $result->{data};
 
   # If not found by ID, search all quests
   if (!@$quests) {
