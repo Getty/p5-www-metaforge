@@ -169,7 +169,8 @@ my $request = $api->request->items(search => 'Ferro');
 
 ```perl
 my @maps = WWW::MetaForge::ArcRaiders->maps;
-# ('dam', 'spaceport', 'buried-city', 'blue-gate', 'riven-tides', 'stella-montis')
+# ('dam', 'spaceport', 'buried-city', 'blue-gate', 'riven-tides', 'stella-montis',
+#  'pendola-pass')
 
 my $display = $api->map_display_name('buried-city');
 # 'Buried City'

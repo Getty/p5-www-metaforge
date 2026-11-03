@@ -158,6 +158,18 @@ subtest 'Maps list returns valid data' => sub {
   is($api->map_display_name('unknown'), 'unknown', 'unknown map returns id');
 };
 
+subtest 'Maps list is complete and ordered' => sub {
+  is_deeply(
+    [ $api->maps ],
+    [qw( dam spaceport buried-city blue-gate riven-tides stella-montis pendola-pass )],
+    'maps lists every known map in order',
+  );
+
+  my %names = $api->map_display_names;
+  is($names{'pendola-pass'}, 'Pendola Pass', 'pendola-pass display name in map_display_names');
+  is($api->map_display_name('pendola-pass'), 'Pendola Pass', 'map_display_name for pendola-pass');
+};
+
 subtest 'Cache works correctly' => sub {
   my %opts = (cache_dir => $cache_dir, use_cache => 1);
   if ($using_mock) {

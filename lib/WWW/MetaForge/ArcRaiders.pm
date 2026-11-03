@@ -56,7 +56,7 @@ Perl interface to the MetaForge ARC Raiders API for game data
 =cut
 
 # Fixed list of ARC Raiders maps (API mapID format)
-our @MAPS = qw(dam spaceport buried-city blue-gate riven-tides stella-montis);
+our @MAPS = qw(dam spaceport buried-city blue-gate riven-tides stella-montis pendola-pass);
 our %MAP_DISPLAY_NAMES = (
   'dam'           => 'Dam',
   'spaceport'     => 'Spaceport',
@@ -64,6 +64,7 @@ our %MAP_DISPLAY_NAMES = (
   'blue-gate'     => 'Blue Gate',
   'riven-tides'   => 'Riven Tides',
   'stella-montis' => 'Stella Montis',
+  'pendola-pass'  => 'Pendola Pass',
 );
 
 sub maps { return @MAPS }
@@ -73,7 +74,8 @@ sub maps { return @MAPS }
     my @maps = $api->maps;
 
 Returns list of available ARC Raiders map IDs (e.g., C<dam>, C<spaceport>,
-C<buried-city>, C<blue-gate>, C<riven-tides>, C<stella-montis>).
+C<buried-city>, C<blue-gate>, C<riven-tides>, C<stella-montis>,
+C<pendola-pass>).
 
 =cut
 

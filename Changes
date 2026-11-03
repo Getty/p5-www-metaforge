@@ -2,6 +2,7 @@ Revision history for WWW-MetaForge
 
 {{$NEXT}}
 
+ - Add the Pendola Pass map (pendola-pass) to maps and map_display_names
  - Item: expose the API's used_in list, the items this item is a component of
  - Declare LWP::Protocol::https as a prerequisite; the API is HTTPS-only, so
    without it a fresh install died with "LWP::Protocol::https not installed"

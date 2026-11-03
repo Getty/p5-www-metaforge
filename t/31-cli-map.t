@@ -79,6 +79,21 @@ subtest 'map command without argument shows usage' => sub {
   like($output, qr/Usage:/,          'shows usage message');
   like($output, qr/Available maps:/, 'lists available maps');
   like($output, qr/spaceport/,       'includes a known map id');
+  like($output, qr/^\s+pendola-pass\s+Pendola Pass$/m, 'lists pendola-pass with its display name');
+};
+
+subtest 'map command lists pendola-pass markers' => sub {
+  my $cli = mock_cli();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Map->new();
+
+  my $output = capture_stdout {
+    $cmd->execute(['pendola-pass'], [$cli]);
+  };
+
+  like($output, qr/Markers for Pendola Pass/, 'shows map display name');
+  like($output, qr{arc/sentinel},             'shows a category/subcategory type');
+  like($output, qr/Server Rack/,              'shows an instance name');
+  like($output, qr/6 marker\(s\) found/,      'shows marker count');
 };
 
 subtest 'map command JSON output' => sub {
