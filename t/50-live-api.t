@@ -244,6 +244,21 @@ guarded 'event_timers (/events-schedule)' => sub {
   drift_response( 'event_timers', $api->event_timers_raw, [ fixture('events-schedule.json') ], 'data' );
 };
 
+guarded 'event_timers region=all (/events-schedule?region=all)' => sub {
+  my $timers = $api->event_timers( region => 'all' );
+  all_isa( $timers, 'WWW::MetaForge::ArcRaiders::Result::EventTimer', 'event_timers region=all' );
+  my $raw = $api->event_timers_raw( region => 'all' );
+  my @slots = map { @{ $_->times } } @$timers;
+  is( scalar @slots, scalar @{ $raw->{data} }, 'event_timers region=all: one slot per live record' );
+  my @bad = grep { !( $_->start < $_->end ) } @slots;
+  ok( !@bad, 'event_timers region=all: every slot starts before it ends' );
+  my $now = time;
+  ok( scalar( grep { $_->start->epoch > $now } @slots ), 'event_timers region=all: at least one slot lies in the future (window is current)' );
+  my @no_region = grep { !length( $_->region // '' ) } @$timers;
+  ok( !@no_region, 'event_timers region=all: every group carries its region' );
+  drift_response( 'event_timers region=all', $raw, [ fixture('events-schedule-region-all.json') ], 'data' );
+};
+
 guarded 'hideout' => sub {
   my $stations = $api->hideout;
   all_isa( $stations, 'WWW::MetaForge::ArcRaiders::Result::HideoutStation', 'hideout' );
