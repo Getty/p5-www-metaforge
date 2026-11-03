@@ -86,6 +86,12 @@ has sold_by => (
   default => sub { [] },
 );
 
+has used_in => (
+  is      => 'ro',
+  isa     => ArrayRef,
+  default => sub { [] },
+);
+
 has updated_at => (
   is  => 'ro',
   isa => Maybe[Str],
@@ -119,6 +125,7 @@ sub from_hashref {
     components         => $data->{components} // [],
     recycle_components => $data->{recycle_components} // [],
     sold_by            => $data->{sold_by} // [],
+    used_in            => $data->{used_in} // [],
     updated_at         => $data->{updated_at},
     _raw               => $data,
   );
@@ -197,6 +204,11 @@ ArrayRef of recycling yield components, same shape as C<components>.
 =attr sold_by
 
 ArrayRef of traders selling this item, each C<< { price => $n, trader_name => $str } >>.
+
+=attr used_in
+
+ArrayRef of the items this item is a component of, each
+C<< { quantity => $n, item => \%item } >>.
 
 =attr updated_at
 

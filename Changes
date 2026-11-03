@@ -2,6 +2,7 @@ Revision history for WWW-MetaForge
 
 {{$NEXT}}
 
+ - Item: expose the API's used_in list, the items this item is a component of
  - Declare LWP::Protocol::https as a prerequisite; the API is HTTPS-only, so
    without it a fresh install died with "LWP::Protocol::https not installed"
    on the first request

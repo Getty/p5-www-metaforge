@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 use Test::More;
+use FindBin;
+use JSON::MaybeXS qw(decode_json);
 
 use_ok('WWW::MetaForge::ArcRaiders::Result::Item');
 
@@ -94,6 +96,29 @@ subtest '_raw preserves original data' => sub {
 
   is_deeply($item->_raw, $original, '_raw contains original data');
   is($item->_raw->{custom_field}, 'custom_value', 'custom fields accessible via _raw');
+};
+
+subtest 'used_in from the items fixture' => sub {
+  my $file = "$FindBin::Bin/fixtures/items.json";
+  open my $fh, '<:raw', $file or die "Cannot open $file: $!";
+  my $payload = decode_json(do { local $/; <$fh> });
+  close $fh;
+
+  my ($data) = grep { $_->{id} eq 'advanced-arc-powercell' } @{ $payload->{data} };
+  my $item = WWW::MetaForge::ArcRaiders::Result::Item->from_hashref($data);
+
+  is(ref $item->used_in, 'ARRAY', 'used_in is an array');
+  is(scalar @{ $item->used_in }, 2, 'used_in carries both entries');
+  is($item->used_in->[0]{item}{id}, 'energy-ammo', 'used_in entry names the item');
+  is($item->used_in->[0]{quantity}, 1, 'used_in entry carries the quantity');
+};
+
+subtest 'used_in defaults to empty array' => sub {
+  my $item = WWW::MetaForge::ArcRaiders::Result::Item->from_hashref({
+    id => 'test', name => 'Test',
+  });
+
+  is_deeply($item->used_in, [], 'used_in defaults to []');
 };
 
 done_testing;
