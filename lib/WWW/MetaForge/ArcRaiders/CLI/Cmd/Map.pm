@@ -20,8 +20,8 @@ sub execute {
 
   my $map_id = $args->[0];
   unless (defined $map_id && length $map_id) {
-    print "Usage: arcraiders map <map-id>\n";
-    print "Example: arcraiders map dam\n";
+    print "Usage: metaforge-arcraiders map <map-id>\n";
+    print "Example: metaforge-arcraiders map dam\n";
     print "\nAvailable maps:\n";
     for my $m ($app->api->maps) {
       printf "  %-15s %s\n", $m, $app->api->map_display_name($m);
@@ -69,13 +69,13 @@ sub execute {
 =head1 SYNOPSIS
 
   # List all markers for a map
-  arcraiders map dam
+  metaforge-arcraiders map dam
 
   # Filter markers by type
-  arcraiders map dam --type containers
+  metaforge-arcraiders map dam --type containers
 
   # Output as JSON
-  arcraiders --json map dam
+  metaforge-arcraiders --json map dam
 
 =head1 DESCRIPTION
 

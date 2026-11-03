@@ -91,15 +91,15 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # List the hideout stations
-  arcraiders hideout
+  metaforge-arcraiders hideout
 
   # Show one station with what each upgrade level takes
-  arcraiders hideout gunsmith
-  arcraiders hideout weapon-bench
+  metaforge-arcraiders hideout gunsmith
+  metaforge-arcraiders hideout weapon-bench
 
   # Output as JSON
-  arcraiders --json hideout
-  arcraiders --json hideout scrappy
+  metaforge-arcraiders --json hideout
+  metaforge-arcraiders --json hideout scrappy
 
 =head1 DESCRIPTION
 

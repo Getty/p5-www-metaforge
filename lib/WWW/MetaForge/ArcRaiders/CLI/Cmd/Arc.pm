@@ -13,8 +13,8 @@ sub execute {
 
   my $arc_id = $args->[0];
   unless ($arc_id) {
-    print "Usage: arcraiders arc <id>\n";
-    print "Example: arcraiders arc arc-assessor\n";
+    print "Usage: metaforge-arcraiders arc <id>\n";
+    print "Example: metaforge-arcraiders arc arc-assessor\n";
     return;
   }
 
@@ -95,13 +95,13 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # Show arc details by ID
-  arcraiders arc arc-assessor
+  metaforge-arcraiders arc arc-assessor
 
   # Show arc details by name
-  arcraiders arc "Bastion"
+  metaforge-arcraiders arc "Bastion"
 
   # Output as JSON
-  arcraiders --json arc arc-assessor
+  metaforge-arcraiders --json arc arc-assessor
 
 =head1 DESCRIPTION
 

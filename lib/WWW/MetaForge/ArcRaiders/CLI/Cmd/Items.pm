@@ -105,10 +105,10 @@ sub execute {
 
 =head1 SYNOPSIS
 
-  arcraiders items
-  arcraiders items --search Ferro
-  arcraiders items --category Weapon --rarity Rare
-  arcraiders items --category 'Quick Use' --all
+  metaforge-arcraiders items
+  metaforge-arcraiders items --search Ferro
+  metaforge-arcraiders items --category Weapon --rarity Rare
+  metaforge-arcraiders items --category 'Quick Use' --all
 
 =head1 DESCRIPTION
 

@@ -38,8 +38,8 @@ sub execute {
 
 =head1 SYNOPSIS
 
-  arcraiders traders
-  arcraiders traders --json
+  metaforge-arcraiders traders
+  metaforge-arcraiders traders --json
 
 =head1 DESCRIPTION
 

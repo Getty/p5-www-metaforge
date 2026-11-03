@@ -75,7 +75,7 @@ subtest 'map command without argument shows usage' => sub {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Usage:/,          'shows usage message');
+  like($output, qr/^Usage: metaforge-arcraiders map /m,        'shows usage message');
   like($output, qr/Available maps:/, 'lists available maps');
   like($output, qr/spaceport/,       'includes a known map id');
   like($output, qr/^\s+pendola-pass\s+Pendola Pass$/m, 'lists pendola-pass with its display name');

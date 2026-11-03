@@ -13,8 +13,8 @@ sub execute {
 
   my $name = $args->[0];
   unless (defined $name && length $name) {
-    print "Usage: arcraiders trader <name>\n";
-    print "Example: arcraiders trader Apollo\n";
+    print "Usage: metaforge-arcraiders trader <name>\n";
+    print "Example: metaforge-arcraiders trader Apollo\n";
     return;
   }
 
@@ -66,10 +66,10 @@ sub _print_trader_details {
 =head1 SYNOPSIS
 
   # Show a single trader and its inventory
-  arcraiders trader Apollo
+  metaforge-arcraiders trader Apollo
 
   # Output as JSON
-  arcraiders --json trader Apollo
+  metaforge-arcraiders --json trader Apollo
 
 =head1 DESCRIPTION
 

@@ -20,8 +20,8 @@ sub execute {
 
   my $event_name = $args->[0];
   unless ($event_name) {
-    print "Usage: arcraiders event <name> [--map <map>]\n";
-    print "Example: arcraiders event \"Night Raid\" --map stella-montis\n";
+    print "Usage: metaforge-arcraiders event <name> [--map <map>]\n";
+    print "Example: metaforge-arcraiders event \"Night Raid\" --map stella-montis\n";
     return;
   }
 
@@ -61,7 +61,7 @@ sub execute {
     for my $m (@matches) {
       printf "  %s (%s)\n", $m->name // 'Unknown', $m->map // 'all';
     }
-    print "\nUse --map to specify: arcraiders event \"$event_name\" --map <map>\n";
+    print "\nUse --map to specify: metaforge-arcraiders event \"$event_name\" --map <map>\n";
     return;
   }
 
@@ -120,16 +120,16 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # Show details for an event by name
-  arcraiders event "Close Scrutiny"
+  metaforge-arcraiders event "Close Scrutiny"
 
   # Filter by specific map
-  arcraiders event "Night Raid" --map stella-montis
+  metaforge-arcraiders event "Night Raid" --map stella-montis
 
   # Partial name matching
-  arcraiders event "Scrutiny"
+  metaforge-arcraiders event "Scrutiny"
 
   # JSON output
-  arcraiders --json event "Close Scrutiny"
+  metaforge-arcraiders --json event "Close Scrutiny"
 
 =head1 DESCRIPTION
 
@@ -161,10 +161,10 @@ the matches runs on the given map, lists the maps the matches run on.
 =head2 --map, -m
 
 Filter results by map, as map ID (C<dam>, C<stella-montis>, see
-C<arcraiders map>) or display name (C<"Stella Montis">), case-insensitive.
-Useful when the same event appears on multiple maps.
+C<metaforge-arcraiders map>) or display name (C<"Stella Montis">),
+case-insensitive. Useful when the same event appears on multiple maps.
 
-  arcraiders event "Night Raid" --map stella-montis
-  arcraiders event "Night Raid" -m "Stella Montis"
+  metaforge-arcraiders event "Night Raid" --map stella-montis
+  metaforge-arcraiders event "Night Raid" -m "Stella Montis"
 
 =cut

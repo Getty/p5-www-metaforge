@@ -13,8 +13,8 @@ sub execute {
 
   my $slug = $args->[0];
   unless ($slug) {
-    print "Usage: arcraiders item <slug>\n";
-    print "Example: arcraiders item wasp-driver\n";
+    print "Usage: metaforge-arcraiders item <slug>\n";
+    print "Example: metaforge-arcraiders item wasp-driver\n";
     return;
   }
 
@@ -158,13 +158,13 @@ sub _print_list {
 =head1 SYNOPSIS
 
   # Show details for an item by slug
-  arcraiders item wasp-driver
+  metaforge-arcraiders item wasp-driver
 
   # Show details for an item with roman numerals
-  arcraiders item ferro-i
+  metaforge-arcraiders item ferro-i
 
   # Output as JSON
-  arcraiders --json item wasp-driver
+  metaforge-arcraiders --json item wasp-driver
 
 =head1 DESCRIPTION
 

@@ -87,10 +87,10 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # Show Ermal's offers and permanent services
-  arcraiders ermal
+  metaforge-arcraiders ermal
 
   # Output as JSON
-  arcraiders --json ermal
+  metaforge-arcraiders --json ermal
 
 =head1 DESCRIPTION
 

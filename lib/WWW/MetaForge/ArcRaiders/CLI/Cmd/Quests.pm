@@ -79,11 +79,11 @@ sub execute {
 
 =head1 SYNOPSIS
 
-  arcraiders quests
-  arcraiders quests --type main
-  arcraiders quests --page 2
-  arcraiders quests --all
-  arcraiders quests --json
+  metaforge-arcraiders quests
+  metaforge-arcraiders quests --type main
+  metaforge-arcraiders quests --page 2
+  metaforge-arcraiders quests --all
+  metaforge-arcraiders quests --json
 
 =head1 DESCRIPTION
 
@@ -99,22 +99,22 @@ is enabled (C<--json>), the raw API response data is returned.
 
 Filter quests by type. Only quests matching the specified type will be returned.
 
-  arcraiders quests --type main
-  arcraiders quests -t daily
+  metaforge-arcraiders quests --type main
+  metaforge-arcraiders quests -t daily
 
 =head2 --page, -p
 
 Specify the page number for pagination. Defaults to page 1.
 
-  arcraiders quests --page 2
-  arcraiders quests -p 3
+  metaforge-arcraiders quests --page 2
+  metaforge-arcraiders quests -p 3
 
 =head2 --all, -a
 
 Fetch all pages of quests. When enabled, pagination is handled automatically
 and all quests are retrieved.
 
-  arcraiders quests --all
-  arcraiders quests -a
+  metaforge-arcraiders quests --all
+  metaforge-arcraiders quests -a
 
 =cut

@@ -79,12 +79,12 @@ sub execute {
 
 =head1 SYNOPSIS
 
-  arcraiders events
-  arcraiders events --active
-  arcraiders events -a
+  metaforge-arcraiders events
+  metaforge-arcraiders events --active
+  metaforge-arcraiders events -a
 
   # JSON output
-  arcraiders --json events
+  metaforge-arcraiders --json events
 
 =head1 DESCRIPTION
 

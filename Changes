@@ -39,21 +39,23 @@ Revision history for WWW-MetaForge
    relationships, guide_links, guide_url, flavor_text, subcategory,
    ammo_type, shield_type, loot_area, article, unlocks_weapon and
    created_at
- - `arcraiders item` shows what an item is used in, what recycles into it,
-   which ARCs drop it, compatible mods or weapons, map locations, cosmetic
-   options and guide links
- - `arcraiders items --category` and `--rarity` filter on the server across
-   all pages, matching the exact API value
- - Arc: add `data` with the ARC's variants; `arcraiders arcs --loot` requests
-   includeLoot=true; `arcraiders arc` shows whether an ARC flies and the
-   rarity of each drop
+ - `metaforge-arcraiders item` shows what an item is used in, what recycles
+   into it, which ARCs drop it, compatible mods or weapons, map locations,
+   cosmetic options and guide links
+ - `metaforge-arcraiders items --category` and `--rarity` filter on the
+   server across all pages, matching the exact API value
+ - Arc: add `data` with the ARC's variants; `metaforge-arcraiders arcs
+   --loot` requests includeLoot=true; `metaforge-arcraiders arc` shows
+   whether an ARC flies and the rarity of each drop
  - Quest: add `description`, `additional_rewards` and `manifest`;
-   `arcraiders quest` shows the trader, prerequisites, description, required
-   and granted items by name and quantity, and all rewards
+   `metaforge-arcraiders quest` shows the trader, prerequisites,
+   description, required and granted items by name and quantity, and all
+   rewards
  - Add Result::Ermal and the `ermal` method for Ermal's offers and permanent
-   services from the traders response, and the CLI command `arcraiders ermal`
+   services from the traders response, and the CLI command
+   `metaforge-arcraiders ermal`
  - Map markers: add `community`, `source_id` and `route_id`; `lootAreas` is
-   typed as a string; `arcraiders map` flags community markers
+   typed as a string; `metaforge-arcraiders map` flags community markers
  - Event timers follow the events-schedule format: Result::EventTimer and
    its TimeSlot read only the epoch-millisecond records of /events-schedule;
    next_time returns undef when no slot of the schedule window lies ahead;
@@ -96,6 +98,8 @@ Revision history for WWW-MetaForge
  - `--json` output has sorted keys in every command
  - Fix metaforge-arcraiders documenting SUPPORT twice: its Discord, IRC and
    repository links are under COMMUNITY, SUPPORT is generated once
+ - Fix the POD and the usage messages of the commands naming the program
+   arcraiders: they name metaforge-arcraiders, the name it is installed under
 
 0.002     2026-01-11 04:45:55Z
 

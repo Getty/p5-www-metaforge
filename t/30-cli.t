@@ -308,7 +308,7 @@ subtest 'Item command - no argument shows usage' => sub {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Usage:/i, 'shows usage message');
+  like($output, qr/^Usage: metaforge-arcraiders item /m, 'shows usage message');
 };
 
 subtest 'Quest command - single quest lookup' => sub {
@@ -335,7 +335,7 @@ subtest 'Quest command - no argument shows usage' => sub {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Usage:/i, 'shows usage message');
+  like($output, qr/^Usage: metaforge-arcraiders quest /m, 'shows usage message');
 };
 
 subtest 'Arc command - single arc lookup' => sub {
@@ -365,7 +365,7 @@ subtest 'Arc command - no argument shows usage' => sub {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Usage:/i, 'shows usage message');
+  like($output, qr/^Usage: metaforge-arcraiders arc /m, 'shows usage message');
 };
 
 # The events-schedule fixture covers Mon 2 Nov 21:00 - Wed 4 Nov 15:00 UTC;
@@ -409,7 +409,7 @@ subtest 'Event command - ambiguous name' => sub {
   for my $map ('Buried City', 'Blue Gate', 'Dam', 'Pendola Pass', 'Riven Tides', 'Spaceport', 'Stella Montis') {
     like($output, qr/^  Night Raid \(\Q$map\E\)$/m, "lists Night Raid on $map");
   }
-  like($output, qr/Use --map to specify/, 'points to --map');
+  like($output, qr/^Use --map to specify: metaforge-arcraiders event /m, 'points to --map');
   unlike($output, qr/Schedule \(UTC\)/, 'no detail view');
 };
 
@@ -446,7 +446,7 @@ subtest 'Event command - no argument shows usage' => sub {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Usage:/i, 'shows usage message');
+  like($output, qr/^Usage: metaforge-arcraiders event /m, 'shows usage message');
 };
 
 subtest 'Item command - JSON output' => sub {

@@ -36,12 +36,12 @@ WWW::MetaForge provides Perl interfaces to the MetaForge gaming APIs.
 
 =head1 CLI
 
-The distribution includes the C<arcraiders> command-line tool:
+The distribution includes the C<metaforge-arcraiders> command-line tool:
 
-  arcraiders items --search Ferro
-  arcraiders item ferro-i
-  arcraiders events --active
-  arcraiders traders
+  metaforge-arcraiders items --search Ferro
+  metaforge-arcraiders item ferro-i
+  metaforge-arcraiders events --active
+  metaforge-arcraiders traders
 
 =head1 ATTRIBUTION
 

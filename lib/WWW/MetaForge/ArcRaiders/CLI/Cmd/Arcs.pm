@@ -79,25 +79,25 @@ sub execute {
 =head1 SYNOPSIS
 
   # List ARCs (first page)
-  arcraiders arcs
+  metaforge-arcraiders arcs
 
   # Include loot drop information
-  arcraiders arcs --loot
-  arcraiders arcs -l
+  metaforge-arcraiders arcs --loot
+  metaforge-arcraiders arcs -l
 
   # Navigate to specific page
-  arcraiders arcs --page 2
-  arcraiders arcs -p 3
+  metaforge-arcraiders arcs --page 2
+  metaforge-arcraiders arcs -p 3
 
   # Fetch all pages
-  arcraiders arcs --all
-  arcraiders arcs -a
+  metaforge-arcraiders arcs --all
+  metaforge-arcraiders arcs -a
 
   # Combine options
-  arcraiders arcs --loot --all
+  metaforge-arcraiders arcs --loot --all
 
   # JSON output
-  arcraiders --json arcs
+  metaforge-arcraiders --json arcs
 
 =head1 DESCRIPTION
 

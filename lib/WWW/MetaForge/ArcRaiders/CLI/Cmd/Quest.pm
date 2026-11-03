@@ -13,8 +13,8 @@ sub execute {
 
   my $quest_id = $args->[0];
   unless ($quest_id) {
-    print "Usage: arcraiders quest <id>\n";
-    print "Example: arcraiders quest a-bad-feeling\n";
+    print "Usage: metaforge-arcraiders quest <id>\n";
+    print "Example: metaforge-arcraiders quest a-bad-feeling\n";
     return;
   }
 
@@ -120,13 +120,13 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # Show quest details by ID
-  arcraiders quest a-bad-feeling
+  metaforge-arcraiders quest a-bad-feeling
 
   # Show quest details by name
-  arcraiders quest "A Bad Feeling"
+  metaforge-arcraiders quest "A Bad Feeling"
 
   # Output as JSON
-  arcraiders quest a-bad-feeling --json
+  metaforge-arcraiders quest a-bad-feeling --json
 
 =head1 DESCRIPTION
 

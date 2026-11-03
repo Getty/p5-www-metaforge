@@ -78,14 +78,14 @@ sub _when {
 =head1 SYNOPSIS
 
   # Active and upcoming weekly trials
-  arcraiders trials
+  metaforge-arcraiders trials
 
   # The catalog of trials that are not scheduled
-  arcraiders trials --catalog
-  arcraiders trials -c
+  metaforge-arcraiders trials --catalog
+  metaforge-arcraiders trials -c
 
   # Output as JSON
-  arcraiders --json trials
+  metaforge-arcraiders --json trials
 
 =head1 DESCRIPTION
 

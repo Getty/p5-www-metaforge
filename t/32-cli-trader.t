@@ -73,7 +73,7 @@ subtest 'trader command - no argument shows usage' => sub {
     $cmd->execute([], [$cli]);
   };
 
-  like($output, qr/Usage:/i, 'shows usage message');
+  like($output, qr/^Usage: metaforge-arcraiders trader /m, 'shows usage message');
 };
 
 subtest 'trader command - JSON output' => sub {
