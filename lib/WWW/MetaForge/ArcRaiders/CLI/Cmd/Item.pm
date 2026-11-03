@@ -50,7 +50,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode($item->_raw);
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode($item->_raw);
     return;
   }
 

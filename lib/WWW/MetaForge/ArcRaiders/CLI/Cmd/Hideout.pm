@@ -29,7 +29,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode($station->_raw);
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode($station->_raw);
     return;
   }
 
@@ -40,7 +40,7 @@ sub _list_stations {
   my ($app, $stations) = @_;
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode(
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode(
       [ map { $_->_raw } @$stations ]
     );
     return;

@@ -71,7 +71,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode($event->_raw);
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode($event->_raw);
     return;
   }
 

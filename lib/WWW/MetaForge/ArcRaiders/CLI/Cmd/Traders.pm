@@ -14,7 +14,7 @@ sub execute {
   my $traders = $app->api->traders;
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode(
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode(
       [ map { $_->_raw } @$traders ]
     );
     return;

@@ -33,7 +33,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode($trader->_raw);
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode($trader->_raw);
     return;
   }
 

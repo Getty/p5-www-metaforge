@@ -40,7 +40,7 @@ sub execute {
   my $arc = $arcs->[0];
 
   if ($app->json) {
-    print JSON::MaybeXS->new(pretty => 1)->encode($arc->_raw);
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode($arc->_raw);
     return;
   }
 

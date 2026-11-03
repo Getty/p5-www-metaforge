@@ -89,6 +89,7 @@ Revision history for WWW-MetaForge
  - Fix the CLI not decoding its arguments: `quest "Celeste’s Journals"` found
    nothing and echoed the name double encoded; arguments and option values are
    now decoded from UTF-8, and an argument that is not UTF-8 is an error
+ - `--json` output has sorted keys in every command
 
 0.002     2026-01-11 04:45:55Z
 
