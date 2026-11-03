@@ -57,16 +57,15 @@ L<https://metaforge.app/arc-raiders>
 
 The terms of usage are quoted in L<WWW::MetaForge::ArcRaiders/ATTRIBUTION>.
 
-=head1 SUPPORT
+=head1 COMMUNITY
+
+Where to talk about this Perl client. MetaForge's own Discord is linked
+in L<WWW::MetaForge::ArcRaiders/ATTRIBUTION>.
 
 Repository
 
   https://github.com/Getty/p5-www-metaforge
   Pull request and additional contributors are welcome
-
-Issue Tracker
-
-  https://github.com/Getty/p5-www-metaforge/issues
 
 Discord
 

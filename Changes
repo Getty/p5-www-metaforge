@@ -94,6 +94,8 @@ Revision history for WWW-MetaForge
    nothing and echoed the name double encoded; arguments and option values are
    now decoded from UTF-8, and an argument that is not UTF-8 is an error
  - `--json` output has sorted keys in every command
+ - Fix metaforge-arcraiders documenting SUPPORT twice: its Discord, IRC and
+   repository links are under COMMUNITY, SUPPORT is generated once
 
 0.002     2026-01-11 04:45:55Z
 
