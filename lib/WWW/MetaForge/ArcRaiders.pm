@@ -6,6 +6,7 @@ use Moo;
 use LWP::UserAgent;
 use JSON::MaybeXS;
 use Carp qw(croak);
+use List::Util qw(min);
 use namespace::clean;
 
 our $DEBUG = $ENV{WWW_METAFORGE_ARCRAIDERS_DEBUG};
@@ -18,6 +19,9 @@ use WWW::MetaForge::ArcRaiders::Result::Arc;
 use WWW::MetaForge::ArcRaiders::Result::Quest;
 use WWW::MetaForge::ArcRaiders::Result::Trader;
 use WWW::MetaForge::ArcRaiders::Result::Ermal;
+use WWW::MetaForge::ArcRaiders::Result::HideoutStation;
+use WWW::MetaForge::ArcRaiders::Result::WeeklyTrial;
+use WWW::MetaForge::ArcRaiders::Result::WeeklyTrialWindow;
 use WWW::MetaForge::ArcRaiders::Result::EventTimer;
 use WWW::MetaForge::ArcRaiders::Result::MapMarker;
 
@@ -36,6 +40,13 @@ use WWW::MetaForge::ArcRaiders::Result::MapMarker;
     # Search with parameters
     my $ferro = $api->items(search => 'Ferro');
 
+    # What the next Gunsmith level takes
+    my ($gunsmith) = grep { $_->id eq 'weapon-bench' } @{ $api->hideout };
+    say "$_->{quantity}x $_->{id}" for $gunsmith->level(2)->required_items->@*;
+
+    # This week's trials
+    say $_->name for grep { $_->is_active } @{ $api->weekly_trials };
+
     # Event timers with helper methods
     my $events = $api->event_timers;
     for my $event (@$events) {
@@ -52,7 +63,8 @@ use WWW::MetaForge::ArcRaiders::Result::MapMarker;
 =head1 DESCRIPTION
 
 Perl interface to the MetaForge ARC Raiders API for game data
-(items, ARCs, quests, traders, Ermal's offers, event timers, map data).
+(items, ARCs, quests, traders, Ermal's offers, hideout stations, weekly
+trials, event timers, map data).
 
 =cut
 
@@ -577,6 +589,88 @@ C<ermal> section. The raw section is in C<< $api->traders_raw->{ermal} >>.
 
 =cut
 
+sub hideout {
+  my ($self, %params) = @_;
+  my $req = $self->request->hideout(%params);
+  my $response = $self->_fetch('hideout', $req, %params);
+  return $self->_to_objects($response, 'WWW::MetaForge::ArcRaiders::Result::HideoutStation');
+}
+
+=method hideout
+
+    my $stations = $api->hideout;
+    my ($gunsmith) = grep { $_->id eq 'weapon-bench' } @$stations;
+    my $level = $gunsmith->level(2);
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::HideoutStation>,
+one per station of the C</hideout> response (crafting benches, Scrappy, the
+Outpost), each with its upgrade levels. The API sends a bare list, takes no
+parameters and does not paginate. The endpoint is not in the API
+documentation.
+
+=cut
+
+sub weekly_trials {
+  my ($self, %params) = @_;
+  my $response = $self->_weekly_trials_response(%params);
+  return $self->_to_objects($response->{data}, 'WWW::MetaForge::ArcRaiders::Result::WeeklyTrial');
+}
+
+=method weekly_trials
+
+    my $trials = $api->weekly_trials;
+    my @active   = grep { $_->is_active } @$trials;
+    my @upcoming = grep { $_->upcoming } @$trials;
+
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::WeeklyTrial> from
+the C<data> list of the C</weekly-trials> response: the trials of the running
+and of the next window, followed by the catalog of trials that are not
+scheduled. The API takes no parameters and does not paginate. The endpoint
+is not in the API documentation.
+
+C<is_active> and C<upcoming> describe the moment the API answered, so a
+cached response is only used until the running window ends or the next one
+starts, whichever comes first; after that the next call fetches it again.
+
+=cut
+
+sub weekly_trials_window {
+  my ($self, %params) = @_;
+  my $response = $self->_weekly_trials_response(%params);
+  my %window = map { $_ => $response->{$_} } grep { $_ ne 'data' } keys %$response;
+  return WWW::MetaForge::ArcRaiders::Result::WeeklyTrialWindow->from_hashref(\%window);
+}
+
+=method weekly_trials_window
+
+    my $window = $api->weekly_trials_window;
+    say 'Next trials start at ', scalar gmtime $window->next_window_start;
+
+Returns a L<WWW::MetaForge::ArcRaiders::Result::WeeklyTrialWindow> with the
+end of the running and the start of the next trial window, which the API
+sends next to C<data>. Reads the same response as C<weekly_trials> and
+shares its cache entry, so calling both costs one request when caching is
+on.
+
+=cut
+
+sub _weekly_trials_response {
+  my ($self, %params) = @_;
+
+  # is_active and upcoming describe the moment the API answered: a cached
+  # response is stale once the first window boundary in it has passed.
+  if ($self->use_cache) {
+    my $cached = $self->cache->get('weekly_trials', \%params);
+    if ($cached && time() >= min($cached->{activeWindowEnd}, $cached->{nextWindowStart})) {
+      $self->_debug("CACHE STALE (trial window over): weekly_trials");
+      $self->cache->clear('weekly_trials');
+    }
+  }
+
+  my $req = $self->request->weekly_trials(%params);
+  return $self->_fetch('weekly_trials', $req, %params);
+}
+
 # event_timers: always fresh (no cache) - time-critical data
 sub event_timers {
   my ($self, %params) = @_;
@@ -765,6 +859,10 @@ sub items_raw {
 
 =method traders_raw
 
+=method hideout_raw
+
+=method weekly_trials_raw
+
 =method event_timers_raw
 
 =method map_data_raw
@@ -789,6 +887,17 @@ sub traders_raw {
   my ($self, %params) = @_;
   my $req = $self->request->traders(%params);
   return $self->_fetch('traders', $req, %params);
+}
+
+sub hideout_raw {
+  my ($self, %params) = @_;
+  my $req = $self->request->hideout(%params);
+  return $self->_fetch('hideout', $req, %params);
+}
+
+sub weekly_trials_raw {
+  my ($self, %params) = @_;
+  return $self->_weekly_trials_response(%params);
 }
 
 sub event_timers_raw {

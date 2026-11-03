@@ -8,6 +8,7 @@ use File::Temp qw(tempdir);
 use MockUA;
 use HTTP::Request;
 use JSON::MaybeXS;
+use Path::Tiny;
 use WWW::MetaForge::ArcRaiders;
 
 # karr k12: MockUA must not serve gated relations when the query param that
@@ -65,5 +66,24 @@ my ($arc_with)    = grep { $_->id eq 'arc-assessor' } @{ $api->arcs(includeLoot 
 my ($arc_without) = grep { $_->id eq 'arc-assessor' } @{ $api->arcs() };
 ok(@{ $arc_with->loot } > 0, 'loot present with includeLoot=true');
 is(scalar @{ $arc_without->loot }, 0, 'loot stripped without the param');
+
+# /hideout and /weekly-trials take no parameters: the mock serves the bytes of
+# the fixture, whatever the query, and the client sends none
+for my $endpoint (qw( hideout weekly-trials )) {
+  my $file = path("$FindBin::Bin/fixtures/$endpoint.json")->slurp_raw;
+  my $url  = "https://metaforge.app/api/arc-raiders/$endpoint";
+  is($ua->request(HTTP::Request->new(GET => $url))->content, $file, "$endpoint: the fixture, byte for byte");
+  is($ua->request(HTTP::Request->new(GET => "$url?page=2&includeAll=true"))->content, $file, "$endpoint: a query changes nothing");
+}
+
+my $plain_ua  = MockUA->new(fixtures_dir => "$FindBin::Bin/fixtures");
+my $plain_api = WWW::MetaForge::ArcRaiders->new(ua => $plain_ua, cache_dir => tempdir(CLEANUP => 1), use_cache => 0);
+$plain_api->hideout;
+$plain_api->weekly_trials;
+is_deeply(
+  [ $plain_ua->requests ],
+  [ 'https://metaforge.app/api/arc-raiders/hideout', 'https://metaforge.app/api/arc-raiders/weekly-trials' ],
+  'the client asks for hideout and weekly-trials without a query',
+);
 
 done_testing;

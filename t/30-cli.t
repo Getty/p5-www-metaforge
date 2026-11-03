@@ -46,6 +46,8 @@ subtest 'CLI help' => sub {
   like($output, qr/quests/, 'mentions quests command');
   like($output, qr/--debug/, 'mentions debug option');
   like($output, qr/--json/, 'mentions json option');
+  like($output, qr/hideout/, 'mentions hideout command');
+  like($output, qr/trials/, 'mentions trials command');
 };
 
 subtest 'Items command' => sub {

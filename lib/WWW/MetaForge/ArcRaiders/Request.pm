@@ -108,6 +108,32 @@ Returns L<HTTP::Request> for C</traders> endpoint.
 
 =cut
 
+sub hideout {
+  my ($self, %params) = @_;
+  return $self->_build_request($self->base_url . '/hideout', %params);
+}
+
+=method hideout
+
+    my $req = $factory->hideout;
+
+Returns L<HTTP::Request> for C</hideout> endpoint.
+
+=cut
+
+sub weekly_trials {
+  my ($self, %params) = @_;
+  return $self->_build_request($self->base_url . '/weekly-trials', %params);
+}
+
+=method weekly_trials
+
+    my $req = $factory->weekly_trials;
+
+Returns L<HTTP::Request> for C</weekly-trials> endpoint.
+
+=cut
+
 sub event_timers {
   my ($self, %params) = @_;
   return $self->_build_request($self->base_url . '/events-schedule', %params);

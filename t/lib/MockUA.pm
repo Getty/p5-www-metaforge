@@ -39,6 +39,11 @@ unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
 #    limit, ...) are not evaluated.
 #  - /events-schedule serves t/fixtures/events-schedule.json (region europe)
 #    whatever the query: region, map and name are not evaluated
+#  - /hideout and /weekly-trials serve t/fixtures/hideout.json and
+#    t/fixtures/weekly-trials.json verbatim; both endpoints take no
+#    parameters, a query string changes nothing. The weekly-trials
+#    fixture is a snapshot: its window boundaries (activeWindowEnd,
+#    nextWindowStart) lie in the past once that moment has passed.
 #  - every request is recorded, see requests()
 
 my @ITEM_RELATIONS = qw(
@@ -145,6 +150,10 @@ sub request {
     $fixture_file = 'quests.json';
   } elsif ($uri =~ /\/events-schedule/) {
     $fixture_file = 'events-schedule.json';
+  } elsif ($uri =~ m{/hideout\b}) {
+    $fixture_file = 'hideout.json';
+  } elsif ($uri =~ m{/weekly-trials\b}) {
+    $fixture_file = 'weekly-trials.json';
   } elsif ($uri =~ /\/arcs/) {
     $fixture_file = 'arcs.json';
   } elsif ($uri =~ /game-map-data/) {

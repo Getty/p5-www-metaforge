@@ -113,6 +113,8 @@ sub execute {
     print "  traders  List all traders\n";
     print "  trader   Show details for a single trader\n";
     print "  ermal    Show Ermal's offers and permanent services\n";
+    print "  hideout  List hideout stations, or show one with its levels\n";
+    print "  trials   Show the active and upcoming weekly trials\n";
     print "  map      Show map markers for a map\n";
     print "\nOptions:\n";
     print "  -d, --debug     Enable debug output\n";
@@ -127,6 +129,8 @@ sub execute {
     print "  metaforge-arcraiders events\n";
     print "  metaforge-arcraiders trader Apollo\n";
     print "  metaforge-arcraiders ermal\n";
+    print "  metaforge-arcraiders hideout gunsmith\n";
+    print "  metaforge-arcraiders trials\n";
     print "  metaforge-arcraiders map dam\n";
   }
 }

@@ -63,6 +63,20 @@ subtest 'event_timers request' => sub {
   like($req->uri, qr/map=Dam/, 'has param');
 };
 
+subtest 'hideout request' => sub {
+  my $req = $req_factory->hideout;
+  isa_ok($req, 'HTTP::Request');
+  is($req->method, 'GET', 'method is GET');
+  is($req->uri->as_string, 'https://metaforge.app/api/arc-raiders/hideout', 'URL without query');
+};
+
+subtest 'weekly_trials request' => sub {
+  my $req = $req_factory->weekly_trials;
+  isa_ok($req, 'HTTP::Request');
+  is($req->method, 'GET', 'method is GET');
+  is($req->uri->as_string, 'https://metaforge.app/api/arc-raiders/weekly-trials', 'URL without query');
+};
+
 subtest 'map_data request uses different base URL' => sub {
   my $req = $req_factory->map_data(map => 'Spaceport');
   like($req->uri, qr{game-map-data}, 'uses game-map-data URL');

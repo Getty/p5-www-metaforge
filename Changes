@@ -63,6 +63,13 @@ Revision history for WWW-MetaForge
    accepts (region, map, name)
  - The event command shows the date of every slot, takes map IDs for --map
    and names the maps an event runs on when the given map does not match
+ - Add the hideout: ->hideout returns each hideout station with what its
+   upgrade levels take, and the "hideout" command lists the stations or
+   shows one level by level
+ - Add the weekly trials: ->weekly_trials returns the running, upcoming and
+   catalog trials and ->weekly_trials_window the window times; the "trials"
+   command shows them. A cached answer is kept only until the trial window
+   changes
 
 0.002     2026-01-11 04:45:55Z
 

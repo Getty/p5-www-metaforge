@@ -23,10 +23,16 @@ use_ok('WWW::MetaForge::ArcRaiders::Result::Quest');
 use_ok('WWW::MetaForge::ArcRaiders::Result::Trader');
 use_ok('WWW::MetaForge::ArcRaiders::Result::Ermal');
 use_ok('WWW::MetaForge::ArcRaiders::Result::EventTimer');
+use_ok('WWW::MetaForge::ArcRaiders::Result::HideoutStation');
+use_ok('WWW::MetaForge::ArcRaiders::Result::HideoutStation::Level');
+use_ok('WWW::MetaForge::ArcRaiders::Result::WeeklyTrial');
+use_ok('WWW::MetaForge::ArcRaiders::Result::WeeklyTrialWindow');
 use_ok('WWW::MetaForge::ArcRaiders::Result::MapMarker');
 
 # CLI
 use_ok('WWW::MetaForge::ArcRaiders::CLI');
 use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Ermal');
+use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Hideout');
+use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Trials');
 
 done_testing;
