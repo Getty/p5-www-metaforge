@@ -37,6 +37,8 @@ unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
 #    case-sensitively (AND); the result is one page, pagination recomputed
 #    (total, totalPages 0 or 1, no next page). Other parameters (search,
 #    limit, ...) are not evaluated.
+#  - /events-schedule serves t/fixtures/events-schedule.json (region europe)
+#    whatever the query: region, map and name are not evaluated
 #  - every request is recorded, see requests()
 
 my @ITEM_RELATIONS = qw(
@@ -142,7 +144,7 @@ sub request {
   } elsif ($uri =~ /\/quests/) {
     $fixture_file = 'quests.json';
   } elsif ($uri =~ /\/events-schedule/) {
-    $fixture_file = 'event-timers.json';
+    $fixture_file = 'events-schedule.json';
   } elsif ($uri =~ /\/arcs/) {
     $fixture_file = 'arcs.json';
   } elsif ($uri =~ /game-map-data/) {

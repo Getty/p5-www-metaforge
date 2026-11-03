@@ -9,13 +9,17 @@ use namespace::clean;
 
 =head1 SYNOPSIS
 
+    # one record of the events-schedule response
     my $slot = WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref({
-      start => '14:00',
-      end   => '15:00',
+      name      => 'Night Raid',
+      map       => 'Spaceport',
+      icon      => 'https://static.metaforge.app/arc-raiders/custom/night.webp',
+      startTime => 1793653200000,
+      endTime   => 1793656800000,
     });
 
-    say $slot->start;  # DateTime object
-    say $slot->end;    # DateTime object
+    say $slot->start;  # DateTime object, 2026-11-02T21:00:00
+    say $slot->end;    # DateTime object, 2026-11-02T22:00:00
 
     if ($slot->contains) {
       say "Event is active now!";
@@ -23,8 +27,9 @@ use namespace::clean;
 
 =head1 DESCRIPTION
 
-Represents a scheduled time slot with DateTime objects for start and end times.
-All times are in UTC.
+Represents one scheduled run of an event with DateTime objects for start and
+end times. The C</events-schedule> endpoint sends one record per run, with
+C<startTime> and C<endTime> in epoch milliseconds. All times are in UTC.
 
 =cut
 
@@ -54,45 +59,17 @@ DateTime object for slot end time.
 
 sub from_hashref {
   my ($class, $data) = @_;
-
-  # New API format: startTime/endTime as millisecond timestamps
-  if (exists $data->{startTime}) {
-    return $class->from_epoch_ms($data->{startTime}, $data->{endTime});
-  }
-
-  # Legacy format: start/end as HH:MM strings
-  my $now = DateTime->now(time_zone => 'UTC');
-  my $today = $now->clone->truncate(to => 'day');
-
-  my ($start_h, $start_m) = split /:/, $data->{start};
-  my ($end_h, $end_m) = split /:/, $data->{end};
-
-  my $start = $today->clone->set(hour => $start_h, minute => $start_m);
-  my $end = $today->clone->set(hour => $end_h, minute => $end_m);
-
-  # Handle overnight slots (e.g., 23:00 - 01:00)
-  if ($end <= $start) {
-    # Slot crosses midnight - determine which day based on current time
-    if ($now < $end) {
-      # Early morning (after midnight, before slot end) - start was yesterday
-      $start->subtract(days => 1);
-    } else {
-      # Before midnight or after slot end - end is tomorrow
-      $end->add(days => 1);
-    }
-  }
-
-  return $class->new(
-    start => $start,
-    end   => $end,
-  );
+  return $class->from_epoch_ms($data->{startTime}, $data->{endTime});
 }
 
 =method from_hashref
 
-    my $slot = TimeSlot->from_hashref({ start => "HH:MM", end => "HH:MM" });
+    my $slot = TimeSlot->from_hashref($record);
 
-Construct from API response hash with HH:MM strings or millisecond timestamps.
+Construct from one record of the C</events-schedule> response. Reads only
+C<startTime> and C<endTime> (epoch milliseconds); name, map and icon belong
+to the L<WWW::MetaForge::ArcRaiders::Result::EventTimer> that groups the
+records.
 
 =cut
 

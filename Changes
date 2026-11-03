@@ -54,6 +54,15 @@ Revision history for WWW-MetaForge
    services from the traders response, and the CLI command `arcraiders ermal`
  - Map markers: add `community`, `source_id` and `route_id`; `lootAreas` is
    typed as a string; `arcraiders map` flags community markers
+ - Event timers follow the events-schedule format: Result::EventTimer and
+   its TimeSlot read only the epoch-millisecond records of /events-schedule;
+   next_time returns undef when no slot of the schedule window lies ahead;
+   with region => 'all' the timers are grouped per region and carry the new
+   attribute region
+ - The event_timers documentation lists the query parameters the live API
+   accepts (region, map, name)
+ - The event command shows the date of every slot, takes map IDs for --map
+   and names the maps an event runs on when the given map does not match
 
 0.002     2026-01-11 04:45:55Z
 

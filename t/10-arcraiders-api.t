@@ -172,6 +172,21 @@ subtest 'Fixture contents come through the API (offline only)' => sub {
 
   my $markers = $api->map_data(map => 'dam');
   is(scalar @$markers, 8, 'map_data: one marker per fixture record');
+
+  my $events = $api->event_timers;
+  is(scalar @$events, 35, 'event_timers: 171 records grouped into 35 name+map groups');
+  my @slots = map { @{ $_->times } } @$events;
+  is(scalar @slots, 171, 'event_timers: every record is one slot');
+  ok(!grep({ $_->end->epoch - $_->start->epoch != 3600 } @slots), 'event_timers: every run lasts 60 minutes');
+  for my $event (@$events) {
+    my @starts = map { $_->start->epoch } @{ $event->times };
+    is_deeply(\@starts, [ sort { $a <=> $b } @starts ], 'event_timers: times ascending for ' . $event->name . ' | ' . $event->map)
+      or last;
+  }
+  my ($night) = grep { $_->name eq 'Night Raid' && $_->map eq 'Stella Montis' } @$events;
+  is(scalar @{ $night->times }, 21, 'event_timers: Night Raid | Stella Montis has 21 runs');
+  is($night->times->[0]->start->epoch, 1793660400, 'event_timers: its first run starts Mon 2 Nov 23:00 UTC');
+  ok(!defined $night->region, 'event_timers: no region without region=all');
 };
 
 subtest 'Maps list returns valid data' => sub {

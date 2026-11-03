@@ -24,6 +24,12 @@ has icon => (
   isa => Maybe[Str],
 );
 
+# Only sent per record with region=all
+has region => (
+  is  => 'ro',
+  isa => Maybe[Str],
+);
+
 # Schedule times - array of TimeSlot objects
 has times => (
   is      => 'ro',
@@ -36,30 +42,14 @@ has _raw => (
   isa => HashRef,
 );
 
-sub from_hashref {
-  my ($class, $data) = @_;
-
-  my @slots = map {
-    WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref($_)
-  } @{ $data->{times} // [] };
-
-  return $class->new(
-    name   => $data->{name},
-    map    => $data->{map},
-    icon   => $data->{icon},
-    times  => \@slots,
-    _raw   => $data,
-  );
-}
-
-# Build from grouped API data (array of raw event entries with same name+map)
+# Build from grouped API data: the events-schedule records that share
+# name+map (and region, when the records carry one). The API sends no
+# grouped records, so this is the constructor instead of from_hashref.
 sub from_grouped {
   my ($class, $name, $map, $events) = @_;
 
   my @slots = map {
-    WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_epoch_ms(
-      $_->{startTime}, $_->{endTime}
-    )
+    WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot->from_hashref($_)
   } @$events;
 
   # Sort slots by start time
@@ -69,6 +59,7 @@ sub from_grouped {
     name   => $name,
     map    => $map,
     icon   => $events->[0]{icon},
+    region => $events->[0]{region},
     times  => \@slots,
     _raw   => { name => $name, map => $map, events => $events },
   );
@@ -92,13 +83,12 @@ sub next_time {
 
   my @sorted = sort { $a->start <=> $b->start } $self->times->@*;
 
-  # Find next slot that starts after now
+  # Find next slot that starts after now. The API sends absolute times for
+  # a fixed window, so there is no wrap-around to an earlier slot.
   for my $slot (@sorted) {
     return $slot if $slot->start > $now;
   }
 
-  # Wrap around to first slot tomorrow
-  return $sorted[0] if @sorted;
   return undef;
 }
 
@@ -169,7 +159,14 @@ sub minutes_until_end {
 
 =head1 DESCRIPTION
 
-Represents an event timer/schedule from the ARC Raiders game.
+Represents the schedule of one ARC Raiders event on one map. The
+C</events-schedule> endpoint sends one record per scheduled run
+(C<name>, C<map>, C<icon>, C<startTime>, C<endTime>, times in epoch
+milliseconds UTC) for a window of about 42 hours that starts some hours in
+the past. L<WWW::MetaForge::ArcRaiders/event_timers> groups the records that
+share name and map, and region when the records carry one, into one
+EventTimer each; every record becomes one
+L<WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot>.
 
 =attr name
 
@@ -177,30 +174,44 @@ Event name.
 
 =attr map
 
-Map where event occurs.
+Map where event occurs, as display name (C<Dam>, C<Stella Montis>).
 
 =attr icon
 
 URL to event icon image.
 
+=attr region
+
+Server region of this schedule (C<europe>, C<north-america>, C<oceania>,
+C<east-asia>, C<brazil>). Set only when the records carry a C<region> field,
+which the API sends only for the request parameter C<region =E<gt> 'all'>;
+undef otherwise. The region of a single-region response is in the C<region>
+field of the response envelope, see
+L<WWW::MetaForge::ArcRaiders/event_timers_raw>.
+
 =attr times
 
-ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot> objects.
+ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer::TimeSlot>
+objects, sorted by start time. Holds every run in the schedule window,
+including runs that have already ended.
 
-=method from_hashref
+=attr _raw
 
-  my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_hashref(\%data);
-
-Construct from API response (legacy format with times array).
+HashRef C<{ name, map, events }>. The API sends no grouped record, so this
+hash is built by L</from_grouped>: C<name> and C<map> are those of the
+group, C<events> holds the untouched records of the group in API order (with
+their C<region> field, when the API sends one).
 
 =method from_grouped
 
   my $event = WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped(
-    $name, $map, \@events
+    $name, $map, \@records
   );
 
-Construct from grouped API data. Takes an array of raw event entries
-(with startTime/endTime timestamps) that share the same name and map.
+Construct from the C</events-schedule> records that share the same name and
+map (and region, when the records carry one). This is the constructor for
+API data instead of C<from_hashref>, because the API sends no grouped
+records. C<icon> and C<region> are read from the first record.
 
 =method is_active_now
 
@@ -213,7 +224,9 @@ Returns true if current time is within a scheduled time slot.
   my $slot = $event->next_time;
   say "Starts at ", $slot->start if $slot;
 
-Returns next upcoming TimeSlot object, or undef if none scheduled.
+Returns the next TimeSlot that starts after now, or undef when no slot in
+the schedule window lies ahead. The API sends absolute times, so there is no
+wrap-around to an earlier slot.
 
 =method current_slot
 
@@ -228,14 +241,14 @@ Returns currently active TimeSlot object, or undef if not active.
   say "Event starts in $duration" if $duration;
 
 Returns human-readable duration until next event start (e.g., "2h 30m", "45m").
-Returns undef if no upcoming events.
+Returns undef if no slot lies ahead (see L</next_time>).
 
 =method minutes_until_start
 
   my $minutes = $event->minutes_until_start;
 
 Returns numeric minutes until next event start. Useful for sorting events.
-Returns undef if no upcoming events.
+Returns undef if no slot lies ahead (see L</next_time>).
 
 =method time_until_end
 

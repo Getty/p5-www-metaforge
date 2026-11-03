@@ -10,7 +10,7 @@ option map => (
   is     => 'ro',
   format => 's',
   short  => 'm',
-  doc    => 'Filter by map name (e.g., dam, spaceport)',
+  doc    => 'Filter by map ID or name (e.g., dam, stella-montis, "Stella Montis")',
 );
 
 sub execute {
@@ -20,7 +20,7 @@ sub execute {
   my $event_name = $args->[0];
   unless ($event_name) {
     print "Usage: arcraiders event <name> [--map <map>]\n";
-    print "Example: arcraiders event \"Cold Snap\" --map dam\n";
+    print "Example: arcraiders event \"Night Raid\" --map stella-montis\n";
     return;
   }
 
@@ -39,11 +39,17 @@ sub execute {
     } @$events;
   }
 
-  # Filter by map if specified
+  # Filter by map if specified, as map ID (stella-montis) or display name
+  # (Stella Montis); the API sends the display name
   if ($self->map && @matches) {
-    @matches = grep {
-      $_->map && lc($_->map) eq lc($self->map)
-    } @matches;
+    my $map_name = lc $app->api->map_display_name($self->map);
+    my @on_map = grep { lc($_->map) eq $map_name } @matches;
+    unless (@on_map) {
+      print "Event '$event_name' found, but not on map '" . $self->map . "':\n";
+      printf "  %s (%s)\n", $_->name, $_->map for @matches;
+      return;
+    }
+    @matches = @on_map;
   }
 
   my $event;
@@ -97,7 +103,7 @@ sub _print_event_details {
     print "\nSchedule (UTC):\n";
     my @sorted = sort { $a->start <=> $b->start } @{$event->times};
     for my $slot (@sorted) {
-      printf "  %s - %s\n", $slot->start->strftime('%H:%M'), $slot->end->strftime('%H:%M');
+      printf "  %s - %s\n", $slot->start->strftime('%a %d %b %H:%M'), $slot->end->strftime('%H:%M');
     }
   }
 }
@@ -113,16 +119,16 @@ sub _print_field {
 =head1 SYNOPSIS
 
   # Show details for an event by name
-  arcraiders event "Cold Snap"
+  arcraiders event "Close Scrutiny"
 
   # Filter by specific map
-  arcraiders event "Cold Snap" --map dam
+  arcraiders event "Night Raid" --map stella-montis
 
   # Partial name matching
-  arcraiders event "Cold"
+  arcraiders event "Scrutiny"
 
   # JSON output
-  arcraiders --json event "Cold Snap"
+  arcraiders --json event "Close Scrutiny"
 
 =head1 DESCRIPTION
 
@@ -140,24 +146,24 @@ The detail view shows:
 
 =item * Time until start or end
 
-=item * Description with word wrapping
-
-=item * Complete schedule with time slots
-
-=item * Active days of the week
+=item * Complete schedule of the API's window (about 42 hours, starting some
+hours in the past), one line per run with date and time in UTC
 
 =back
 
 If multiple events match the search criteria, displays a list of matches and
-suggests using C<--map> to narrow results.
+suggests using C<--map> to narrow results. If the name matches but none of
+the matches runs on the given map, lists the maps the matches run on.
 
 =head1 OPTIONS
 
 =head2 --map, -m
 
-Filter results by map name. Useful when the same event appears on multiple maps.
+Filter results by map, as map ID (C<dam>, C<stella-montis>, see
+C<arcraiders map>) or display name (C<"Stella Montis">), case-insensitive.
+Useful when the same event appears on multiple maps.
 
-  arcraiders event "Cold Snap" --map dam
-  arcraiders event "Cold Snap" -m spaceport
+  arcraiders event "Night Raid" --map stella-montis
+  arcraiders event "Night Raid" -m "Stella Montis"
 
 =cut

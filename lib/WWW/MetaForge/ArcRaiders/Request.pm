@@ -117,7 +117,10 @@ sub event_timers {
 
     my $req = $factory->event_timers(map => 'Dam');
 
-Returns L<HTTP::Request> for C</events-schedule> endpoint.
+Returns L<HTTP::Request> for C</events-schedule> endpoint. The parameters
+go into the query string unchanged; the ones the live API accepts
+(C<region>, C<map>, C<name>) are listed at
+L<WWW::MetaForge::ArcRaiders/event_timers>.
 
 =cut
 

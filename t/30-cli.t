@@ -7,6 +7,7 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Capture::Tiny qw(capture_stdout);
 use URI;
+use FrozenClock;
 
 # Skip if Capture::Tiny not available
 BEGIN {
@@ -365,19 +366,72 @@ subtest 'Arc command - no argument shows usage' => sub {
   like($output, qr/Usage:/i, 'shows usage message');
 };
 
-subtest 'Event command - single event lookup' => sub {
+# The events-schedule fixture covers Mon 2 Nov 21:00 - Wed 4 Nov 15:00 UTC;
+# the clock is frozen inside it, so the status lines do not depend on the day
+sub event_output {
+  my ($when, $args, %opt) = @_;
   require WWW::MetaForge::ArcRaiders::CLI::Cmd::Event;
-
   my $cli = mock_cli();
-  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Event->new();
+  my $cmd = WWW::MetaForge::ArcRaiders::CLI::Cmd::Event->new(%opt);
+  my $output = '';
+  FrozenClock::at($when, sub {
+    $output = capture_stdout { $cmd->execute($args, [$cli]) };
+  });
+  return $output;
+}
 
-  my $output = capture_stdout {
-    $cmd->execute(['Cold Snap'], [$cli]);
-  };
+subtest 'Event command - single event lookup' => sub {
+  my $output = event_output('2026-11-03T05:30:00', ['Close Scrutiny']);
 
-  # Should find event or show not found
-  ok(length($output) > 0, 'produces output');
-  like($output, qr/Cold Snap|not found/i, 'shows event or not found');
+  like($output, qr/^Close Scrutiny$/m, 'shows the event name');
+  like($output, qr/Map:\s+Dam/, 'shows the map');
+  like($output, qr/Status:\s+Inactive/, 'inactive, its run is on Wednesday');
+  like($output, qr/Starts in:\s+31h 30m/, 'starts in 31h 30m (Wed 13:00 minus Tue 05:30)');
+  like($output, qr/^Schedule \(UTC\):\n  Wed 04 Nov 13:00 - 14:00\n/m, 'schedule line with date');
+  unlike($output, qr/Multiple events|not found/, 'no list, no not-found');
+};
+
+subtest 'Event command - active event' => sub {
+  my $output = event_output('2026-11-03T05:30:00', ['Night Raid'], map => 'stella-montis');
+
+  like($output, qr/Status:\s+ACTIVE/, 'Night Raid | Stella Montis is active');
+  like($output, qr/Ends in:\s+30m/, 'ends in 30m');
+  like($output, qr/^  Tue 03 Nov 05:00 - 06:00$/m, 'the running slot with date');
+  is(scalar(() = $output =~ /^  \w{3} \d\d \w{3} \d\d:\d\d - \d\d:\d\d$/mg), 21, 'all 21 runs of the window are listed');
+};
+
+subtest 'Event command - ambiguous name' => sub {
+  my $output = event_output('2026-11-03T05:30:00', ['Night Raid']);
+
+  like($output, qr/^Multiple events match 'Night Raid':$/m, 'reports multiple matches');
+  for my $map ('Buried City', 'Blue Gate', 'Dam', 'Pendola Pass', 'Riven Tides', 'Spaceport', 'Stella Montis') {
+    like($output, qr/^  Night Raid \(\Q$map\E\)$/m, "lists Night Raid on $map");
+  }
+  like($output, qr/Use --map to specify/, 'points to --map');
+  unlike($output, qr/Schedule \(UTC\)/, 'no detail view');
+};
+
+subtest 'Event command - --map as map ID and as display name' => sub {
+  my $by_id   = event_output('2026-11-03T05:30:00', ['Night Raid'], map => 'stella-montis');
+  my $by_name = event_output('2026-11-03T05:30:00', ['Night Raid'], map => 'Stella Montis');
+
+  like($by_id, qr/^Night Raid$/m, 'by ID: detail view of Night Raid');
+  like($by_id, qr/Map:\s+Stella Montis/, 'by ID: on Stella Montis');
+  unlike($by_id, qr/Multiple events/, 'by ID: no list');
+  is($by_name, $by_id, 'display name gives the same output as the ID');
+};
+
+subtest 'Event command - name found, but not on the map' => sub {
+  my $output = event_output('2026-11-03T05:30:00', ['Close Scrutiny'], map => 'spaceport');
+
+  like($output, qr/^Event 'Close Scrutiny' found, but not on map 'spaceport':$/m, 'says found, but not on map');
+  like($output, qr/^  Close Scrutiny \(Dam\)$/m, 'lists the map of the event');
+  unlike($output, qr/Schedule \(UTC\)|not found\./, 'no detail view, no not-found');
+};
+
+subtest 'Event command - unknown event' => sub {
+  my $output = event_output('2026-11-03T05:30:00', ['Cold Snap']);
+  is($output, "Event 'Cold Snap' not found.\n", 'Cold Snap does not exist in the live schedule');
 };
 
 subtest 'Event command - no argument shows usage' => sub {

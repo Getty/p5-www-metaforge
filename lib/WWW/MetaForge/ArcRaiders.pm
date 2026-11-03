@@ -589,32 +589,70 @@ sub event_timers {
 =method event_timers
 
     my $events = $api->event_timers(%params);
+    my $na     = $api->event_timers(region => 'north-america');
 
-Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer>.
+Returns ArrayRef of L<WWW::MetaForge::ArcRaiders::Result::EventTimer>, one
+per event name and map, built from the C</events-schedule> endpoint. The API
+sends one record per scheduled run (C<startTime>/C<endTime> in epoch
+milliseconds, UTC) for a window of about 42 hours that starts some hours in
+the past; the records that share name and map are grouped into one
+EventTimer with one TimeSlot per run.
 Always fetches fresh data (bypasses cache) since event timers are time-sensitive.
+
+C<%params> go into the query string unchanged. The official API
+documentation lists no parameters for this endpoint; the live API was
+observed to accept these:
+
+=over 4
+
+=item region
+
+Server region of the schedule: C<europe> (the default), C<north-america>,
+C<oceania>, C<east-asia>, C<brazil> or C<all>. Each region has its own
+schedule. An unknown region silently returns the C<europe> schedule; the
+C<region> field of the response envelope (see C<event_timers_raw>) names the
+region that was served. With C<all> every record carries its own C<region>
+field, and the records are grouped by name, map and region, so each
+EventTimer holds one region's schedule (see
+L<WWW::MetaForge::ArcRaiders::Result::EventTimer/region>).
+
+=item map
+
+Only the events on this map, given as display name (C<Dam>,
+C<Stella Montis>).
+
+=item name
+
+Only the events with this name (C<Night Raid>).
+
+=back
+
+C<includeAll> is not supported: it adds placeholder records for events
+without a schedule (map C<Unknown>, C<startTime> and C<endTime> 0), which
+would turn into time slots at the epoch.
 
 =cut
 
-# Group flat event list by name+map into EventTimer objects with TimeSlots
+# Group the flat events-schedule records by name+map (+region, which the API
+# sends per record only for region=all) into EventTimer objects
 sub _group_event_timers {
   my ($self, $data) = @_;
 
   return [] unless $data && ref $data eq 'ARRAY';
 
-  # Group by name+map
   my %grouped;
   for my $event (@$data) {
-    my $key = ($event->{name} // '') . '|' . ($event->{map} // '');
-    push @{ $grouped{$key} }, $event;
+    my @key = ($event->{name}, $event->{map});
+    push @key, $event->{region} if exists $event->{region};
+    push @{ $grouped{ join "\0", @key } }, $event;
   }
 
   # Build EventTimer objects from grouped data
   my @timers;
   for my $key (sort keys %grouped) {
     my $events = $grouped{$key};
-    my ($name, $map) = split /\|/, $key, 2;
     push @timers, WWW::MetaForge::ArcRaiders::Result::EventTimer->from_grouped(
-      $name, $map, $events
+      $events->[0]{name}, $events->[0]{map}, $events
     );
   }
 
@@ -636,6 +674,15 @@ sub event_timers_cached {
 
 Like C<event_timers> but uses cache. Only use when you don't need
 real-time event status.
+
+The schedule window reaches about 42 hours, most of it ahead. The default
+cache never expires, so a cached schedule runs out: once the window has
+passed, no event is active and none lies ahead. Give the cache a TTL for
+C<event_timers> to refetch in time:
+
+    my $api = WWW::MetaForge::ArcRaiders->new(
+      cache => WWW::MetaForge::Cache->new(ttl => { event_timers => 3600 }),
+    );
 
 =cut
 
