@@ -1,0 +1,24 @@
+---
+claimed_at: 2026-11-03T05:30:14Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:30:13Z
+created: 2026-11-03T04:33:24Z
+id: 23
+priority: medium
+started: 2026-11-03T04:57:30Z
+status: done
+tags:
+- api
+- feature
+title: 'hideout: Result, Fassade, CLI'
+updated: 2026-11-03T05:30:14Z
+---
+
+Hub-Auftrag Punkt 4. Undokumentierter Endpunkt /api/arc-raiders/hideout (Werkbaenke mit maxLevel und levels.{n}.requiredItems). Result-Klasse, Fassaden-Methode, CLI-Kommando nach bestehendem Muster, standardmaessig ueber WWW::MetaForge::Cache.
+
+Phase 1 (worker): neue Dateien Result/HideoutStation.pm + Result/HideoutStation/Level.pm (levels als nach Nummer sortierte Level-Liste, $station->level(N)), CLI/Cmd/Hideout.pm (hideout [id|name]). Patch fuer ArcRaiders.pm/Request.pm/CLI.pm liegt in tmp/k23/phase2-k23-k24.patch (git apply --check gruen gegen Working Tree). Harness gegen Live-Rohdaten 2026-11-03: 10/10 Subtests gruen. Nicht modelliert: description (bei allen 9 leer). Drift: Wide-character-Warnungen aus CLI/Cmd/Quest.pm:67/114 und Arc.pm:66 in den CLI-Tests (k20-Bereich, Tests gruen).
+
+Phase 2 eingespielt: Patch A sauber per git apply (Hunks 5/6 mit Offset 47 nach k21, keine Handuebertragung). ArcRaiders.pm/Request.pm/CLI.pm = HEAD+A+B, byte-geprueft. perl -c 9 Module OK; Harness gegen lib/: harness.t 10/10, dispatch.pl ok; prove -lr -j4 t offline 29 Dateien/314 Tests PASS. Bereit fuer Test-Writer und Release-Manager (ein Commit zusammen mit k24).
+
+Committed in 6e4e15e
