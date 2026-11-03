@@ -11,7 +11,7 @@ use RecordingUA;
 
 # The mock has to answer like the live API (curl, 2026-11-03): an unknown
 # quest id is 404 {"error":"Quest not found"}, a known one is 200. Items and
-# arcs answer 200 with empty data for an unknown id and stay as they were.
+# arcs answer 200 with empty data for an unknown id.
 
 my $dir = "$FindBin::Bin/fixtures";
 sub get { return $_[0]->request(HTTP::Request->new(GET => 'https://metaforge.app/api/arc-raiders/'.$_[1])) }
@@ -26,10 +26,10 @@ subtest 'quests with an unknown id: 404 and the live body' => sub {
   }
 };
 
-subtest 'quests with a known id: the fixture, as before' => sub {
+subtest 'quests with a known id: the fixture' => sub {
   my $ua  = MockUA->new(fixtures_dir => $dir);
   my $res = get($ua, 'quests?id=celestes-journals');
-  is($res->code, 200, '200');
+  is($res->code, 200, 'a known quest id answers 200');
   ok(scalar(grep { $_->{id} eq 'celestes-journals' } @{ decode_json($res->content)->{data} }), 'the quest is in the data');
 
   my $rec = RecordingUA->new(fixtures_dir => $dir, filter_by_id => 1);

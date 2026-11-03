@@ -19,7 +19,7 @@ use RecordingUA;
 use_ok('WWW::MetaForge::ArcRaiders::CLI');
 use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Quests');
 
-# karr k37: "quests --type" is gone. Quests carry no type live and the API
+# "quests" has no --type option. Quests carry no type live and the API
 # ignores the parameter, so the CLI must neither offer the option nor send
 # type= in the request.
 
@@ -47,7 +47,7 @@ subtest 'quests declares only --all and --page' => sub {
 
 subtest 'quests never sends type= in the request' => sub {
   my ($cli, $ua) = mock_cli();
-  # a type handed to the command (what --type x used to set) must not reach the API
+  # a type handed to the command (as --type x would set it) must not reach the API
   my $cmd = $class->new( type => 'x' );
 
   my $output = capture_stdout { $cmd->execute([], [$cli]) };

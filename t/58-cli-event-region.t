@@ -14,7 +14,7 @@ use WWW::MetaForge::ArcRaiders::CLI;
 use WWW::MetaForge::ArcRaiders::CLI::Cmd::Event;
 use WWW::MetaForge::ArcRaiders::CLI::Cmd::Events;
 
-# k36, CLI part: events and event take --region; without it no region goes to
+# events and event take --region; without it no region goes to
 # the API; event lists running and upcoming runs only.
 #
 # t/fixtures/events-schedule.json is the europe response of Tue 3 Nov 2026
@@ -106,7 +106,7 @@ subtest '--json keeps every run' => sub {
   is($data->{events}[0]{startTime}, 1793660400000, 'the first record is Mon 2 Nov 23:00');
 };
 
-subtest 'europe hint stays as it was' => sub {
+subtest 'europe hint without region' => sub {
   my ($out) = run_cmd($EVENT, $EU, ['Night Raid']);
   like($out, qr/^\nUse --map to specify: metaforge-arcraiders event "Night Raid" --map <map>\n\z/m,
     'the hint is verbatim');

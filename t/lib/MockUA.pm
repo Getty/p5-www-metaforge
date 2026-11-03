@@ -51,11 +51,10 @@ unless ($ENV{WWW_METAFORGE_USE_LIVE_API}) {
 #    answers 404 Not Found, body {"error":"Quest not found"} (live, curl,
 #    2026-11-03: quests?id=celestes-journals is 200, quests?id=<unknown> is
 #    404; items?id and arcs?id with an unknown id stay 200 with empty data,
-#    so only quests are gated). Found by the live acceptance of k34, which
-#    the offline suite missed because the mock used to answer every id with
-#    200. A known id serves the fixture as before; RecordingUA (and with it
-#    OfflineLWP, the bin subprocess) sits on top of this mock, so the 404
-#    holds there too.
+#    so only quests are gated). A mock that answered every id with 200 would
+#    hide the 404 from the offline suite. A known id serves the fixture;
+#    RecordingUA (and with it OfflineLWP, the bin subprocess) sits on top
+#    of this mock, so the 404 holds there too.
 #  - every request is recorded, see requests()
 
 my @ITEM_RELATIONS = qw(
@@ -220,7 +219,7 @@ sub request {
 
   # Query-param gating for /arcs: the live API only sends the loot relation
   # with includeLoot=true. The fixture is captured with the flag set, so
-  # without it the key is removed (karr k12).
+  # without it the key is removed.
   if ($fixture_file eq 'arcs.json' && $uri !~ /[?&]includeLoot=true\b/) {
     my $decoded = eval { JSON::MaybeXS->new->decode($content) };
     if (ref $decoded eq 'HASH' && ref $decoded->{data} eq 'ARRAY') {

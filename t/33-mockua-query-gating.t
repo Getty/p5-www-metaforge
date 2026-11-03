@@ -11,7 +11,7 @@ use JSON::MaybeXS;
 use Path::Tiny;
 use WWW::MetaForge::ArcRaiders;
 
-# karr k12: MockUA must not serve gated relations when the query param that
+# MockUA must not serve gated relations when the query param that
 # unlocks them is missing, so a forgotten includeComponents/includeLoot
 # fails offline.
 my @relations = qw(

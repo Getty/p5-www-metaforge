@@ -17,11 +17,11 @@ use Capture::Tiny qw(capture);
 use_ok('WWW::MetaForge::ArcRaiders::CLI');
 use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Items');
 
-# karr k34: the command line arrives as bytes; the CLI decodes @ARGV from
+# The command line arrives as bytes; the CLI decodes @ARGV from
 # UTF-8 before MooX::Cmd and MooX::Options read it, so an argument is a
-# character string like the names in the API data. Before, quest
-# "Celeste's Journals" (U+2019) never matched and the "not found" message
-# came out double-encoded (C3 A2 C2 80 C2 99).
+# character string like the names in the API data. Otherwise quest
+# "Celeste's Journals" (U+2019) would never match and the "not found" message
+# would come out double-encoded (C3 A2 C2 80 C2 99).
 #
 # fixtures/quests.json: "Celeste\x{2019}s Journals", id celestes-journals.
 # The arguments below are written as bytes: U+2019 is E2 80 99.

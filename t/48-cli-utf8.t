@@ -22,7 +22,7 @@ use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Item');
 use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Quest');
 use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Arc');
 
-# karr k30: the commands print character strings; the CLI puts one UTF-8
+# The commands print character strings; the CLI puts one UTF-8
 # layer on STDOUT/STDERR, so every non-ASCII character leaves the process
 # encoded exactly once and without "Wide character" warnings. The captured
 # output is therefore bytes: U+2019 is E2 80 99, U+00D7 is C3 97.
@@ -90,9 +90,9 @@ subtest '--json: characters are encoded once (the encoder adds no layer)' => sub
   is_deeply($warnings, [], 'no warnings');
 };
 
-# The real script in a subprocess, as a user runs it. Before k30 the script
-# put an :encoding(UTF-8) layer on STDOUT itself and the JSON encoders added
-# a second encoding: U+2019 came out as C3 A2 C2 80 C2 99. The subprocess
+# The real script in a subprocess, as a user runs it. The script must not
+# put an :encoding(UTF-8) layer on STDOUT itself: the JSON encoders would add
+# a second encoding and U+2019 would come out as C3 A2 C2 80 C2 99. The subprocess
 # loads t/lib/OfflineLWP.pm, which answers every request from the fixtures
 # and keeps the MockUA network lock, so nothing reaches the network.
 subtest 'bin/metaforge-arcraiders in a subprocess: UTF-8 exactly once' => sub {

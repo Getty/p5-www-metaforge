@@ -25,7 +25,7 @@ sub new_api {
   return ($api, $ua);
 }
 
-subtest 'k29: map_data runs over the injected ua' => sub {
+subtest 'map_data runs over the injected ua' => sub {
   my ($api, $ua) = new_api();
   my $markers = $api->map_data(map => 'dam');
 

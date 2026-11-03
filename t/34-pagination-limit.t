@@ -55,8 +55,8 @@ subtest 'the pagination dies at the page limit' => sub {
     max_pages => 3,
   );
 
-  # The client used to warn and hand out the truncated list; the warning
-  # must not pass for the error the client raises now.
+  # The client raises an error instead of warning and handing out the
+  # truncated list; a warning must not pass for that error.
   my @warnings;
   local $SIG{__WARN__} = sub { push @warnings, $_[0] };
 

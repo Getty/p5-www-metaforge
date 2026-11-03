@@ -21,9 +21,9 @@ use RecordingUA;
 use_ok('WWW::MetaForge::ArcRaiders::CLI');
 use_ok('WWW::MetaForge::ArcRaiders::CLI::Cmd::Arcs');
 
-# karr k38: "arcs --loot" prints, under every ARC, one indented line per drop
+# "arcs --loot" prints, under every ARC, one indented line per drop
 # (item name, rarity), "  (no loot drops)" for an ARC without drops. Without
-# --loot the text view is as before. Expected values are read from the
+# --loot the text view has no loot lines. Expected values are read from the
 # byte-faithful t/fixtures/arcs.json (26 ARCs, 149 drops, 4 ARCs without).
 
 my $class     = 'WWW::MetaForge::ArcRaiders::CLI::Cmd::Arcs';

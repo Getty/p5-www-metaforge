@@ -15,7 +15,7 @@ BEGIN {
 }
 use Capture::Tiny qw(capture);
 
-# karr k40: every command that prints JSON uses the same encoder,
+# Every command that prints JSON uses the same encoder,
 # JSON::MaybeXS->new(pretty => 1, canonical => 1), so the output is
 # deterministic (sorted keys). The check: decode the output of the real
 # script and encode it again with a canonical encoder - a byte-identical
