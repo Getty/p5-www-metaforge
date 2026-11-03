@@ -18,12 +18,12 @@ GameMapData:    https://metaforge.app/api/game-map-data?tableID=arc_map_data&map
 
 ## CLI
 
-Binary: `bin/metaforge-arcraiders` (installed as `arcraiders`)
+Binary: `bin/metaforge-arcraiders` (installed under the same name)
 
 Commands use MooX::Cmd + MooX::Options in `lib/WWW/MetaForge/ArcRaiders/CLI/Cmd/`.
 
 Architecture (layers, the result-class contract, the exact-API-format rule) and the
-testing/fixture rules live in skill `www-metaforge-core`; the `arcraiders` conventions are
+testing/fixture rules live in skill `www-metaforge-core`; the `metaforge-arcraiders` conventions are
 not restated here.
 
 ## Delegation

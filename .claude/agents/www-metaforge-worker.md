@@ -28,9 +28,10 @@ disappears.
 
 ## Verification
 
-`prove -l t/` runs against `t/lib/MockUA.pm` fixtures. `USE_LIVE_API=1 prove -l t/` hits
-the network and can hang when the API is slow — when debugging, run one file with a
-timeout (`timeout 25 perl -Ilib -It/lib t/NN-foo.t`) instead of the whole suite.
+`prove -l t/` runs against `t/lib/MockUA.pm` fixtures.
+`WWW_METAFORGE_USE_LIVE_API=1 prove -l t/` hits the network and can hang when the API
+is slow — when debugging, run one file with a timeout
+(`timeout 25 perl -Ilib -It/lib t/NN-foo.t`) instead of the whole suite.
 
 Changing a result class means changing its fixture in `t/fixtures/` in the same commit —
 and the fixture must match the live response exactly, not a tidied version of it.

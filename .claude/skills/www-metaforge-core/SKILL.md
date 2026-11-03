@@ -17,7 +17,7 @@ runs them through a UA, and turns JSON into Result objects.
 | Request | `*/Request.pm` | build an `HTTP::Request`; owns URL + query construction |
 | Result | `*/Result/*.pm` | parse one API record via `from_hashref($data)` |
 | Cache | `WWW::MetaForge::Cache` | optional response cache shared by both APIs |
-| CLI | `WWW::MetaForge::ArcRaiders::CLI` + `CLI/Cmd/*` | MooX::Cmd + MooX::Options; `bin/metaforge-arcraiders` (installed as `arcraiders`) |
+| CLI | `WWW::MetaForge::ArcRaiders::CLI` + `CLI/Cmd/*` | MooX::Cmd + MooX::Options; `bin/metaforge-arcraiders` (installed under the same name) |
 
 Two API namespaces are deliberately separate: `ArcRaiders` and `GameMapData`
 each have their own `Request` and their own `MapMarker` result class. Do not
@@ -86,8 +86,8 @@ the `p5-mcp-arcraiders` board (cross-repo handoff), not a direct change.
 ## Testing
 
 ```bash
-prove -l t/                    # MockUA fixtures, no network
-USE_LIVE_API=1 prove -l t/     # against the live API
+prove -l t/                                # MockUA fixtures, no network
+WWW_METAFORGE_USE_LIVE_API=1 prove -l t/   # against the live API
 ```
 
 - Default runs go through `t/lib/MockUA.pm`; fixtures live in `t/fixtures/` and
@@ -95,7 +95,7 @@ USE_LIVE_API=1 prove -l t/     # against the live API
   same nesting). A hand-tidied fixture makes the suite lie.
 - `Test::More` + `done_testing`, one `subtest` per behavior. Read a neighbouring
   test file before adding one.
-- Some tests only run with `USE_LIVE_API=1`; those hit the network and can hang
+- Some tests only run with `WWW_METAFORGE_USE_LIVE_API=1`; those hit the network and can hang
   when the API is slow — run a single file with a timeout when debugging.
 
 ## Related

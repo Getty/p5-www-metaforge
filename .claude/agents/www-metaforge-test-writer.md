@@ -1,6 +1,6 @@
 ---
 name: www-metaforge-test-writer
-description: "Write and extend tests for WWW::MetaForge under t/. Use for new coverage and regression tests. Tests run offline through t/lib/MockUA.pm with fixtures in t/fixtures/ that must mirror the live API response exactly; live-API runs are opt-in via USE_LIVE_API=1."
+description: "Write and extend tests for WWW::MetaForge under t/. Use for new coverage and regression tests. Tests run offline through t/lib/MockUA.pm with fixtures in t/fixtures/ that must mirror the live API response exactly; live-API runs are opt-in via WWW_METAFORGE_USE_LIVE_API=1."
 model: sonnet
 briefing:
   skills:
@@ -17,7 +17,7 @@ and assertions. If the intent is unclear or the briefed behavior seems wrong, st
 
 Hard rules:
 - **The default suite must not touch the network.** Go through `t/lib/MockUA.pm`; a test
-  that only passes with `USE_LIVE_API=1` must skip without it.
+  that only passes with `WWW_METAFORGE_USE_LIVE_API=1` must skip without it.
 - A fixture in `t/fixtures/` is a copy of the real API response, not a convenience
   structure. Never invent keys, never normalize casing, never trim nesting to make an
   assertion easier.
