@@ -48,8 +48,10 @@ Revision history for WWW-MetaForge
  - `metaforge-arcraiders items --category` and `--rarity` filter on the
    server across all pages, matching the exact API value
  - Arc: add `data` with the ARC's variants; `metaforge-arcraiders arcs
-   --loot` requests includeLoot=true; `metaforge-arcraiders arc` shows
-   whether an ARC flies and the rarity of each drop
+   --loot` requests includeLoot=true and lists the drops of each ARC with
+   their rarity under it, and (no loot drops) for an ARC without any;
+   `metaforge-arcraiders arc` shows whether an ARC flies and the rarity of
+   each drop
  - Quest: add `description`, `additional_rewards` and `manifest`;
    `metaforge-arcraiders quest` shows the trader, prerequisites,
    description, required and granted items by name and quantity, and all

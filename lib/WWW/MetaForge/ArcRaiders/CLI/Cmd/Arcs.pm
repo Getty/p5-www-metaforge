@@ -60,6 +60,9 @@ sub execute {
     my $name = $arc->name // 'Unknown';
     my $id   = $arc->id // '-';
     printf "%-40s  [%s]\n", $name, $id;
+    next unless $self->loot;
+    print "  (no loot drops)\n" unless @{$arc->loot};
+    printf "  %-38s  %s\n", $_->{item}{name}, $_->{item}{rarity} // '-' for @{$arc->loot};
   }
 
   my $shown = scalar(@$arcs);
@@ -81,7 +84,7 @@ sub execute {
   # List ARCs (first page)
   metaforge-arcraiders arcs
 
-  # Include loot drop information
+  # List the loot drops under each ARC
   metaforge-arcraiders arcs --loot
   metaforge-arcraiders arcs -l
 
@@ -112,8 +115,10 @@ fetch all available ARCs across all pages.
 
 =head2 --loot, -l
 
-Include loot drop information for each ARC. When enabled, the API returns additional
-details about what items each ARC can drop.
+Include loot drop information for each ARC. The API is asked for the loot
+(C<includeLoot=true>), and every ARC is followed by the items it drops, indented,
+each with its rarity. An ARC without drops gets the line C<(no loot drops)>.
+With C<--json> the loot is part of the raw API data.
 
 =head2 --page PAGE, -p PAGE
 
@@ -135,6 +140,14 @@ In normal mode, outputs a formatted list with each ARC on its own line:
 
   ARC Name                                  [ID]
   Another ARC                               [42]
+
+With C<--loot>, the drops follow each ARC:
+
+  ARC Name                                  [ID]
+    Item Name                               Rare
+    Another Item                            Common
+  Another ARC                               [42]
+    (no loot drops)
 
 At the end, displays a summary:
 
