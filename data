@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T07:05:08Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:05:08Z
+created: 2026-11-03T06:54:20Z
+id: 48
+priority: medium
+started: 2026-11-03T06:54:27Z
+status: done
+tags:
+- tests
+- docs
+title: Kartennummern und Geschichte aus Testkommentaren und Testnamen entfernen
+updated: 2026-11-03T07:05:08Z
+---
+
+Hub Runde 3: keine karr kNN, (kNN) in Testnamen, "Before kNN" in t/, lib/, bin/, README, Changes. Kommentare sagen, was gilt und warum; die Karte steht nur im Commit. Betrifft nur t/ (lib, bin, README, Changes sind frei).
+
+Commit 2112ff7: card numbers and history removed from comments and test names in t/
