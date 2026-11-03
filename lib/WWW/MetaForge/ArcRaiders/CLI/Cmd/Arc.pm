@@ -9,6 +9,7 @@ use JSON::MaybeXS;
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
+  $app->prepare_output;
 
   my $arc_id = $args->[0];
   unless ($arc_id) {
@@ -39,7 +40,7 @@ sub execute {
   my $arc = $arcs->[0];
 
   if ($app->json) {
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode($arc->_raw);
+    print JSON::MaybeXS->new(pretty => 1)->encode($arc->_raw);
     return;
   }
 

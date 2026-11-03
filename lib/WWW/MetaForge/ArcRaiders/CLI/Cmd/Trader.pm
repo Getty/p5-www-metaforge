@@ -9,6 +9,7 @@ use JSON::MaybeXS;
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
+  $app->prepare_output;
 
   my $name = $args->[0];
   unless (defined $name && length $name) {
@@ -32,7 +33,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode($trader->_raw);
+    print JSON::MaybeXS->new(pretty => 1)->encode($trader->_raw);
     return;
   }
 

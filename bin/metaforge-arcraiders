@@ -6,7 +6,6 @@ our $VERSION = '0.003';
 
 use strict;
 use warnings;
-use open ':std', ':encoding(UTF-8)';
 use WWW::MetaForge::ArcRaiders::CLI;
 
 WWW::MetaForge::ArcRaiders::CLI->new_with_cmd;

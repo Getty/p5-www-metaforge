@@ -77,6 +77,9 @@ Revision history for WWW-MetaForge
  - Add an opt-in live API test (t/50-live-api.t, WWW_METAFORGE_USE_LIVE_API=1)
    that checks every covered endpoint and flags response keys missing from
    the fixtures
+ - Fix the CLI output encoding: --json printed UTF-8 encoded twice, and
+   text run from Perl (new_with_cmd) printed Latin-1 bytes or warned
+   "Wide character"; every command now prints UTF-8 encoded exactly once
 
 0.002     2026-01-11 04:45:55Z
 

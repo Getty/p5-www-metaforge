@@ -9,6 +9,7 @@ use JSON::MaybeXS;
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
+  $app->prepare_output;
 
   my $stations = $app->api->hideout;
   my $name = $args->[0];
@@ -28,7 +29,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode($station->_raw);
+    print JSON::MaybeXS->new(pretty => 1)->encode($station->_raw);
     return;
   }
 
@@ -39,7 +40,7 @@ sub _list_stations {
   my ($app, $stations) = @_;
 
   if ($app->json) {
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode(
+    print JSON::MaybeXS->new(pretty => 1)->encode(
       [ map { $_->_raw } @$stations ]
     );
     return;

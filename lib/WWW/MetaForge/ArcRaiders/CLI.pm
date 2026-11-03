@@ -94,6 +94,31 @@ sub _build_api {
   );
 }
 
+sub prepare_output {
+  my ($self) = @_;
+  for my $fh (\*STDOUT, \*STDERR) {
+    # a handle that already takes characters keeps its layers; without the
+    # check every command run would stack one more :encoding layer
+    binmode $fh, ':encoding(UTF-8)'
+      unless grep { $_ eq 'utf8' } PerlIO::get_layers($fh, output => 1);
+  }
+  return;
+}
+
+=method prepare_output
+
+    $app->prepare_output;
+
+Every command calls this before it prints. The commands print character
+strings, text and JSON alike; this puts an C<:encoding(UTF-8)> layer on
+C<STDOUT> and C<STDERR> so they leave the process UTF-8 encoded exactly once,
+whether the CLI runs as F<metaforge-arcraiders> or from Perl via
+C<new_with_cmd>. A handle that already takes characters (C<:utf8> or any
+C<:encoding> layer) is left as it is. The layer stays on the handles after the
+command has run.
+
+=cut
+
 sub execute {
   my ($self, $args, $chain) = @_;
 

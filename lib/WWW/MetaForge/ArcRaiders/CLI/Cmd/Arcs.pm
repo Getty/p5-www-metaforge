@@ -28,6 +28,7 @@ option all => (
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
+  $app->prepare_output;
 
   my %params;
   $params{includeLoot} = 'true' if $self->loot;
@@ -44,7 +45,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode(
+    print JSON::MaybeXS->new(pretty => 1)->encode(
       [ map { $_->_raw } @$arcs ]
     );
     return;

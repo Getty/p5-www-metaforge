@@ -16,6 +16,7 @@ option map => (
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
+  $app->prepare_output;
 
   my $event_name = $args->[0];
   unless ($event_name) {
@@ -70,7 +71,7 @@ sub execute {
   }
 
   if ($app->json) {
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1)->encode($event->_raw);
+    print JSON::MaybeXS->new(pretty => 1)->encode($event->_raw);
     return;
   }
 

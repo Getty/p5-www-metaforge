@@ -16,6 +16,7 @@ option catalog => (
 sub execute {
   my ($self, $args, $chain) = @_;
   my $app = $chain->[0];
+  $app->prepare_output;
 
   my $trials = $app->api->weekly_trials;
   my $window = $app->api->weekly_trials_window;
@@ -26,7 +27,7 @@ sub execute {
 
   if ($app->json) {
     my @shown = $self->catalog ? @catalog : ( @active, @upcoming );
-    print JSON::MaybeXS->new(utf8 => 1, pretty => 1, canonical => 1)->encode(
+    print JSON::MaybeXS->new(pretty => 1, canonical => 1)->encode(
       { %{ $window->_raw }, data => [ map { $_->_raw } @shown ] }
     );
     return;
