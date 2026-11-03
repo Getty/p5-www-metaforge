@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T07:05:39Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:05:39Z
+created: 2026-11-03T06:54:21Z
+id: 49
+priority: medium
+started: 2026-11-03T06:54:28Z
+status: done
+tags:
+- tests
+- live
+title: Live-Test prueft events-schedule region=all auf Drift gegen die Fixture
+updated: 2026-11-03T07:05:39Z
+---
+
+Hub Runde 3: t/50 prueft zusaetzlich events-schedule?region=all gegen t/fixtures/events-schedule-region-all.json.
+
+Commit cef4f2e: live test checks the events schedule of all regions
