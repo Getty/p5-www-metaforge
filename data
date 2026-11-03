@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-11-03T07:42:04Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:42:00Z
+created: 2026-11-03T06:29:08Z
+id: 42
+priority: low
+started: 2026-11-03T06:54:02Z
+status: done
+tags:
+- cli
+title: 'CLI: globales Getopt pass_through laesst jedes Subkommando unbekannte Optionen
+  still schlucken'
+updated: 2026-11-03T07:42:04Z
+---
+
+Gefunden in Runde 2 bei k37: use Getopt::Long qw(:config pass_through) in CLI.pm gilt prozessweit; quests --type x, arcs --bogus, arcs --lot (Tippfehler) laufen mit Exit 0 ohne Meldung. MooX::Options allein meldet Unknown option.
+
+pass_through wird nicht gebraucht: MooX::Cmd gibt der Hauptklasse nur die Argumente vor dem Kommando (MooX/Cmd/Role.pm:170). Abgeschaltet; help|h ist globale Option; GetOptions-Fehlschlag -> Hinweis auf --help, exit 1. Hilfe-Übersicht, CLI-POD, README nennen die Stelle der globalen Optionen; POD-Beispiele traders/quests/quest mit --json vor dem Kommando. t/63 (8 Subtests, Request-Zählung) rot gegen HEAD 5/8, grün danach. Suite 48 Dateien/463 Tests PASS. Drift: k50.
+
+Committed as c35df42
