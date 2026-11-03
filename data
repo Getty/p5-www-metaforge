@@ -1,0 +1,21 @@
+---
+claimed_at: 2026-11-03T07:05:06Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:05:06Z
+created: 2026-11-03T06:54:19Z
+id: 47
+priority: high
+started: 2026-11-03T06:54:26Z
+status: done
+tags:
+- tests
+- release
+title: 't/55 ist im gebauten Dist rot: Pod::Weaver erzeugt NAME/VERSION/SUPPORT, die
+  Quellpruefung schlaegt bei dzil test und Installation an'
+updated: 2026-11-03T07:05:06Z
+---
+
+Hub Runde 3: dzil test rot, t/55 Subtest 3 meldet 210 Treffer. Quellpruefungen nur im Quellbaum laufen lassen; belegen mit dzil test und Installation aus dem Tarball.
+
+Commit bba67c9: t/55 runs its POD source checks in the source tree only
