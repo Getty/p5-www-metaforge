@@ -74,6 +74,9 @@ Revision history for WWW-MetaForge
    data source in the README and in the POD of WWW::MetaForge,
    WWW::MetaForge::GameMapData and metaforge-arcraiders, and list the newer
    ARC Raiders data and commands there
+ - Add an opt-in live API test (t/50-live-api.t, WWW_METAFORGE_USE_LIVE_API=1)
+   that checks every covered endpoint and flags response keys missing from
+   the fixtures
 
 0.002     2026-01-11 04:45:55Z
 
