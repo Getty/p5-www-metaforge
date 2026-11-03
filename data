@@ -1,0 +1,24 @@
+---
+claimed_at: 2026-11-03T06:42:27Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:42:27Z
+created: 2026-11-03T05:41:29Z
+id: 34
+priority: medium
+started: 2026-11-03T05:57:59Z
+status: done
+tags:
+- bug
+- cli
+title: 'CLI dekodiert @ARGV nicht: Namen mit Nicht-ASCII werden nicht gefunden'
+updated: 2026-11-03T06:42:27Z
+---
+
+Beim k30-Durchgang gefunden: quest "Celeste’s Journals" wird nicht gefunden, das Echo "Quest ... not found." ist doppelt kodiert (c3 a2 c2 80 c2 99). @ARGV kommt als Bytes an und wird nie dekodiert. War mit dem alten bin (use open :std) genauso. Betrifft jede Namenssuche der CLI (item, quest, arc, trader, event, hideout).
+
+Commit f40385c
+
+Wieder offen: Live-Abnahme scheitert. quest "Celeste’s Journals" -> quests?id=<Name> -> Live-API 404 {"error":"Quest not found"} -> CLI stirbt (API request failed). Gilt fuer jeden Quest-Namen, schon in 0.002. items/arcs?id=unbekannt antworten 200. MockUA bildet den 404 nicht nach.
+
+Live-Abnahme jetzt ok: f1ba16b faengt den 404 der ID-Abfrage ab (quests?id=<unbekannt> -> 404), dann Namenssuche. Live: quest "Celeste’s Journals" gefunden, unbekannter Name -> not found.
