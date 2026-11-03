@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T06:31:53Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:31:53Z
+created: 2026-11-03T05:56:29Z
+id: 37
+priority: medium
+started: 2026-11-03T06:22:44Z
+status: done
+tags:
+- cli
+title: quests --type entfaellt (API hat kein Typ-Feld, ignoriert den Parameter)
+updated: 2026-11-03T06:31:53Z
+---
+
+Hub Runde 2 Punkt 8. Live 123 Quests: kein Typ-Feld; manifest.cadence immer NARRATIVE, marker_category bei 120 null.
+
+Commit 6ed5d64
