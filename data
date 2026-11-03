@@ -1,0 +1,24 @@
+---
+claimed_at: 2026-11-03T06:34:18Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:34:18Z
+created: 2026-11-03T05:56:29Z
+id: 36
+priority: medium
+started: 2026-11-03T06:06:15Z
+status: done
+tags:
+- events
+- cli
+- cache
+title: 'Events: --region fuer events/event, event zeigt nur laufende und kommende
+  Termine, event_timers_cached verfaellt nach Regel aus der Antwort'
+updated: 2026-11-03T06:34:18Z
+---
+
+Hub Runde 2 Punkt 7.
+
+Cache-Regel: Commit 37d5005; CLI-Teil (--region, nur kommende Termine) offen
+
+CLI-Teil: Commit 0b93fb4
