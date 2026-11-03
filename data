@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T06:31:54Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:31:54Z
+created: 2026-11-03T05:56:30Z
+id: 38
+priority: medium
+started: 2026-11-03T06:22:44Z
+status: done
+tags:
+- cli
+title: arcs --loot zeigt den Loot auch in der Textansicht
+updated: 2026-11-03T06:31:54Z
+---
+
+Hub Runde 2 Punkt 9.
+
+Commit 8d3d1e0
