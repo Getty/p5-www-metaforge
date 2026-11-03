@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-11-03T06:05:43Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T06:05:43Z
+created: 2026-11-03T05:41:30Z
+id: 35
+priority: low
+started: 2026-11-03T05:58:00Z
+status: done
+tags:
+- cache
+title: Cache schreibt JSON doppelt UTF-8-kodiert auf die Platte
+updated: 2026-11-03T06:05:43Z
+---
+
+Beim k30-Durchgang gefunden: WWW::MetaForge::Cache kodiert mit JSON utf8 => 1 (Bytes) und schreibt mit spew_utf8 (kodiert nochmal). Gelesen wird symmetrisch (slurp_utf8 + utf8-Decode, auch ArcRaiders.pm event_timers_hourly), daher in sich stimmig, aber die Dateien sind fuer andere Leser falsch. Korrektur macht bestehende Cache-Dateien falsch lesbar → Migrations-/Versionsfrage fuer den Maintainer. Downstream p5-mcp-arcraiders nutzt den Cache (namespace mcp-arcraiders).
+
+Committed in a232bb0
