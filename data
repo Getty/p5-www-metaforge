@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T07:17:16Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:17:16Z
+created: 2026-11-03T06:29:09Z
+id: 43
+priority: low
+started: 2026-11-03T06:54:02Z
+status: done
+tags:
+- docs
+title: POD-Beispiele quests(type => 'StoryQuest') in Request.pm und Result/Quest.pm
+  zeigen einen Parameter, den die API nicht kennt
+updated: 2026-11-03T07:17:16Z
+---
+
+Gefunden in Runde 2 bei k37: Request.pm Z. ~92, Result/Quest.pm Z. ~154. Quests tragen live keinen Typ, die API ignoriert type.
+
+Commit 261dfbc: POD-Beispiele mit id/search statt type.
