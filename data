@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-03T07:07:35Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T07:07:35Z
+created: 2026-11-03T06:02:38Z
+id: 41
+priority: low
+started: 2026-11-03T06:54:01Z
+status: done
+tags:
+- cache
+title: Cache clear(endpoint) loescht per Praefix auch fremde Endpunkte (clear event_timers
+  trifft event_timers_hourly)
+updated: 2026-11-03T07:07:35Z
+---
+
+Gefunden in Runde 2 bei k35: clear matcht qr/^\Q$endpoint\E_/, also loescht clear('event_timers') auch event_timers_hourly_*.v2.json. Vorbestehend, nicht Teil von k35.
+
+Commit c3968cf: Cache clear(endpoint) removes exactly that endpoint
