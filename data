@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-11-03T05:47:06Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:47:06Z
+created: 2026-11-03T04:33:29Z
+id: 27
+priority: medium
+started: 2026-11-03T05:24:53Z
+status: done
+tags:
+- tests
+- live
+title: Opt-in Live-Test fuer alle abgedeckten Endpunkte
+updated: 2026-11-03T05:47:06Z
+---
+
+Hub-Auftrag Punkt 6. Opt-in per Umgebungsvariable (wie WWW_METAFORGE_USE_LIVE_API), mit Timeouts, prueft jeden abgedeckten Endpunkt. Normale Suite bleibt offline. Am Ende einmal live fahren.
+
+Committed as 89b560f; stays in-progress until the final live run
+
+Finaler Live-Lauf 2026-11-03 05:45 UTC: t/50 16/16 PASS (16 Requests, 30 s, keine Drift); t/10 15/15, t/20 8/8 live je einzeln mit timeout grün (je 1 Skip: fixture values only hold offline). Commit 89b560f.
