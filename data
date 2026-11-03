@@ -1,0 +1,25 @@
+---
+claimed_at: 2026-11-03T05:09:33Z
+claimed_by: metaforge-api
+class: standard
+completed: 2026-11-03T05:09:33Z
+created: 2026-11-03T04:39:58Z
+id: 29
+priority: high
+started: 2026-11-03T04:40:51Z
+status: done
+tags:
+- bug
+- tests
+title: Die Fassade reicht ihren ua nicht an GameMapData weiter; t/10 geht offline
+  ans Netz
+updated: 2026-11-03T05:09:33Z
+---
+
+WWW::MetaForge::ArcRaiders::_build_game_map_data gibt debug/use_cache/cache weiter, aber nicht ua. Ein injizierter UA (MockUA, oder downstream p5-mcp-arcraiders) gilt damit nicht fuer map_data. Folge: t/10-arcraiders-api.t Subtest "Map data endpoint returns valid structure" ruft offline https://metaforge.app/api/game-map-data?mapID=dam&tableID=arc_map_data (nachgewiesen durch Abfangen von LWP::UserAgent::request).
+
+k29: _build_game_map_data reicht jetzt ua => $self->ua an das Kind-GameMapData (wie cache). Nachweis per LWP-Sperre (LWP::UserAgent::request/simple_request/send_request sterben + loggen): vorher t/10 Test 9 rot, Log: https://metaforge.app/api/game-map-data?mapID=dam&tableID=arc_map_data; nachher kein Request im Log, Suite gruen (mit HEAD-Item-Dateien). Folge: map_data-Requests tragen den ArcRaiders-User-Agent-String. t/31 und t/36 injizieren game_map_data nur noch aus Gewohnheit - Test-Writer kann das vereinfachen.
+
+k29-Regression: t/43 prueft map_data(map=>'dam') ohne injiziertes game_map_data ueber genau den injizierten UA (ein Request, game_map_data->ua == ua); ohne ua-Weitergabe stirbt der Test an der MockUA-Netzsperre.
+
+Committed in d5b5810 (ua handed to GameMapData, network lock, k29 regression in t/43).
