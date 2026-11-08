@@ -1,6 +1,21 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+
+# The clock of this test: time() is frozen at a moment inside the window of
+# the fixture, before its first run. The library reads time() (cache age,
+# staleness), so the fixture must not depend on the real date: its own
+# runs lie in the past as soon as its last run has passed, and then even the
+# fresh response would count as stale. The override has to be in place before
+# the library is compiled.
+my $NOW;
+BEGIN {
+  require Time::Local;
+  $NOW = Time::Local::timegm(0, 30, 20, 2, 10, 2026);    # 2026-11-02 20:30:00 UTC
+  no warnings 'once';
+  *CORE::GLOBAL::time = sub () { $NOW };
+}
+
 use Test::More;
 use File::Temp qw(tempdir);
 use FindBin;
@@ -19,17 +34,11 @@ use WWW::MetaForge::ArcRaiders;
 # stale. Starts are compared in seconds (int of ms / 1000), timers are
 # grouped by name+map (+region, when the records carry one).
 #
-# All times are relative to time(): the fixture is a snapshot, and its own
-# times lie in the past as soon as its last run has passed. The cached
-# entries hold records built from fixture records; what a fresh request
-# delivers is the fixture itself: 35 timers out of 171 records.
-
-# The tests span a few milliseconds; do not let them straddle a full hour
-# (event_timers_hourly is valid per running hour). With under 5 s left, wait.
-{
-  my $left = 3600 - time % 3600;
-  sleep $left + 1 if $left < 5;
-}
+# All times are relative to the frozen time(), see above. The cached entries
+# hold records built from fixture records; what a fresh request delivers is
+# the fixture itself: 35 timers out of 171 records, all with a run ahead of
+# the frozen time. With a frozen clock the tests cannot straddle a full hour
+# (event_timers_hourly is valid per running hour).
 
 my $fixture = path("$FindBin::Bin/fixtures/events-schedule.json")->slurp_utf8;
 my $json    = JSON::MaybeXS->new;
