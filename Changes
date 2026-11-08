@@ -14,7 +14,7 @@ Revision history for WWW-MetaForge
    - Arc: simplified fields
    - Quest: nested rewards, trader_name, xp
    - Trader: inventory item fields
- - Add the riven-tides and stella-montis maps
+ - Add the riven-tides map
  - Add the CLI subcommands `map <map-id>` (GameMapData markers, --type filter)
    and `trader <name>` (single-trader inventory)
  - Realign the Quest and Arc CLI commands with the live API; output of fields
